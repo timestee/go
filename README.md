@@ -10,7 +10,7 @@ are grouped by higher level packages.
 
 - `audit` provides packages to support testing with better asserts, generators, environment
   manipulation, and capturing of STDOUT and STDERR
-  
+- `together` focusses on goroutines and how to manage them more convenient and reliable
 
 I hope you like it. ;)
 
