@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package together/crontab of Tideland Go Library provides the ability to
+// Package together/crontab of the Tideland Go Library provides the ability to
 // run functions once at a given time, every given interval, every given
 // interval after a given time, or every given interval after a given pause.
 // The jobs are added by the different submit commands.

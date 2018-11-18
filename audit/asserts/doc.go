@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package audit/asserts of Tideland Go Library helps writing convenient and
+// Package audit/asserts of the Tideland Go Library helps writing convenient and
 // powerful unit tests. One part of those are assertions to compare expected
 // and obtained values. Additional text output for failing tests can be
 // added.

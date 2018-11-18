@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package audit/capture of Tideland Go Library assists testing code
+// Package audit/capture of the Tideland Go Library assists testing code
 // writing output to stdout or stderr. Those will be temporarily
 // exchanged so that the written output will be catched and can be
 // retrieved.

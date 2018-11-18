@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package audit/environments of Tideland Go Library helps to manipulate
+// Package audit/environments of the Tideland Go Library helps to manipulate
 // environment variables or create temporary directories for unit tests.
 package environments
 

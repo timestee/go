@@ -166,6 +166,14 @@ func TestAssertContents(t *testing.T) {
 	failingAssert.Contents(4711, []interface{}{1, "2", 3, "4711", 5, 6, 7, 8, 9})
 	successfulAssert.Contents("4711", []interface{}{1, "2", 3, "4711", 5, 6, 7, 8, 9})
 	failingAssert.Contents("foobar", []byte("the quick brown fox jumps over the lazy dog"))
+
+	successfulAssert.NotContents("yadda", "foobarbaz")
+	successfulAssert.NotContents(123, []int{1, 2, 3, 4711, 5, 6, 7, 8, 9})
+	failingAssert.NotContents("4711", "12345-4711-67890")
+	failingAssert.NotContents("oba", "foobar")
+	failingAssert.NotContents("4711", []interface{}{1, "2", 3, "4711", 5, 6, 7, 8, 9})
+	successfulAssert.NotContents(4711, []interface{}{1, "2", 3, "4711", 5, 6, 7, 8, 9})
+	failingAssert.NotContents("fox", []byte("the quick brown fox jumps over the lazy dog"))
 }
 
 // TestAssertContentsPrint test the visualization of failing content tests.
@@ -452,7 +460,7 @@ func TestValidationAssertion(t *testing.T) {
 	details := failures.Details()
 	location, fun := details[0].Location()
 	tt := details[0].Test()
-	if location != "asserts_test.go:439:0:" || fun != "TestValidationAssertion" {
+	if location != "asserts_test.go:447:0:" || fun != "TestValidationAssertion" {
 		t.Errorf("wrong location %q or function %q of first detail", location, fun)
 	}
 	if tt != asserts.True {
@@ -460,7 +468,7 @@ func TestValidationAssertion(t *testing.T) {
 	}
 	location, fun = details[1].Location()
 	tt = details[1].Test()
-	if location != "asserts_test.go:440:0:" || fun != "TestValidationAssertion" {
+	if location != "asserts_test.go:448:0:" || fun != "TestValidationAssertion" {
 		t.Errorf("wrong location %q or function %q of second detail", location, fun)
 	}
 	if tt != asserts.Equal {

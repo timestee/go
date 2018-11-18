@@ -75,6 +75,10 @@ type Asserts interface {
 	// string, array, or slice.
 	Contents(obtained, full interface{}, msgs ...string) bool
 
+	// NotContents tests if the obtained data is not part of the expected
+	// string, array, or slice.
+	NotContents(obtained, full interface{}, msgs ...string) bool
+
 	// About tests if obtained and expected are near to each other
 	// (within the given extent).
 	About(obtained, expected, extent float64, msgs ...string) bool
@@ -256,6 +260,18 @@ func (a *asserts) Contents(part, full interface{}, msgs ...string) bool {
 	return true
 }
 
+// NotContents implements Asserts.
+func (a *asserts) NotContents(part, full interface{}, msgs ...string) bool {
+	contains, err := a.Contains(part, full)
+	if err != nil {
+		return a.failer.Fail(Contents, part, full, "type missmatch: "+err.Error())
+	}
+	if contains {
+		return a.failer.Fail(Contents, part, full, msgs...)
+	}
+	return true
+}
+
 // About implements Asserts.
 func (a *asserts) About(obtained, expected, extent float64, msgs ...string) bool {
 	if !a.IsAbout(obtained, expected, extent) {
@@ -410,7 +426,12 @@ func (a *asserts) PathExists(obtained string, msgs ...string) bool {
 }
 
 // Wait implements Asserts.
-func (a *asserts) Wait(sigc <-chan interface{}, expected interface{}, timeout time.Duration, msgs ...string) bool {
+func (a *asserts) Wait(
+	sigc <-chan interface{},
+	expected interface{},
+	timeout time.Duration,
+	msgs ...string,
+) bool {
 	select {
 	case obtained := <-sigc:
 		if !a.IsEqual(obtained, expected) {
@@ -423,7 +444,12 @@ func (a *asserts) Wait(sigc <-chan interface{}, expected interface{}, timeout ti
 }
 
 // WaitTested implements Asserts.
-func (a *asserts) WaitTested(sigc <-chan interface{}, tester func(interface{}) error, timeout time.Duration, msgs ...string) bool {
+func (a *asserts) WaitTested(
+	sigc <-chan interface{},
+	tester func(interface{}) error,
+	timeout time.Duration,
+	msgs ...string,
+) bool {
 	select {
 	case obtained := <-sigc:
 		err := tester(obtained)
