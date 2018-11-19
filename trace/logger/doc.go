@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package trace/logger of the Tideland Go Library provides a flexible way
+// Package logger of the Tideland Go Library provides a flexible way
 // to log information with different levels and on different backends.
 // A logger is created with
 //

@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package trace/errors of the Tideland Go Library allows to create more
+// Package errors of the Tideland Go Library allows to create more
 // detailed error values than with errors.New() or fmt.Errorf().
 //
 // The errors package allows to easily created formatted errors

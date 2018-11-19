@@ -392,9 +392,8 @@ func here(offset int) (string, string) {
 	frames := runtime.CallersFrames(pcs)
 	for {
 		frame, more := frames.Next()
-		pkg, fun := path.Split(frame.Function)
+		_, fun := path.Split(frame.Function)
 		parts := strings.Split(fun, ".")
-		pkg = path.Join(pkg, parts[0])
 		fun = strings.Join(parts[1:], ".")
 		_, file := path.Split(frame.File)
 		location := fmt.Sprintf("%s:%d:0:", file, frame.Line)

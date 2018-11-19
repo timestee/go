@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package text/scroller of the Tideland Go Library helps analyzing a continuously
+// Package scroller of the Tideland Go Library helps analyzing a continuously
 // written line by line text content, e.g. at the monitoring of log files.
 // Here the Scroller is working in the background and allows to read out of
 // any ReadSeeker (which may be a File) from beginning, end or a given number

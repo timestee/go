@@ -83,10 +83,11 @@ func TestAssertEqual(t *testing.T) {
 	m := map[string]int{"one": 1, "two": 2, "three": 3}
 	now := time.Now()
 	nowStr := now.Format(time.RFC3339Nano)
-	nowParsedA, err := time.Parse(time.RFC3339Nano, nowStr)
-	nowParsedB, err := time.Parse(time.RFC3339Nano, nowStr)
+	nowParsedA, errA := time.Parse(time.RFC3339Nano, nowStr)
+	nowParsedB, errB := time.Parse(time.RFC3339Nano, nowStr)
 
-	successfulAssert.Nil(err, "should not fail")
+	successfulAssert.Nil(errA, "should not fail")
+	successfulAssert.Nil(errB, "should not fail")
 	successfulAssert.Equal(nowParsedA, nowParsedB, "should not fail")
 	successfulAssert.Equal(nil, nil, "should not fail")
 	successfulAssert.Equal(true, true, "should not fail")
@@ -460,7 +461,7 @@ func TestValidationAssertion(t *testing.T) {
 	details := failures.Details()
 	location, fun := details[0].Location()
 	tt := details[0].Test()
-	if location != "asserts_test.go:447:0:" || fun != "TestValidationAssertion" {
+	if location != "asserts_test.go:448:0:" || fun != "TestValidationAssertion" {
 		t.Errorf("wrong location %q or function %q of first detail", location, fun)
 	}
 	if tt != asserts.True {
@@ -468,7 +469,7 @@ func TestValidationAssertion(t *testing.T) {
 	}
 	location, fun = details[1].Location()
 	tt = details[1].Test()
-	if location != "asserts_test.go:448:0:" || fun != "TestValidationAssertion" {
+	if location != "asserts_test.go:449:0:" || fun != "TestValidationAssertion" {
 		t.Errorf("wrong location %q or function %q of second detail", location, fun)
 	}
 	if tt != asserts.Equal {

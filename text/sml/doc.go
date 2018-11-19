@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package text/sml of the Tideland Go Library provides a very simple
+// Package sml of the Tideland Go Library provides a very simple
 // markup language using a kind of LISP like notation with curly braces.
 //
 // The tag only consists out of the chars 'a' to 'z', '0' to '9'

@@ -40,7 +40,7 @@ var tests = []struct {
 	injector         func(*scroller.Scroller, *readSeeker) func([]string)
 	err              string
 }{{
-	description: "no lines existing; initially no lines scrolled",
+	description: "no lines existing; initially no lines skipped",
 	options: func() []scroller.Option {
 		return []scroller.Option{
 			scroller.PollTime(2 * time.Millisecond),
@@ -49,17 +49,17 @@ var tests = []struct {
 	initialExpected:  []int{},
 	appendedExpected: intRange(0, 99),
 }, {
-	description: "no lines existing; initially five lines scrolled",
+	description: "no lines existing; initially five lines skipped",
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(5),
+			scroller.Skip(5),
 			scroller.PollTime(2 * time.Millisecond),
 		}
 	},
 	initialExpected:  []int{},
 	appendedExpected: intRange(0, 99),
 }, {
-	description: "ten lines existing; initially no lines scrolled",
+	description: "ten lines existing; initially no lines skipped",
 	initialLeg:  10,
 	options: func() []scroller.Option {
 		return []scroller.Option{
@@ -69,33 +69,33 @@ var tests = []struct {
 	initialExpected:  []int{},
 	appendedExpected: intRange(10, 99),
 }, {
-	description: "ten lines existing; initially five lines scrolled",
+	description: "ten lines existing; initially five lines skipped",
 	initialLeg:  10,
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(5),
+			scroller.Skip(5),
 			scroller.PollTime(2 * time.Millisecond),
 		}
 	},
 	initialExpected:  intRange(5, 9),
 	appendedExpected: intRange(10, 99),
 }, {
-	description: "ten lines existing; initially twenty lines scrolled",
+	description: "ten lines existing; initially twenty lines skipped",
 	initialLeg:  10,
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(20),
+			scroller.Skip(20),
 			scroller.PollTime(2 * time.Millisecond),
 		}
 	},
 	initialExpected:  intRange(0, 9),
 	appendedExpected: intRange(10, 99),
 }, {
-	description: "ten lines existing; initially twenty lines scrolled; buffer smaller than lines",
+	description: "ten lines existing; initially twenty lines skipped; buffer smaller than lines",
 	initialLeg:  10,
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(20),
+			scroller.Skip(20),
 			scroller.PollTime(2 * time.Millisecond),
 			scroller.BufferSize(10),
 		}
@@ -103,11 +103,11 @@ var tests = []struct {
 	initialExpected:  intRange(0, 9),
 	appendedExpected: intRange(10, 99),
 }, {
-	description: "ten lines existing; initially three lines scrolled; filter lines with special prefix",
+	description: "ten lines existing; initially three lines skipped; filter lines with special prefix",
 	initialLeg:  10,
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(3),
+			scroller.Skip(3),
 			scroller.Filter(func(line []byte) bool { return bytes.HasPrefix(line, specialPrefix) }),
 			scroller.PollTime(2 * time.Millisecond),
 		}
@@ -115,11 +115,11 @@ var tests = []struct {
 	initialExpected:  []int{3, 5, 8},
 	appendedExpected: []int{13, 21, 44, 65},
 }, {
-	description: "ten lines existing; initially five lines scrolled; error after further 25 lines",
+	description: "ten lines existing; initially five lines skipped; error after further 25 lines",
 	initialLeg:  10,
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(5),
+			scroller.Skip(5),
 			scroller.PollTime(2 * time.Millisecond),
 		}
 	},
@@ -134,11 +134,11 @@ var tests = []struct {
 	},
 	err: "ouch",
 }, {
-	description: "ten lines existing; initially five lines scrolled; simply stop after 25 lines",
+	description: "ten lines existing; initially five lines skipped; simply stop after 25 lines",
 	initialLeg:  10,
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(5),
+			scroller.Skip(5),
 			scroller.PollTime(2 * time.Millisecond),
 		}
 	},
@@ -156,7 +156,7 @@ var tests = []struct {
 	initialLeg:  103,
 	options: func() []scroller.Option {
 		return []scroller.Option{
-			scroller.Lines(5),
+			scroller.Skip(5),
 			scroller.PollTime(2 * time.Millisecond),
 		}
 	},
@@ -377,8 +377,7 @@ func newReceiver(assert asserts.Asserts, data []string) *receiver {
 
 func (r *receiver) autoClose(scroller *scroller.Scroller) {
 	go func() {
-		// TODO: Use notifier here.
-		// scroller.Wait()
+		scroller.Wait()
 		r.writer.Close()
 	}()
 }

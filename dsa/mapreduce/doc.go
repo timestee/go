@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package dsa/mapreduce of the Tideland Go Library implements the Map/Reduce
+// Package mapreduce of the Tideland Go Library implements the Map/Reduce
 // algorithm for the processing and aggregation mass data.
 //
 // A type implementing the MapReducer interface has to be implemented

@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package dsa/identifier of the Tideland Go Library provides different ways to
+// Package identifier of the Tideland Go Library provides different ways to
 // produce identifiers out of diffent input data as well as UUIDs.
 //
 // The UUID generation can be done according the versions 1, 3, 4, and 5.

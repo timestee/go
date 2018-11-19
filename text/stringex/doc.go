@@ -5,15 +5,15 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package text/stringex of the Tideland Go Library helps when working with
+// Package stringex of the Tideland Go Library helps when working with
 // strings. So SplitFilter() and SplitMap() split given strings by a
 // separator and user defined functions are called for each part to
 // filter or map those.
 //
 // Matches() provides a more simple string matching than regular
 // expressions. Patterns are ? for one char, * for multiple chars,
-// and [aeiou] or [0-9] for group or ranges of chars. Both latter
-// can be negotiated with [^abc] while the pattern chars also can
+// and [aeiou] or [0-9] for group or ranges of chars. Both can
+// be negotiated with [^abc] while the pattern chars also can
 // be escaped with \.
 //
 // While the Valuer defines the interface to anything that may

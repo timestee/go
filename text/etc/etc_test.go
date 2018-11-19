@@ -35,6 +35,7 @@ func TestRead(t *testing.T) {
 
 	source := "{etc {foo 42}{bar 24}}"
 	cfg, err := etc.Read(strings.NewReader(source))
+	assert.NotNil(cfg)
 	assert.Nil(err)
 
 	source = "{something {gnagnagna}}"
@@ -307,6 +308,7 @@ func TestSplit(t *testing.T) {
 	applied, err := subcfg.Apply(etc.Application{
 		"c": "Darling",
 	})
+	assert.Nil(err)
 	ac := applied.ValueAsString("c", "A1")
 	assert.Equal(ac, "Darling")
 	ac = subcfg.ValueAsString("c", "A2")

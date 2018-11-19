@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package together/limiter of the Tideland Go Library allows to restrict the number
+// Package limiter of the Tideland Go Library allows to restrict the number
 // of parallel executed functions, e.g. to avoid an overload where processing
 // requests.
 //

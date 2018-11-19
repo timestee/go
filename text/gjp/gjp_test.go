@@ -411,7 +411,7 @@ func createDocument(assert asserts.Asserts) ([]byte, *levelOne) {
 	lo := &levelOne{
 		A: "Level One",
 		B: []*levelTwo{
-			&levelTwo{
+			{
 				A: "Level Two - 0",
 				B: 100,
 				C: true,
@@ -427,7 +427,7 @@ func createDocument(assert asserts.Asserts) ([]byte, *levelOne) {
 					"true",
 				},
 			},
-			&levelTwo{
+			{
 				A: "Level Two - 1",
 				B: 200,
 				C: false,
@@ -441,7 +441,7 @@ func createDocument(assert asserts.Asserts) ([]byte, *levelOne) {
 					"white",
 				},
 			},
-			&levelTwo{
+			{
 				A: "Level Two - 2",
 				B: 300,
 				C: true,
@@ -463,7 +463,7 @@ func createCompareDocument(assert asserts.Asserts) []byte {
 	lo := &levelOne{
 		A: "Level One",
 		B: []*levelTwo{
-			&levelTwo{
+			{
 				A: "Level Two - 0",
 				B: 100,
 				C: true,
@@ -479,7 +479,7 @@ func createCompareDocument(assert asserts.Asserts) []byte {
 					"false",
 				},
 			},
-			&levelTwo{
+			{
 				A: "Level Two - 1",
 				B: 300,
 				C: false,

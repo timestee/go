@@ -1,11 +1,14 @@
 # Tideland Go Libray
 
-[![GitHub license](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://raw.githubusercontent.com/tideland/goaudit/master/LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tideland/go)](https://goreportcard.com/report/tideland.one/go)
+[![GitHub release](https://img.shields.io/github/release/tideland/go.svg)](https://github.com/tideland/go)
+[![GitHub license](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://raw.githubusercontent.com/tideland/go/master/LICENSE)
+[![GoDoc](https://godoc.org/github.com/tideland/go?status.svg)](https://godoc.org/github.com/tideland/go)
+[![Sourcegraph](https://sourcegraph.com/github.com/tideland/go/-/badge.svg)](https://sourcegraph.com/github.com/tideland/go?badge)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tideland/golib)](https://goreportcard.com/report/tideland.one/go)
 
 ## Description
 
-*Tideland Go Library* provides a number of helpful packages for different areas. They
+**Tideland Go Library** provides a number of helpful packages for different areas. They
 are grouped by higher level packages.
 
 - `audit` provides packages to support testing with better asserts, generators, environment
@@ -26,4 +29,4 @@ I hope you like it. ;)
 
 ## License
 
-*Tideland Go Library* is distributed under the terms of the BSD 3-Clause license.
+**Tideland Go Library*** is distributed under the terms of the BSD 3-Clause license.

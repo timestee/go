@@ -52,13 +52,13 @@ type FilterFunc func(line []byte) bool
 // Option defines a function setting an option.
 type Option func(s *Scroller) error
 
-// Lines sets the number of lines ro scroll initially.
-func Lines(l int) Option {
+// Skip sets the number of lines ro skip initially.
+func Skip(l int) Option {
 	return func(s *Scroller) error {
 		if l < 0 {
-			return errors.New(ErrNegativeLines, "negative number of lines are not allowed: %d", l)
+			return errors.New(ErrNegativeLines, "negative number of lines to skip are not allowed: %d", l)
 		}
-		s.lines = l
+		s.skip = l
 		return nil
 	}
 }
@@ -101,7 +101,7 @@ type Scroller struct {
 	source io.ReadSeeker
 	target io.Writer
 
-	lines      int
+	skip       int
 	filter     FilterFunc
 	bufferSize int
 	pollTime   time.Duration
@@ -142,7 +142,16 @@ func NewScroller(source io.ReadSeeker, target io.Writer, options ...Option) (*Sc
 
 // Stop tells the scroller to end working.
 func (s *Scroller) Stop() error {
+	if s.ntfr.Status() == notifier.Stopped {
+		return s.Err()
+	}
 	return s.loop.Stop(nil)
+}
+
+// Wait makes a caller waiting until the scroller has stopped working.
+func (s *Scroller) Wait() error {
+	<-s.ntfr.Stopped()
+	return s.Err()
 }
 
 // Err returns the status and a possible error of the scroller.
@@ -152,12 +161,13 @@ func (s *Scroller) Err() error {
 
 // backendLoop is the goroutine for reading, filtering and writing.
 func (s *Scroller) backendLoop(c *notifier.Closer) error {
-	// Initial positioning.
-	if err := s.seekInitial(); err != nil {
+	// Initial positioning by skipping configured number of lines.
+	if err := s.skipInitial(); err != nil {
 		return err
 	}
 	// Polling loop.
 	timer := time.NewTimer(0)
+	defer timer.Stop()
 	for {
 		select {
 		case <-c.Done():
@@ -184,14 +194,14 @@ func (s *Scroller) backendLoop(c *notifier.Closer) error {
 	}
 }
 
-// seekInitial sets the initial position to start reading. This
-// position depends on the number lines and the filter st.
-func (s *Scroller) seekInitial() error {
+// skipInitial sets the initial position to start reading. This
+// position depends on the set of number lines to skip and the filter.
+func (s *Scroller) skipInitial() error {
 	offset, err := s.source.Seek(0, os.SEEK_END)
 	if err != nil {
 		return err
 	}
-	if s.lines < 1 {
+	if s.skip < 1 {
 		// Simple case, no initial lines wanted.
 		return nil
 	}
@@ -248,7 +258,7 @@ SeekLoop:
 			start++
 			if s.isValid(buffer[start:end]) {
 				found++
-				if found >= s.lines {
+				if found >= s.skip {
 					seekPos = offset + int64(start)
 					break SeekLoop
 				}
