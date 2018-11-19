@@ -14,7 +14,7 @@ are grouped by higher level packages.
 - `audit` provides packages to support testing with better asserts, generators, environment
   manipulation, and capturing of STDOUT and STDERR
 - `dsa` contains data structures and algorithms like collections and sorting, identifier
-  generation, e.g. UUIDs, and map/reduce
+  generation, e.g. UUIDs, map/reduce, times, and semantic versions
 - `text` simplifies life with text data, text based configurations in the LISP like 
   simple markup language SML, with schemeless JSON, and the processing of continuously 
   written text lines
