@@ -62,8 +62,7 @@ type Loop struct {
 	err      error
 }
 
-// Loop manages a loop function.
-// New creates a Loop with the passed options.
+// New creates a new loop running the passed worker with the set options.
 func New(w Worker, options ...Option) *Loop {
 	// Init with default values.
 	l := &Loop{

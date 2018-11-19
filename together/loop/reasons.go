@@ -58,7 +58,7 @@ func (rs Reasons) Len() int {
 	return len(rs)
 }
 
-// {ast returns the last appended reason.
+// Last returns the last appended reason.
 func (rs Reasons) Last() Reason {
 	return rs[len(rs)-1]
 }
