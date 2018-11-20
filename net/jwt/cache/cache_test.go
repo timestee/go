@@ -12,6 +12,7 @@ package cache_test
 //--------------------
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -32,7 +33,7 @@ import (
 func TestCachePutGet(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing cache put and get")
-	cache := cache.New(time.Minute, time.Minute, time.Minute, 10)
+	cache := cache.New(nil, time.Minute, time.Minute, time.Minute, 10)
 	key := []byte("secret")
 	claims := initClaims()
 	jwtIn, err := token.Encode(claims, key, crypto.HS512)
@@ -54,7 +55,9 @@ func TestCachePutGet(t *testing.T) {
 func TestCacheAccessCleanup(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing cache access based cleanup")
-	cache := cache.New(time.Second, time.Second, time.Second, 10)
+	ctx := context.Background()
+	cache := cache.New(ctx, time.Second, time.Second, time.Second, 10)
+	defer cache.Stop()
 	key := []byte("secret")
 	claims := initClaims()
 	jwtIn, err := token.Encode(claims, key, crypto.HS512)
@@ -76,7 +79,9 @@ func TestCacheAccessCleanup(t *testing.T) {
 func TestCacheValidityCleanup(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing cache validity based cleanup")
-	cache := cache.New(time.Minute, time.Second, time.Second, 10)
+	ctx := context.Background()
+	cache := cache.New(ctx, time.Minute, time.Second, time.Second, 10)
+	defer cache.Stop()
 	key := []byte("secret")
 	now := time.Now()
 	nbf := now.Add(-2 * time.Second)
@@ -110,7 +115,9 @@ func TestCacheLoad(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing cache load based cleanup")
 	cacheTime := 100 * time.Millisecond
-	cache := cache.New(2*cacheTime, cacheTime, cacheTime, 4)
+	ctx := context.Background()
+	cache := cache.New(ctx, 2*cacheTime, cacheTime, cacheTime, 4)
+	defer cache.Stop()
 	claims := initClaims()
 	// Now fill the cache and check that it doesn't
 	// grow too high.
@@ -123,6 +130,28 @@ func TestCacheLoad(t *testing.T) {
 		size := cache.Put(jwtIn)
 		assert.True(size < 6)
 	}
+}
+
+// TestCacheContext tests the cache stopping by context.
+func TestCacheContext(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+	assert.Logf("testing cache stopping by context")
+	ctx, cancel := context.WithCancel(context.Background())
+	cache := cache.New(ctx, time.Minute, time.Minute, time.Minute, 10)
+	key := []byte("secret")
+	claims := initClaims()
+	jwtIn, err := token.Encode(claims, key, crypto.HS512)
+	assert.Nil(err)
+	cache.Put(jwtIn)
+	// Now cancel and test to get token.
+	cancel()
+	time.Sleep(10 * time.Millisecond)
+	token := jwtIn.String()
+	jwtOut, ok := cache.Get(token)
+	assert.False(ok)
+	assert.Nil(jwtOut)
+	err = cache.Stop()
+	assert.ErrorMatch(err, "loop not working")
 }
 
 //--------------------

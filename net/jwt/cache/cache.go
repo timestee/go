@@ -12,6 +12,7 @@ package cache
 //--------------------
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -24,30 +25,15 @@ import (
 // CACHE
 //--------------------
 
-// Cache provides a caching for tokens so that these
-// don't have to be decoded or verified multiple times.
-type Cache interface {
-	// Get tries to retrieve a token from the cache.
-	Get(token string) (token.JWT, bool)
-
-	// Put adds a token to the cache.
-	Put(jwt token.JWT) int
-
-	// Cleanup manually tells the cache to cleanup.
-	Cleanup()
-
-	// Stop tells the cache to end working.
-	Stop() error
-}
-
 // cacheEntry manages a token and its access time.
 type cacheEntry struct {
-	jwt      token.JWT
+	jwt      *token.JWT
 	accessed time.Time
 }
 
-// cache implements Cache.
-type cache struct {
+// Cache provides a caching for tokens so that these
+// don't have to be decoded or verified multiple times.
+type Cache struct {
 	mu         sync.Mutex
 	entries    map[string]*cacheEntry
 	ttl        time.Duration
@@ -65,8 +51,8 @@ type cache struct {
 // cleanup is running. Final configuration parameter is the maximum
 // number of entries inside the cache. If these grow too fast the
 // ttl will be temporarily reduced for cleanup.
-func New(ttl, leeway, interval time.Duration, maxEntries int) Cache {
-	c := &cache{
+func New(ctx context.Context, ttl, leeway, interval time.Duration, maxEntries int) *Cache {
+	c := &Cache{
 		entries:    map[string]*cacheEntry{},
 		ttl:        ttl,
 		leeway:     leeway,
@@ -74,14 +60,21 @@ func New(ttl, leeway, interval time.Duration, maxEntries int) Cache {
 		maxEntries: maxEntries,
 		cleanupc:   make(chan time.Duration, 5),
 	}
-	c.loop = loop.New(c.backendLoop).Go()
+	options := []loop.Option{}
+	if ctx != nil {
+		options = append(options, loop.WithContext(ctx))
+	}
+	c.loop = loop.New(c.worker, options...).Go()
 	return c
 }
 
-// Get implements the Cache interface.
-func (c *cache) Get(token string) (token.JWT, bool) {
+// Get tries to retrieve a token from the cache.
+func (c *Cache) Get(token string) (*token.JWT, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.entries == nil {
+		return nil, false
+	}
 	entry, ok := c.entries[token]
 	if !ok {
 		return nil, false
@@ -95,10 +88,13 @@ func (c *cache) Get(token string) (token.JWT, bool) {
 	return nil, false
 }
 
-// Put implements the Cache interface.
-func (c *cache) Put(jwt token.JWT) int {
+// Put adds a token to the cache and return the total number of entries.
+func (c *Cache) Put(jwt *token.JWT) int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.entries == nil {
+		return 0
+	}
 	if jwt.IsValid(c.leeway) {
 		c.entries[jwt.String()] = &cacheEntry{jwt, time.Now()}
 		lenEntries := len(c.entries)
@@ -110,23 +106,31 @@ func (c *cache) Put(jwt token.JWT) int {
 	return len(c.entries)
 }
 
-// Cleanup implements the Cache interface.
-func (c *cache) Cleanup() {
+// Cleanup manually tells the cache to cleanup.
+func (c *Cache) Cleanup() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.entries == nil {
+		return
+	}
 	c.cleanupc <- c.ttl
 }
 
-// Stop implements the Cache interface.
-func (c *cache) Stop() error {
+// Stop tells the cache to end working.
+func (c *Cache) Stop() error {
 	return c.loop.Stop(nil)
 }
 
-// backendLoop runs a cleaning session every five minutes.
-func (c *cache) backendLoop(nc *notifier.Closer) error {
+// worker runs a cleaning session every five minutes.
+func (c *Cache) worker(nc *notifier.Closer) error {
 	defer func() {
 		// Cleanup entries map after stop or error.
+		c.mu.Lock()
+		defer c.mu.Unlock()
 		c.entries = nil
 	}()
 	ticker := time.NewTicker(c.interval)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-nc.Done():
@@ -140,7 +144,7 @@ func (c *cache) backendLoop(nc *notifier.Closer) error {
 }
 
 // cleanup checks for invalid or unused tokens.
-func (c *cache) cleanup(ttl time.Duration) {
+func (c *Cache) cleanup(ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	valids := map[string]*cacheEntry{}

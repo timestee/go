@@ -14,7 +14,6 @@ package token
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -27,36 +26,14 @@ import (
 // JSON Web Token
 //--------------------
 
-// JWT describes the interface to access the parts of a
-// JSON Web Token.
-type JWT interface {
-	// Stringer provides the String() method.
-	fmt.Stringer
-
-	// Claims returns the claims payload of the token.
-	Claims() claims.Claims
-
-	// Key return the key of the token only when
-	// it is a result of encoding or verification.
-	Key() (crypto.Key, error)
-
-	// Algorithm returns the algorithm of the token
-	// after encoding, decoding, or verification.
-	Algorithm() crypto.Algorithm
-
-	// IsValid is a convenience method checking the
-	// registered claims if the token is valid.
-	IsValid(leeway time.Duration) bool
-}
-
 // jwtHeader contains the JWT header fields.
 type jwtHeader struct {
 	Algorithm string `json:"alg"`
 	Type      string `json:"typ"`
 }
 
-// jwt implements JWT.
-type jwt struct {
+// JWT manages the parts of a JSON Web Token and the access to those.
+type JWT struct {
 	claims    claims.Claims
 	key       crypto.Key
 	algorithm crypto.Algorithm
@@ -65,8 +42,8 @@ type jwt struct {
 
 // Encode creates a JSON Web Token for the given claims
 // based on key and algorithm.
-func Encode(claims claims.Claims, key crypto.Key, algorithm crypto.Algorithm) (JWT, error) {
-	jwt := &jwt{
+func Encode(claims claims.Claims, key crypto.Key, algorithm crypto.Algorithm) (*JWT, error) {
+	jwt := &JWT{
 		claims:    claims,
 		key:       key,
 		algorithm: algorithm,
@@ -89,7 +66,7 @@ func Encode(claims claims.Claims, key crypto.Key, algorithm crypto.Algorithm) (J
 }
 
 // Decode creates a token out of a string without verification.
-func Decode(token string) (JWT, error) {
+func Decode(token string) (*JWT, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
 		return nil, errors.New(ErrCannotDecode, "cannot decode the parts")
@@ -104,7 +81,7 @@ func Decode(token string) (JWT, error) {
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotDecode, "cannot decode the claims")
 	}
-	return &jwt{
+	return &JWT{
 		claims:    claims,
 		algorithm: crypto.Algorithm(header.Algorithm),
 		token:     token,
@@ -113,7 +90,7 @@ func Decode(token string) (JWT, error) {
 
 // Verify creates a token out of a string and varifies it against
 // the passed key.
-func Verify(token string, key crypto.Key) (JWT, error) {
+func Verify(token string, key crypto.Key) (*JWT, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
 		return nil, errors.New(ErrCannotVerify, "cannot verify the parts")
@@ -132,7 +109,7 @@ func Verify(token string, key crypto.Key) (JWT, error) {
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotVerify, "cannot verify the claims")
 	}
-	return &jwt{
+	return &JWT{
 		claims:    claims,
 		key:       key,
 		algorithm: crypto.Algorithm(header.Algorithm),
@@ -140,31 +117,31 @@ func Verify(token string, key crypto.Key) (JWT, error) {
 	}, nil
 }
 
-// Claims implements the JWT interface.
-func (jwt *jwt) Claims() claims.Claims {
+// Claims returns the claims payload of the token.
+func (jwt *JWT) Claims() claims.Claims {
 	return jwt.claims
 }
 
-// Key implements the JWT interface.
-func (jwt *jwt) Key() (crypto.Key, error) {
+// Key returns the key of the token only when it is a result of encoding or verification.
+func (jwt *JWT) Key() (crypto.Key, error) {
 	if jwt.key == nil {
 		return nil, errors.New(ErrNoKey, "no key available, only after encoding or verifying")
 	}
 	return jwt.key, nil
 }
 
-// Algorithm implements the JWT interface.
-func (jwt *jwt) Algorithm() crypto.Algorithm {
+// Algorithm returns the algorithm of the token after encoding, decoding, or verification.
+func (jwt *JWT) Algorithm() crypto.Algorithm {
 	return jwt.algorithm
 }
 
-// IsValid implements the JWT interface.
-func (jwt *jwt) IsValid(leeway time.Duration) bool {
+// IsValid is a convenience method checking the registered claims if the token is valid.
+func (jwt *JWT) IsValid(leeway time.Duration) bool {
 	return jwt.claims.IsValid(leeway)
 }
 
-// String implements the Stringer interface.
-func (jwt *jwt) String() string {
+// String implements the fmt.Stringer interface.
+func (jwt *JWT) String() string {
 	return jwt.token
 }
 
