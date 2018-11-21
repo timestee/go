@@ -75,7 +75,7 @@ type Defaulter interface {
 // defaulter implements the Defaulter.
 type defaulter struct {
 	id  string
-	log logger.Logger
+	log *logger.Logger
 }
 
 // NewDefaulter creates a defaulter with the given settings.

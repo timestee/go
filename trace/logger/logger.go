@@ -79,7 +79,6 @@ type Logger struct {
 }
 
 // NewStandard returns a standard logger.
-// NewStandardWriter(os.Stdout),
 func NewStandard(out Writer) *Logger {
 	return &Logger{
 		level:       LevelInfo,
