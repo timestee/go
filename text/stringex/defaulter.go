@@ -84,7 +84,7 @@ func NewDefaulter(id string, log bool) Defaulter {
 		id: id,
 	}
 	if log {
-		d.log = logger.NewStandard()
+		d.log = logger.NewStandard(logger.NewStandardOutWriter())
 	}
 	return d
 }

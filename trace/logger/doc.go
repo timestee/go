@@ -9,7 +9,7 @@
 // to log information with different levels and on different backends.
 // A logger is created with
 //
-//     log := logger.NewStandard()
+//     log := logger.NewStandard(logger.NewStandardOutWriter())
 //
 // or for tests with possible access to logged entries with
 //
@@ -27,10 +27,10 @@
 // When created also access to the entries is returned. These can be
 // used inside tests.
 //
-// Changes to the standard behavior can be made with log.SetLevel(),
-// log.SetWriter(), and log.SetFatalExiter(). Own logger
-// backends and exiter can be defined. Additionally a filter
-// function allows to drill down the logged entries.
+// Changes to the standard behavior can be made with log.SetLevel()
+// and log.SetFatalExiter(). Own logger backends and exiter can be
+// defined. Additionally a filter function allows to drill down the
+// logged entries.
 package logger
 
 // EOF
