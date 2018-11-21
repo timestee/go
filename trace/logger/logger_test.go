@@ -84,9 +84,7 @@ func TestFiltering(t *testing.T) {
 
 // TestGoLogger tests logging with the go logger.
 func TestGoLogger(t *testing.T) {
-	log := logger.NewStandard()
-
-	log.SetWriter(logger.NewGoWriter())
+	log := logger.NewStandard(logger.NewGoWriter())
 
 	log.Debugf("Debug.")
 	log.Infof("Info.")
@@ -98,11 +96,10 @@ func TestGoLogger(t *testing.T) {
 // TestSysLogger tests logging with the syslogger.
 func TestSysLogger(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	log := logger.NewStandard()
-	w, err := logger.NewSysWriter("GOTRACE")
+	out, err := logger.NewSysWriter("GOTRACE")
 	assert.Nil(err)
+	log := logger.NewStandard(out)
 
-	log.SetWriter(w)
 	log.SetLevel(logger.LevelDebug)
 
 	log.Debugf("Debug.")

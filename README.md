@@ -15,7 +15,7 @@ are grouped by higher level packages.
   manipulation, and capturing of STDOUT and STDERR
 - `dsa` contains data structures and algorithms like collections and sorting, identifier
   generation, e.g. UUIDs, map/reduce, times, and semantic versions
-- `net` groups the work with the network like RESTful Web Applications, feeds, and
+- `net` groups the work with the network like RESTful Web Applications and
   JSON Web Tokens
 - `text` simplifies life with text data, text based configurations in the LISP like 
   simple markup language SML, with schemeless JSON, and the processing of continuously 

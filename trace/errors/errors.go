@@ -24,9 +24,9 @@ import (
 
 // Error codes of the errors package.
 const (
-	ErrInvalidType       = "inv-type"
-	ErrNotYetImplemented = "not-yet"
-	ErrDeprecated        = "deprecated"
+	ErrInvalidType       = "E001"
+	ErrNotYetImplemented = "E002"
+	ErrDeprecated        = "E999"
 
 	msgInvalidType       = "passed error has type %T: '%s'"
 	msgNotYetImplemented = "feature is not yet implemented: '%s'"
