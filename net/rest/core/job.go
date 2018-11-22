@@ -53,7 +53,7 @@ func newJob(env *Environment, r *http.Request, rw http.ResponseWriter) *Job {
 	} else {
 		vsn, err := version.Parse(vsnstr)
 		if err != nil {
-			j.env.Log().Errorf("invalid request version: %v", err)
+			j.Environment().Log().Errorf("invalid request version: %v", err)
 			j.version = version.New(1, 0, 0)
 		} else {
 			j.version = vsn

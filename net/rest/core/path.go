@@ -89,17 +89,9 @@ func (p *Path) Resource() string {
 	return p.parts[PathResource]
 }
 
-// ResourceID returns the requests resource ID.
-func (p *Path) ResourceID() string {
-	if len(p.parts) > 2 {
-		return p.parts[PathResourceID]
-	}
-	return ""
-}
-
-// JoinedResourceID returns the requests resource ID together with all following
+// ResourceID returns the requests resource ID together with all following
 // parts of the path.
-func (p *Path) JoinedResourceID() string {
+func (p *Path) ResourceID() string {
 	if len(p.parts) > 2 {
 		return strings.Join(p.parts[PathResourceID:], "/")
 	}

@@ -61,7 +61,7 @@ func newEnvironment(ctx context.Context, cfg etc.Etc) *Environment {
 	env.basepartsLen = len(env.baseparts)
 	// Set log.
 	// TODO: According configuration options have to be added.
-	ctx.log = logger.NewStandard(logger.NewStandardOutWriter())
+	env.log = logger.NewStandard(logger.NewStandardOutWriter())
 	// Set context.
 	if ctx == nil {
 		ctx = context.Background()
@@ -76,7 +76,7 @@ func (env *Environment) Context() context.Context {
 }
 
 // Log returns the configured logger of the environment.
-func (env *Environment) Log() *context.Logger {
+func (env *Environment) Log() *logger.Logger {
 	return env.log
 }
 

@@ -92,8 +92,6 @@ func PositiveFeedback(f Formatter, payload interface{}, msg string, args ...inte
 // The message is also logged.
 func NegativeFeedback(f Formatter, statusCode int, msg string, args ...interface{}) (bool, error) {
 	fmsg := fmt.Sprintf(msg, args...)
-	// lmsg := fmt.Sprintf("(status code %d) "+fmsg, statusCode)
-	// logger.Warningf(lmsg)
 	return false, f.Write(statusCode, Feedback{statusCode, "fail", fmsg, nil})
 }
 
