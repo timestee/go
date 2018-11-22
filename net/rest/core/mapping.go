@@ -16,7 +16,6 @@ import (
 
 	"tideland.one/go/text/etc"
 	"tideland.one/go/trace/errors"
-	// "tideland.one/go/trace/logger"
 )
 
 //--------------------
@@ -177,7 +176,7 @@ func (m *mapping) handle(job *Job) error {
 		return err
 	}
 	// Let the handler list handle the job.
-	// logger.Infof("handling %s", job)
+	job.Environment().Log().Infof("handling %s", job)
 	return hl.handle(job)
 }
 

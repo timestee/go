@@ -19,7 +19,6 @@ import (
 
 	"tideland.one/go/text/etc"
 	"tideland.one/go/trace/errors"
-	// "tideland.one/go/trace/logger"
 )
 
 //--------------------
@@ -121,7 +120,7 @@ func (mux *Multiplexer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (mux *Multiplexer) handleError(format string, job *Job, err error) {
 	code := http.StatusInternalServerError
 	msg := fmt.Sprintf(format+" %q: %v", job, err)
-	// logger.Errorf(msg)
+	job.Environment().Log().Errorf(msg)
 	if errors.IsError(err, ErrMethodNotSupported) {
 		code = http.StatusMethodNotAllowed
 	}

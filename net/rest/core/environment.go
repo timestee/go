@@ -16,6 +16,7 @@ import (
 
 	"tideland.one/go/text/etc"
 	"tideland.one/go/text/stringex"
+	"tideland.one/go/trace/logger"
 )
 
 //--------------------
@@ -25,6 +26,7 @@ import (
 // Environment describes the environment of a RESTful application.
 type Environment struct {
 	ctx             context.Context
+	log             *logger.Logger
 	basepath        string
 	baseparts       []string
 	basepartsLen    int
@@ -57,6 +59,9 @@ func newEnvironment(ctx context.Context, cfg etc.Etc) *Environment {
 		return p, true
 	})
 	env.basepartsLen = len(env.baseparts)
+	// Set log.
+	// TODO: According configuration options have to be added.
+	ctx.log = logger.NewStandard(logger.NewStandardOutWriter())
 	// Set context.
 	if ctx == nil {
 		ctx = context.Background()
@@ -68,6 +73,11 @@ func newEnvironment(ctx context.Context, cfg etc.Etc) *Environment {
 // Context returns the context of the environment.
 func (env *Environment) Context() context.Context {
 	return env.ctx
+}
+
+// Log returns the configured logger of the environment.
+func (env *Environment) Log() *context.Logger {
+	return env.log
 }
 
 // Basepath returns the configured basepath.
