@@ -39,29 +39,28 @@ const (
 // REQUEST HELPERS
 //--------------------
 
-// AddToRequest adds a token as header to a request for
+// AddToken adds a token as header to a request for
 // usage by a client.
-func AddToRequest(req *http.Request, jwt *token.JWT) *http.Request {
+func AddToken(req *http.Request, jwt *token.JWT) *http.Request {
 	req.Header.Add("Authorization", "Bearer "+jwt.String())
 	return req
 }
 
-// DecodeFromRequest tries to retrieve a token from a request
-// header.
-func DecodeFromRequest(req *http.Request) (*token.JWT, error) {
-	return decodeFromRequest(req, nil, nil)
+// DecodeToken tries to retrieve a token from a request header.
+func DecodeToken(req *http.Request) (*token.JWT, error) {
+	return decode(req, nil, nil)
 }
 
-// VerifyFromRequest retrieves a possible token from
-// the request. The JWT then will be verified.
-func VerifyFromRequest(req *http.Request, key crypto.Key) (*token.JWT, error) {
+// VerifyToken retrieves a possible token from a request.
+// The JWT then will be verified.
+func VerifyToken(req *http.Request, key crypto.Key) (*token.JWT, error) {
 	return decodeFromRequest(req, nil, key)
 }
 
-// VerifyCachedFromRequest retrieves a possible token from the request
+// VerifyTokenCached retrieves a possible token from the request
 // and checks if it already is cached. The JWT otherwise will be
 // verified and added to the cache.
-func VerifyCachedFromRequest(req *http.Request, cache *cache.Cache, key crypto.Key) (*token.JWT, error) {
+func VerifyTokenCached(req *http.Request, cache *cache.Cache, key crypto.Key) (*token.JWT, error) {
 	return decodeFromRequest(req, cache, key)
 }
 
@@ -71,7 +70,7 @@ func VerifyCachedFromRequest(req *http.Request, cache *cache.Cache, key crypto.K
 
 // decodeFromRequest is the generic decoder with possible
 // caching and verification.
-func decodeFromRequest(req *http.Request, cache *cache.Cache, key crypto.Key) (*token.JWT, error) {
+func decode(req *http.Request, cache *cache.Cache, key crypto.Key) (*token.JWT, error) {
 	// Retrieve token from header.
 	authorization := req.Header.Get("Authorization")
 	if authorization == "" {
