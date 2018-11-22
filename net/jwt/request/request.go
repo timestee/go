@@ -54,14 +54,14 @@ func DecodeToken(req *http.Request) (*token.JWT, error) {
 // VerifyToken retrieves a possible token from a request.
 // The JWT then will be verified.
 func VerifyToken(req *http.Request, key crypto.Key) (*token.JWT, error) {
-	return decodeFromRequest(req, nil, key)
+	return decode(req, nil, key)
 }
 
 // VerifyTokenCached retrieves a possible token from the request
 // and checks if it already is cached. The JWT otherwise will be
 // verified and added to the cache.
 func VerifyTokenCached(req *http.Request, cache *cache.Cache, key crypto.Key) (*token.JWT, error) {
-	return decodeFromRequest(req, cache, key)
+	return decode(req, cache, key)
 }
 
 //--------------------
