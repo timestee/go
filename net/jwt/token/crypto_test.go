@@ -1,11 +1,11 @@
-// Tideland Go Library - Network - JSON Web Token - Crypto - Unit Tests
+// Tideland Go Library - Network - JSON Web Token - Unit Tests
 //
 // Copyright (C) 2016-2018 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package crypto_test
+package token_test
 
 //--------------------
 // IMPORTS
@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"tideland.one/go/audit/asserts"
-	"tideland.one/go/net/jwt/crypto"
+	"tideland.one/go/net/jwt/token"
 )
 
 //--------------------
@@ -30,10 +30,10 @@ import (
 //--------------------
 
 var (
-	esTests = []crypto.Algorithm{crypto.ES256, crypto.ES384, crypto.ES512}
-	hsTests = []crypto.Algorithm{crypto.HS256, crypto.HS384, crypto.HS512}
-	psTests = []crypto.Algorithm{crypto.PS256, crypto.PS384, crypto.PS512}
-	rsTests = []crypto.Algorithm{crypto.RS256, crypto.RS384, crypto.RS512}
+	esTests = []token.Algorithm{token.ES256, token.ES384, token.ES512}
+	hsTests = []token.Algorithm{token.HS256, token.HS384, token.HS512}
+	psTests = []token.Algorithm{token.PS256, token.PS384, token.PS512}
+	rsTests = []token.Algorithm{token.RS256, token.RS384, token.RS512}
 	data    = []byte("the quick brown fox jumps over the lazy dog")
 )
 
@@ -109,11 +109,11 @@ func TestNoneAlgorithm(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing algorithm \"none\"")
 	// Sign.
-	signature, err := crypto.NONE.Sign(data, "")
+	signature, err := token.NONE.Sign(data, "")
 	assert.Nil(err)
 	assert.Empty(signature)
 	// Verify.
-	err = crypto.NONE.Verify(data, signature, "")
+	err = token.NONE.Verify(data, signature, "")
 	assert.Nil(err)
 }
 
@@ -132,21 +132,21 @@ func TestNotMatchingAlgorithm(t *testing.T) {
 	errorMatch := ".* combination of algorithm .* and key type .*"
 	tests := []struct {
 		description string
-		algorithm   crypto.Algorithm
-		key         crypto.Key
-		signKeys    []crypto.Key
-		verifyKeys  []crypto.Key
+		algorithm   token.Algorithm
+		key         token.Key
+		signKeys    []token.Key
+		verifyKeys  []token.Key
 	}{
-		{"ECDSA", crypto.ES512, esPrivateKey,
-			[]crypto.Key{hsKey, rsPrivateKey, noneKey}, []crypto.Key{hsKey, rsPublicKey, noneKey}},
-		{"HMAC", crypto.HS512, hsKey,
-			[]crypto.Key{esPrivateKey, rsPrivateKey, noneKey}, []crypto.Key{esPublicKey, rsPublicKey, noneKey}},
-		{"RSA", crypto.RS512, rsPrivateKey,
-			[]crypto.Key{esPrivateKey, hsKey, noneKey}, []crypto.Key{esPublicKey, hsKey, noneKey}},
-		{"RSAPSS", crypto.PS512, rsPrivateKey,
-			[]crypto.Key{esPrivateKey, hsKey, noneKey}, []crypto.Key{esPublicKey, hsKey, noneKey}},
-		{"none", crypto.NONE, noneKey,
-			[]crypto.Key{esPrivateKey, hsKey, rsPrivateKey}, []crypto.Key{esPublicKey, hsKey, rsPublicKey}},
+		{"ECDSA", token.ES512, esPrivateKey,
+			[]token.Key{hsKey, rsPrivateKey, noneKey}, []token.Key{hsKey, rsPublicKey, noneKey}},
+		{"HMAC", token.HS512, hsKey,
+			[]token.Key{esPrivateKey, rsPrivateKey, noneKey}, []token.Key{esPublicKey, rsPublicKey, noneKey}},
+		{"RSA", token.RS512, rsPrivateKey,
+			[]token.Key{esPrivateKey, hsKey, noneKey}, []token.Key{esPublicKey, hsKey, noneKey}},
+		{"RSAPSS", token.PS512, rsPrivateKey,
+			[]token.Key{esPrivateKey, hsKey, noneKey}, []token.Key{esPublicKey, hsKey, noneKey}},
+		{"none", token.NONE, noneKey,
+			[]token.Key{esPrivateKey, hsKey, rsPrivateKey}, []token.Key{esPublicKey, hsKey, rsPublicKey}},
 	}
 	// Run the tests.
 	for _, test := range tests {
@@ -189,15 +189,15 @@ func TestESTools(t *testing.T) {
 	assert.NotNil(publicPEM)
 	// Now read them.
 	buf := bytes.NewBuffer(privatePEM)
-	privateKeyOut, err := crypto.ReadECPrivateKey(buf)
+	privateKeyOut, err := token.ReadECPrivateKey(buf)
 	assert.Nil(err)
 	buf = bytes.NewBuffer(publicPEM)
-	publicKeyOut, err := crypto.ReadECPublicKey(buf)
+	publicKeyOut, err := token.ReadECPublicKey(buf)
 	assert.Nil(err)
 	// And as a last step check if they are correctly usable.
-	signature, err := crypto.ES512.Sign(data, privateKeyOut)
+	signature, err := token.ES512.Sign(data, privateKeyOut)
 	assert.Nil(err)
-	err = crypto.ES512.Verify(data, signature, publicKeyOut)
+	err = token.ES512.Verify(data, signature, publicKeyOut)
 	assert.Nil(err)
 }
 
@@ -225,15 +225,15 @@ func TestRSTools(t *testing.T) {
 	assert.NotNil(publicPEM)
 	// Now read them.
 	buf := bytes.NewBuffer(privatePEM)
-	privateKeyOut, err := crypto.ReadRSAPrivateKey(buf)
+	privateKeyOut, err := token.ReadRSAPrivateKey(buf)
 	assert.Nil(err)
 	buf = bytes.NewBuffer(publicPEM)
-	publicKeyOut, err := crypto.ReadRSAPublicKey(buf)
+	publicKeyOut, err := token.ReadRSAPublicKey(buf)
 	assert.Nil(err)
 	// And as a last step check if they are correctly usable.
-	signature, err := crypto.RS512.Sign(data, privateKeyOut)
+	signature, err := token.RS512.Sign(data, privateKeyOut)
 	assert.Nil(err)
-	err = crypto.RS512.Verify(data, signature, publicKeyOut)
+	err = token.RS512.Verify(data, signature, publicKeyOut)
 	assert.Nil(err)
 }
 

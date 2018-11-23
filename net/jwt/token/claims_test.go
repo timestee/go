@@ -1,11 +1,11 @@
-// Tideland Go Library - Network - JSON Web Token - Claims - Unit Tests
+// Tideland Go Library - Network - JSON Web Token - Unit Tests
 //
 // Copyright (C) 2016-2018 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package claims_test
+package token_test
 
 //--------------------
 // IMPORTS
@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"tideland.one/go/audit/asserts"
-	"tideland.one/go/net/jwt/claims"
+	"tideland.one/go/net/jwt/token"
 )
 
 //--------------------
@@ -28,12 +28,12 @@ import (
 func TestClaimsMarshalling(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims marshalling")
-	// First with uninitialised or empty claims.
-	var c claims.Claims
+	// First with uninitialised or empty token.
+	var c token.Claims
 	jsonValue, err := json.Marshal(c)
 	assert.Equal(string(jsonValue), "{}")
 	assert.Nil(err)
-	c = claims.New()
+	c = token.NewClaims()
 	jsonValue, err = json.Marshal(c)
 	assert.Equal(string(jsonValue), "{}")
 	assert.Nil(err)
@@ -44,7 +44,7 @@ func TestClaimsMarshalling(t *testing.T) {
 	jsonValue, err = json.Marshal(c)
 	assert.NotNil(jsonValue)
 	assert.Nil(err)
-	var uc claims.Claims
+	var uc token.Claims
 	err = json.Unmarshal(jsonValue, &uc)
 	assert.Nil(err)
 	assert.Length(uc, 2)
@@ -56,12 +56,12 @@ func TestClaimsMarshalling(t *testing.T) {
 	assert.True(ok)
 }
 
-// TestClaimsBasic tests the low level operations on claims.
+// TestClaimsBasic tests the low level operations on token.
 func TestClaimsBasic(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims basic functions handling")
-	// First with uninitialised claims.
-	var c claims.Claims
+	// First with uninitialised token.
+	var c token.Claims
 	ok := c.Contains("foo")
 	assert.False(ok)
 	nothing, ok := c.Get("foo")
@@ -72,7 +72,7 @@ func TestClaimsBasic(t *testing.T) {
 	old = c.Delete("foo")
 	assert.Nil(old)
 	// Now initialise it.
-	c = claims.New()
+	c = token.NewClaims()
 	ok = c.Contains("foo")
 	assert.False(ok)
 	nothing, ok = c.Get("foo")
@@ -96,11 +96,11 @@ func TestClaimsBasic(t *testing.T) {
 	assert.False(ok)
 }
 
-// TestClaimsString tests the string operations on claims.
+// TestClaimsString tests the string operations on token.
 func TestClaimsString(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims string handling")
-	c := claims.New()
+	c := token.NewClaims()
 	nothing := c.Set("foo", "bar")
 	assert.Nil(nothing)
 	var foo string
@@ -113,11 +113,11 @@ func TestClaimsString(t *testing.T) {
 	assert.True(ok)
 }
 
-// TestClaimsBool tests the bool operations on claims.
+// TestClaimsBool tests the bool operations on token.
 func TestClaimsBool(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims bool handling")
-	c := claims.New()
+	c := token.NewClaims()
 	c.Set("foo", true)
 	c.Set("bar", false)
 	c.Set("baz", "T")
@@ -140,11 +140,11 @@ func TestClaimsBool(t *testing.T) {
 	assert.False(ok)
 }
 
-// TestClaimsInt tests the int operations on claims.
+// TestClaimsInt tests the int operations on token.
 func TestClaimsInt(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims int handling")
-	c := claims.New()
+	c := token.NewClaims()
 	c.Set("foo", 4711)
 	c.Set("bar", "4712")
 	c.Set("baz", 4713.0)
@@ -163,11 +163,11 @@ func TestClaimsInt(t *testing.T) {
 	assert.False(ok)
 }
 
-// TestClaimsFloat64 tests the float64 operations on claims.
+// TestClaimsFloat64 tests the float64 operations on token.
 func TestClaimsFloat64(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims float64 handling")
-	c := claims.New()
+	c := token.NewClaims()
 	c.Set("foo", 4711)
 	c.Set("bar", "4712")
 	c.Set("baz", 4713.0)
@@ -186,12 +186,12 @@ func TestClaimsFloat64(t *testing.T) {
 	assert.False(ok)
 }
 
-// TestClaimsTime tests the time operations on claims.
+// TestClaimsTime tests the time operations on token.
 func TestClaimsTime(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims time handling")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-	c := claims.New()
+	c := token.NewClaims()
 	c.SetTime("foo", goLaunch)
 	c.Set("bar", goLaunch.Unix())
 	c.Set("baz", goLaunch.Format(time.RFC3339))
@@ -226,14 +226,14 @@ func TestClaimsMarshalledValue(t *testing.T) {
 		{"two", 2},
 		{"three", 3},
 	}
-	c := claims.New()
+	c := token.NewClaims()
 	c.Set("foo", "bar")
 	c.Set("baz", baz)
-	// Now marshal and unmarshal the claims.
+	// Now marshal and unmarshal the token.
 	jsonValue, err := json.Marshal(c)
 	assert.NotNil(jsonValue)
 	assert.Nil(err)
-	var uc claims.Claims
+	var uc token.Claims
 	err = json.Unmarshal(jsonValue, &uc)
 	assert.Nil(err)
 	assert.Length(uc, 2)
@@ -255,7 +255,7 @@ func TestClaimsAudience(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claim \"aud\"")
 	audience := []string{"foo", "bar", "baz"}
-	c := claims.New()
+	c := token.NewClaims()
 	aud, ok := c.Audience()
 	assert.False(ok)
 	none := c.SetAudience(audience...)
@@ -275,7 +275,7 @@ func TestClaimsExpiration(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claim \"exp\"")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-	c := claims.New()
+	c := token.NewClaims()
 	exp, ok := c.Expiration()
 	assert.False(ok)
 	none := c.SetExpiration(goLaunch)
@@ -295,7 +295,7 @@ func TestClaimsIdentifier(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claim \"jti\"")
 	identifier := "foo"
-	c := claims.New()
+	c := token.NewClaims()
 	jti, ok := c.Identifier()
 	assert.False(ok)
 	none := c.SetIdentifier(identifier)
@@ -315,7 +315,7 @@ func TestClaimsIssuedAt(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claim \"iat\"")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-	c := claims.New()
+	c := token.NewClaims()
 	iat, ok := c.IssuedAt()
 	assert.False(ok)
 	none := c.SetIssuedAt(goLaunch)
@@ -335,7 +335,7 @@ func TestClaimsIssuer(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claim \"iss\"")
 	issuer := "foo"
-	c := claims.New()
+	c := token.NewClaims()
 	iss, ok := c.Issuer()
 	assert.False(ok)
 	none := c.SetIssuer(issuer)
@@ -355,7 +355,7 @@ func TestClaimsNotBefore(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claim \"nbf\"")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-	c := claims.New()
+	c := token.NewClaims()
 	nbf, ok := c.NotBefore()
 	assert.False(ok)
 	none := c.SetNotBefore(goLaunch)
@@ -375,7 +375,7 @@ func TestClaimsSubject(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claim \"sub\"")
 	subject := "foo"
-	c := claims.New()
+	c := token.NewClaims()
 	sub, ok := c.Subject()
 	assert.False(ok)
 	none := c.SetSubject(subject)
@@ -394,10 +394,10 @@ func TestClaimsSubject(t *testing.T) {
 func TestClaimsValidity(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	assert.Logf("testing claims validity")
-	// Fresh claims.
+	// Fresh token.
 	now := time.Now()
 	leeway := time.Minute
-	c := claims.New()
+	c := token.NewClaims()
 	valid := c.IsAlreadyValid(leeway)
 	assert.True(valid)
 	valid = c.IsStillValid(leeway)
@@ -415,7 +415,7 @@ func TestClaimsValidity(t *testing.T) {
 	assert.True(valid)
 	valid = c.IsValid(leeway)
 	assert.True(valid)
-	// Invalid claims.
+	// Invalid token.
 	nbf = now.Add(time.Hour)
 	exp = now.Add(-time.Hour)
 	c.SetNotBefore(nbf)
@@ -439,17 +439,17 @@ func TestClaimsValidity(t *testing.T) {
 // HELPERS
 //--------------------
 
-// initClaims creates test claims.
-func initClaims() claims.Claims {
-	c := claims.New()
+// initClaims creates test token.
+func initClaims() token.Claims {
+	c := token.NewClaims()
 	c.SetSubject("1234567890")
 	c.Set("name", "John Doe")
 	c.Set("admin", true)
 	return c
 }
 
-// testClaims checks the passed claims.
-func testClaims(assert asserts.Asserts, c claims.Claims) {
+// testClaims checks the passed token.
+func testClaims(assert asserts.Asserts, c token.Claims) {
 	sub, ok := c.Subject()
 	assert.True(ok)
 	assert.Equal(sub, "1234567890")

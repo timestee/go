@@ -11,15 +11,27 @@ package token
 // CONSTANTS
 //--------------------
 
-// Error codes of the crypto package.
 const (
-	ErrCannotEncode      = "E101"
-	ErrCannotDecode      = "E102"
-	ErrCannotVerify      = "E103"
-	ErrNoKey             = "E104"
-	ErrJSONMarshalling   = "E105"
-	ErrJSONUnmarshalling = "E106"
-	ErrInvalidTokenPart  = "E107"
+	// Error codes.
+	ErrCannotEncode       = "E101"
+	ErrCannotDecode       = "E102"
+	ErrCannotVerify       = "E103"
+	ErrCannotSign         = "E104"
+	ErrNoKey              = "E111"
+	ErrInvalidKey         = "E112"
+	ErrInvalidTokenPart   = "E113"
+	ErrInvalidSignature   = "E114"
+	ErrJSONMarshalling    = "E191"
+	ErrJSONUnmarshalling  = "E192"
+	ErrInvalidAlgorithm   = "E201"
+	ErrInvalidCombination = "E202"
+	ErrInvalidKeyType     = "E203"
+	ErrCannotReadPEM      = "E221"
+	ErrCannotDecodePEM    = "E222"
+	ErrCannotParseECDSA   = "E231"
+	ErrNoECDSAKey         = "E232"
+	ErrCannotParseRSA     = "E241"
+	ErrNoRSAKey           = "E242"
 )
 
 // EOF

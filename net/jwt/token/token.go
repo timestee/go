@@ -17,8 +17,6 @@ import (
 	"strings"
 	"time"
 
-	"tideland.one/go/net/jwt/claims"
-	"tideland.one/go/net/jwt/crypto"
 	"tideland.one/go/trace/errors"
 )
 
@@ -34,15 +32,15 @@ type jwtHeader struct {
 
 // JWT manages the parts of a JSON Web Token and the access to those.
 type JWT struct {
-	claims    claims.Claims
-	key       crypto.Key
-	algorithm crypto.Algorithm
+	claims    Claims
+	key       Key
+	algorithm Algorithm
 	token     string
 }
 
 // Encode creates a JSON Web Token for the given claims
 // based on key and algorithm.
-func Encode(claims claims.Claims, key crypto.Key, algorithm crypto.Algorithm) (*JWT, error) {
+func Encode(claims Claims, key Key, algorithm Algorithm) (*JWT, error) {
 	jwt := &JWT{
 		claims:    claims,
 		key:       key,
@@ -76,21 +74,21 @@ func Decode(token string) (*JWT, error) {
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotDecode, "cannot decode the header")
 	}
-	var claims claims.Claims
+	var claims Claims
 	err = decodeAndUnmarshall(parts[1], &claims)
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotDecode, "cannot decode the claims")
 	}
 	return &JWT{
 		claims:    claims,
-		algorithm: crypto.Algorithm(header.Algorithm),
+		algorithm: Algorithm(header.Algorithm),
 		token:     token,
 	}, nil
 }
 
 // Verify creates a token out of a string and varifies it against
 // the passed key.
-func Verify(token string, key crypto.Key) (*JWT, error) {
+func Verify(token string, key Key) (*JWT, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
 		return nil, errors.New(ErrCannotVerify, "cannot verify the parts")
@@ -100,11 +98,11 @@ func Verify(token string, key crypto.Key) (*JWT, error) {
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotVerify, "cannot verify the header")
 	}
-	err = decodeAndVerify(parts, key, crypto.Algorithm(header.Algorithm))
+	err = decodeAndVerify(parts, key, Algorithm(header.Algorithm))
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotVerify, "cannot verify the signature")
 	}
-	var claims claims.Claims
+	var claims Claims
 	err = decodeAndUnmarshall(parts[1], &claims)
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotVerify, "cannot verify the claims")
@@ -112,18 +110,18 @@ func Verify(token string, key crypto.Key) (*JWT, error) {
 	return &JWT{
 		claims:    claims,
 		key:       key,
-		algorithm: crypto.Algorithm(header.Algorithm),
+		algorithm: Algorithm(header.Algorithm),
 		token:     token,
 	}, nil
 }
 
 // Claims returns the claims payload of the token.
-func (jwt *JWT) Claims() claims.Claims {
+func (jwt *JWT) Claims() Claims {
 	return jwt.claims
 }
 
 // Key returns the key of the token only when it is a result of encoding or verification.
-func (jwt *JWT) Key() (crypto.Key, error) {
+func (jwt *JWT) Key() (Key, error) {
 	if jwt.key == nil {
 		return nil, errors.New(ErrNoKey, "no key available, only after encoding or verifying")
 	}
@@ -131,7 +129,7 @@ func (jwt *JWT) Key() (crypto.Key, error) {
 }
 
 // Algorithm returns the algorithm of the token after encoding, decoding, or verification.
-func (jwt *JWT) Algorithm() crypto.Algorithm {
+func (jwt *JWT) Algorithm() Algorithm {
 	return jwt.algorithm
 }
 
@@ -177,7 +175,7 @@ func decodeAndUnmarshall(part string, value interface{}) error {
 // signAndEncode creates the signature for the data part (header and
 // payload) of the token using the passed key and algorithm. The result
 // is then encoded to BASE64.
-func signAndEncode(data []byte, key crypto.Key, algorithm crypto.Algorithm) (string, error) {
+func signAndEncode(data []byte, key Key, algorithm Algorithm) (string, error) {
 	sig, err := algorithm.Sign(data, key)
 	if err != nil {
 		return "", err
@@ -189,7 +187,7 @@ func signAndEncode(data []byte, key crypto.Key, algorithm crypto.Algorithm) (str
 // decodeAndVerify decodes a BASE64 encoded signature and verifies
 // the correct signing of the data part (header and payload) using the
 // passed key and algorithm.
-func decodeAndVerify(parts []string, key crypto.Key, algorithm crypto.Algorithm) error {
+func decodeAndVerify(parts []string, key Key, algorithm Algorithm) error {
 	data := []byte(parts[0] + "." + parts[1])
 	sig, err := base64.RawURLEncoding.DecodeString(parts[2])
 	if err != nil {

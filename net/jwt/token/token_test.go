@@ -16,8 +16,6 @@ import (
 	"time"
 
 	"tideland.one/go/audit/asserts"
-	"tideland.one/go/net/jwt/claims"
-	"tideland.one/go/net/jwt/crypto"
 	"tideland.one/go/net/jwt/token"
 )
 
@@ -41,7 +39,7 @@ func TestDecode(t *testing.T) {
 	// Decode.
 	jwt, err := token.Decode(rawToken)
 	assert.Nil(err)
-	assert.Equal(jwt.Algorithm(), crypto.HS512)
+	assert.Equal(jwt.Algorithm(), token.HS512)
 	key, err := jwt.Key()
 	assert.Nil(key)
 	assert.ErrorMatch(err, ".*no key available, only after encoding or verifying.*")
@@ -72,38 +70,38 @@ func TestIsValid(t *testing.T) {
 	leeway := time.Minute
 	key := []byte("secret")
 	// Create token with no times set, encode, decode, validate ok.
-	clms := claims.New()
-	jwtEnc, err := token.Encode(clms, key, crypto.HS512)
+	claims := token.NewClaims()
+	jwtEnc, err := token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	jwtDec, err := token.Decode(jwtEnc.String())
 	assert.Nil(err)
 	ok := jwtDec.IsValid(leeway)
 	assert.True(ok)
 	// Now a token with a long timespan, still valid.
-	clms = claims.New()
-	clms.SetNotBefore(now.Add(-time.Hour))
-	clms.SetExpiration(now.Add(time.Hour))
-	jwtEnc, err = token.Encode(clms, key, crypto.HS512)
+	claims = token.NewClaims()
+	claims.SetNotBefore(now.Add(-time.Hour))
+	claims.SetExpiration(now.Add(time.Hour))
+	jwtEnc, err = token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	jwtDec, err = token.Decode(jwtEnc.String())
 	assert.Nil(err)
 	ok = jwtDec.IsValid(leeway)
 	assert.True(ok)
 	// Now a token with a long timespan in the past, not valid.
-	clms = claims.New()
-	clms.SetNotBefore(now.Add(-2 * time.Hour))
-	clms.SetExpiration(now.Add(-time.Hour))
-	jwtEnc, err = token.Encode(clms, key, crypto.HS512)
+	claims = token.NewClaims()
+	claims.SetNotBefore(now.Add(-2 * time.Hour))
+	claims.SetExpiration(now.Add(-time.Hour))
+	jwtEnc, err = token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	jwtDec, err = token.Decode(jwtEnc.String())
 	assert.Nil(err)
 	ok = jwtDec.IsValid(leeway)
 	assert.False(ok)
 	// And at last a token with a long timespan in the future, not valid.
-	clms = claims.New()
-	clms.SetNotBefore(now.Add(time.Hour))
-	clms.SetExpiration(now.Add(2 * time.Hour))
-	jwtEnc, err = token.Encode(clms, key, crypto.HS512)
+	claims = token.NewClaims()
+	claims.SetNotBefore(now.Add(time.Hour))
+	claims.SetExpiration(now.Add(2 * time.Hour))
+	jwtEnc, err = token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	jwtDec, err = token.Decode(jwtEnc.String())
 	assert.Nil(err)

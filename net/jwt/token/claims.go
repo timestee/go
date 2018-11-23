@@ -1,11 +1,11 @@
-// Tideland Go Library - Network - JSON Web Token - Claims
+// Tideland Go Library - Network - JSON Web Token
 //
 // Copyright (C) 2016-2018 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package claims
+package token
 
 //--------------------
 // IMPORTS
@@ -28,8 +28,8 @@ import (
 // also provides getters and setters for the reserved claims.
 type Claims map[string]interface{}
 
-// New returns an empty set of claims.
-func New() Claims {
+// NewClaims returns an empty set of claims.
+func NewClaims() Claims {
 	return Claims{}
 }
 
