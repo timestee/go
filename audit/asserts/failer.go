@@ -150,7 +150,7 @@ func (f panicFailer) Fail(test Test, obtained, expected interface{}, msgs ...str
 }
 
 // NewPanic creates a new Asserts instance which panics if a test fails.
-func NewPanic() Asserts {
+func NewPanic() *Asserts {
 	return New(&panicFailer{
 		printer: NewStandardPrinter(),
 	})
@@ -256,7 +256,7 @@ func (f *validationFailer) Fail(test Test, obtained, expected interface{}, msgs 
 // NewValidation creates a new Asserts instance which collections
 // validation failures. The returned Failures instance allows to test an access
 // them.
-func NewValidation() (Asserts, Failures) {
+func NewValidation() (*Asserts, Failures) {
 	vf := &validationFailer{
 		printer: NewStandardPrinter(),
 		offset:  4,
@@ -366,7 +366,7 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 // NewTesting creates a new Asserts instance for use with the testing
 // package. The *testing.T has to be passed as failable, the first argument.
 // shallFail controls if a failing assertion also lets fail the Go test.
-func NewTesting(f Failable, shallFail bool) Asserts {
+func NewTesting(f Failable, shallFail bool) *Asserts {
 	return New(&testingFailer{
 		printer:   NewStandardPrinter(),
 		failable:  f,

@@ -5,8 +5,8 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package environments of the Tideland Go Library helps to manipulate
-// environment variables or create temporary directories for unit tests.
+// Package environments helps to manipulate environment variables or create
+// temporary directories for unit tests.
 package environments
 
 // EOF

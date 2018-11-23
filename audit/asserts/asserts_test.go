@@ -559,7 +559,7 @@ func (f *metaFailer) Fail(test asserts.Test, obtained, expected interface{}, msg
 //--------------------
 
 // failWithOffset checks the offset increment.
-func failWithOffset(assert asserts.Asserts, line string) {
+func failWithOffset(assert *asserts.Asserts, line string) {
 	restore := assert.IncrCallstackOffset()
 	defer restore()
 
@@ -567,12 +567,12 @@ func failWithOffset(assert asserts.Asserts, line string) {
 }
 
 // successfulAsserts returns an Asserts insrance which doesn't expect a failing.
-func successfulAsserts(t *testing.T) asserts.Asserts {
+func successfulAsserts(t *testing.T) *asserts.Asserts {
 	return asserts.New(&metaFailer{t, true})
 }
 
 // failingAsserts returns an Asserts instance which only logs a failing but doesn't fail.
-func failingAsserts(t *testing.T) asserts.Asserts {
+func failingAsserts(t *testing.T) *asserts.Asserts {
 	return asserts.New(&metaFailer{t, false})
 }
 

@@ -23,36 +23,24 @@ import (
 
 // Captured provides access to the captured output in
 // multiple ways.
-type Captured interface {
-	// Bytes returns the captured content as bytes.
-	Bytes() []byte
-
-	// String returns the captured content as string.
-	String() string
-
-	// Len returns the number of captured bytes.
-	Len() int
-}
-
-// captured implements Captured.
-type captured struct {
+type Captured struct {
 	buffer []byte
 }
 
-// Bytes implements Captured.
-func (c *captured) Bytes() []byte {
+// Bytes returns the captured content as bytes.
+func (c Captured) Bytes() []byte {
 	buf := make([]byte, c.Len())
 	copy(buf, c.buffer)
 	return buf
 }
 
-// String implements Stringer.
-func (c *captured) String() string {
+// String implements fmt.Stringer.
+func (c Captured) String() string {
 	return string(c.Bytes())
 }
 
-// Len implements Captured.
-func (c *captured) Len() int {
+// Len returns the number of captured bytes.
+func (c Captured) Len() int {
 	return len(c.buffer)
 }
 
@@ -78,10 +66,9 @@ func Stdout(f func()) Captured {
 
 	w.Close()
 	os.Stdout = old
-	cptrd := captured{
+	return Captured{
 		buffer: <-outC,
 	}
-	return &cptrd
 }
 
 // Stderr captures Stderr.
@@ -102,10 +89,9 @@ func Stderr(f func()) Captured {
 
 	w.Close()
 	os.Stderr = old
-	cptrd := captured{
+	return Captured{
 		buffer: <-outC,
 	}
-	return &cptrd
 }
 
 // Both captures Stdout and Stderr.
