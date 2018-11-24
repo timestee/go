@@ -21,41 +21,42 @@ import (
 // SET
 //--------------------
 
-// set implements the Set interface.
-type set struct {
+// Set defines a set containing any kind of values.
+type Set struct {
 	values map[interface{}]struct{}
 }
 
 // NewSet creates a set with the passed values
 // as initial content.
-func NewSet(vs ...interface{}) Set {
-	s := &set{make(map[interface{}]struct{})}
+func NewSet(vs ...interface{}) *Set {
+	s := &Set{make(map[interface{}]struct{})}
 	s.Add(vs...)
 	return s
 }
 
-// Add implements the Set interface.
-func (s *set) Add(vs ...interface{}) {
+// Add adds values to the set.
+func (s *Set) Add(vs ...interface{}) {
 	for _, v := range vs {
 		s.values[v] = struct{}{}
 	}
 }
 
-// Remove implements the Set interface.
-func (s *set) Remove(vs ...interface{}) {
+// Remove removes values out if the set. It doesn't
+// matter if the set does not contain them.
+func (s *Set) Remove(vs ...interface{}) {
 	for _, v := range vs {
 		delete(s.values, v)
 	}
 }
 
-// Contains implements the Set interface.
-func (s *set) Contains(v interface{}) bool {
+// Contains checks if the set contains a given value.
+func (s *Set) Contains(v interface{}) bool {
 	_, ok := s.values[v]
 	return ok
 }
 
-// All implements the Set interface.
-func (s *set) All() []interface{} {
+// All returns all values.
+func (s *Set) All() []interface{} {
 	all := []interface{}{}
 	for v := range s.values {
 		all = append(all, v)
@@ -63,8 +64,8 @@ func (s *set) All() []interface{} {
 	return all
 }
 
-// FindAll implements the Set interface.
-func (s *set) FindAll(f func(v interface{}) (bool, error)) ([]interface{}, error) {
+// FindAll returns all values found by the passed function.
+func (s *Set) FindAll(f func(v interface{}) (bool, error)) ([]interface{}, error) {
 	found := []interface{}{}
 	for v := range s.values {
 		ok, err := f(v)
@@ -78,8 +79,8 @@ func (s *set) FindAll(f func(v interface{}) (bool, error)) ([]interface{}, error
 	return found, nil
 }
 
-// DoAll implements the Set interface.
-func (s *set) DoAll(f func(v interface{}) error) error {
+// DoAll executes the passed function on all values.
+func (s *Set) DoAll(f func(v interface{}) error) error {
 	for v := range s.values {
 		if err := f(v); err != nil {
 			return errors.Annotate(err, ErrCannotDoAll, "cannot process all entries")
@@ -88,18 +89,18 @@ func (s *set) DoAll(f func(v interface{}) error) error {
 	return nil
 }
 
-// Len implements the Set interface.
-func (s *set) Len() int {
+// Len returns the number of entries in the set.
+func (s *Set) Len() int {
 	return len(s.values)
 }
 
-// Deflate implements the Set interface.
-func (s *set) Deflate() {
+// Deflate cleans the stack.
+func (s *Set) Deflate() {
 	s.values = make(map[interface{}]struct{})
 }
 
-// Deflate implements the Stringer interface.
-func (s *set) String() string {
+// String implements the fmt.Stringer interface.
+func (s *Set) String() string {
 	all := s.All()
 	return fmt.Sprintf("%v", all)
 }
@@ -108,41 +109,42 @@ func (s *set) String() string {
 // STRING SET
 //--------------------
 
-// stringSet implements the StringSet interface.
-type stringSet struct {
+// StringSet defines a set containing string values.
+type StringSet struct {
 	values map[string]struct{}
 }
 
-// NewStringSet creates a string set with the passed values
+// NewStringSet creates a string set with the passed strings
 // as initial content.
-func NewStringSet(vs ...string) StringSet {
-	s := &stringSet{make(map[string]struct{})}
+func NewStringSet(vs ...string) *StringSet {
+	s := &StringSet{make(map[string]struct{})}
 	s.Add(vs...)
 	return s
 }
 
-// Add implements the StringSet interface.
-func (s *stringSet) Add(vs ...string) {
+// Add adds strings to the set.
+func (s *StringSet) Add(vs ...string) {
 	for _, v := range vs {
 		s.values[v] = struct{}{}
 	}
 }
 
-// Remove implements the StringSet interface.
-func (s *stringSet) Remove(vs ...string) {
+// Remove removes strings out if the set. It doesn't
+// matter if the set does not contain them.
+func (s *StringSet) Remove(vs ...string) {
 	for _, v := range vs {
 		delete(s.values, v)
 	}
 }
 
-// Contains implements the StringSet interface.
-func (s *stringSet) Contains(v string) bool {
+// Contains checks if the set contains a given string.
+func (s *StringSet) Contains(v string) bool {
 	_, ok := s.values[v]
 	return ok
 }
 
-// All implements the StringSet interface.
-func (s *stringSet) All() []string {
+// All returns all strings.
+func (s *StringSet) All() []string {
 	all := []string{}
 	for v := range s.values {
 		all = append(all, v)
@@ -150,8 +152,8 @@ func (s *stringSet) All() []string {
 	return all
 }
 
-// FindAll implements the StringSet interface.
-func (s *stringSet) FindAll(f func(v string) (bool, error)) ([]string, error) {
+// FindAll returns all strings found by the passed function.
+func (s *StringSet) FindAll(f func(v string) (bool, error)) ([]string, error) {
 	found := []string{}
 	for v := range s.values {
 		ok, err := f(v)
@@ -165,8 +167,8 @@ func (s *stringSet) FindAll(f func(v string) (bool, error)) ([]string, error) {
 	return found, nil
 }
 
-// DoAll implements the StringSet interface.
-func (s *stringSet) DoAll(f func(v string) error) error {
+// DoAll executes the passed function on all strings.
+func (s *StringSet) DoAll(f func(v string) error) error {
 	for v := range s.values {
 		if err := f(v); err != nil {
 			return errors.Annotate(err, ErrCannotDoAll, "cannot process all string entries")
@@ -175,18 +177,18 @@ func (s *stringSet) DoAll(f func(v string) error) error {
 	return nil
 }
 
-// Len implements the StringSet interface.
-func (s *stringSet) Len() int {
+// Len returns the number of entries in the set.
+func (s *StringSet) Len() int {
 	return len(s.values)
 }
 
-// Deflate implements the StringSet interface.
-func (s *stringSet) Deflate() {
+// Deflate cleans the stack.
+func (s *StringSet) Deflate() {
 	s.values = make(map[string]struct{})
 }
 
-// Deflate implements the Stringer interface.
-func (s *stringSet) String() string {
+// String implements the fmt.Stringer interface.
+func (s *StringSet) String() string {
 	all := s.All()
 	return fmt.Sprintf("%v", all)
 }

@@ -28,16 +28,17 @@ type valueLink struct {
 	next  *valueLink
 }
 
-// ringBuffer implements the RingBuffer interface.
-type ringBuffer struct {
+// RingBuffer defines a buffer which is connected end-to-end. It
+// grows if needed.
+type RingBuffer struct {
 	start   *valueLink
 	end     *valueLink
 	current *valueLink
 }
 
 // NewRingBuffer creates a new ring buffer.
-func NewRingBuffer(size int) RingBuffer {
-	rb := &ringBuffer{}
+func NewRingBuffer(size int) *RingBuffer {
+	rb := &RingBuffer{}
 	rb.start = &valueLink{}
 	rb.end = rb.start
 	if size < 2 {
@@ -52,8 +53,8 @@ func NewRingBuffer(size int) RingBuffer {
 	return rb
 }
 
-// Push implements the RingBuffer interface.
-func (rb *ringBuffer) Push(values ...interface{}) {
+// Push adds values to the end of the buffer.
+func (rb *RingBuffer) Push(values ...interface{}) {
 	for _, value := range values {
 		if rb.end.next.used == false {
 			rb.end.next.used = true
@@ -71,16 +72,18 @@ func (rb *ringBuffer) Push(values ...interface{}) {
 	}
 }
 
-// Peek implements the RingBuffer interface.
-func (rb *ringBuffer) Peek() (interface{}, bool) {
+// Peek returns the first value of the buffer. If the
+// buffer is empty the second return value is false.
+func (rb *RingBuffer) Peek() (interface{}, bool) {
 	if rb.start.used == false {
 		return nil, false
 	}
 	return rb.start.value, true
 }
 
-// Pop implements the RingBuffer interface.
-func (rb *ringBuffer) Pop() (interface{}, bool) {
+// Pop removes and returns the first value of the buffer. If
+// the buffer is empty the second return value is false.
+func (rb *RingBuffer) Pop() (interface{}, bool) {
 	if rb.start.used == false {
 		return nil, false
 	}
@@ -91,8 +94,8 @@ func (rb *ringBuffer) Pop() (interface{}, bool) {
 	return value, true
 }
 
-// Len implements the RingBuffer interface.
-func (rb *ringBuffer) Len() int {
+// Len returns the number of values in the buffer.
+func (rb *RingBuffer) Len() int {
 	l := 0
 	current := rb.start
 	for current.used {
@@ -105,8 +108,8 @@ func (rb *ringBuffer) Len() int {
 	return l
 }
 
-// Cap implements the RingBuffer interface.
-func (rb *ringBuffer) Cap() int {
+// Cap returns the capacity of the buffer.
+func (rb *RingBuffer) Cap() int {
 	c := 1
 	current := rb.start
 	for current.next != rb.start {
@@ -116,8 +119,8 @@ func (rb *ringBuffer) Cap() int {
 	return c
 }
 
-// String implements the Stringer interface.
-func (rb *ringBuffer) String() string {
+// String implements the fmt.Stringer interface.
+func (rb *RingBuffer) String() string {
 	vs := []string{}
 	current := rb.start
 	for current.used {

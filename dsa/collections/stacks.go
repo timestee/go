@@ -21,26 +21,26 @@ import (
 // STACK
 //--------------------
 
-// stack implements the Stack interface.
-type stack struct {
+// Stack defines a stack containing any kind of values.
+type Stack struct {
 	values []interface{}
 }
 
 // NewStack creates a stack with the passed values
 // as initial content.
-func NewStack(vs ...interface{}) Stack {
-	return &stack{
+func NewStack(vs ...interface{}) *Stack {
+	return &Stack{
 		values: vs,
 	}
 }
 
-// Push implements the Stack interface.
-func (s *stack) Push(vs ...interface{}) {
+// Push adds values to the top of the stack.
+func (s *Stack) Push(vs ...interface{}) {
 	s.values = append(s.values, vs...)
 }
 
-// Pop implements the Stack interface.
-func (s *stack) Pop() (interface{}, error) {
+// Pop removes and returns the top value of the stack.
+func (s *Stack) Pop() (interface{}, error) {
 	lv := len(s.values)
 	if lv == 0 {
 		return nil, errors.New(ErrEmpty, "stack is empty")
@@ -50,8 +50,8 @@ func (s *stack) Pop() (interface{}, error) {
 	return v, nil
 }
 
-// Peek implements the Stack interface.
-func (s stack) Peek() (interface{}, error) {
+// Peek returns the top value of the stack.
+func (s *Stack) Peek() (interface{}, error) {
 	lv := len(s.values)
 	if lv == 0 {
 		return nil, errors.New(ErrEmpty, "stack is empty")
@@ -60,16 +60,16 @@ func (s stack) Peek() (interface{}, error) {
 	return v, nil
 }
 
-// All implements the Stack interface.
-func (s *stack) All() []interface{} {
+// All returns all values bottom-up.
+func (s *Stack) All() []interface{} {
 	sl := len(s.values)
 	all := make([]interface{}, sl)
 	copy(all, s.values)
 	return all
 }
 
-// AllReverse implements the Stack interface.
-func (s *stack) AllReverse() []interface{} {
+// AllReverse returns all values top-down.
+func (s *Stack) AllReverse() []interface{} {
 	sl := len(s.values)
 	all := make([]interface{}, sl)
 	for i, value := range s.values {
@@ -78,18 +78,18 @@ func (s *stack) AllReverse() []interface{} {
 	return all
 }
 
-// Len implements the Stack interface.
-func (s *stack) Len() int {
+// Len returns the number of entries in the stack.
+func (s *Stack) Len() int {
 	return len(s.values)
 }
 
-// Deflate implements the Stack interface.
-func (s *stack) Deflate() {
+// Deflate cleans the stack.
+func (s *Stack) Deflate() {
 	s.values = []interface{}{}
 }
 
-// Deflate implements the Stringer interface.
-func (s *stack) String() string {
+// String implements the fmt.Stringer interface.
+func (s *Stack) String() string {
 	return fmt.Sprintf("%v", s.values)
 }
 
@@ -97,26 +97,26 @@ func (s *stack) String() string {
 // STRING STACK
 //--------------------
 
-// stringStack implements the StringStack interface.
-type stringStack struct {
+// StringStack defines a stack containing string values.
+type StringStack struct {
 	values []string
 }
 
-// NewStringStack creates a string stack with the passed values
+// NewStringStack creates a string stack with the passed strings
 // as initial content.
-func NewStringStack(vs ...string) StringStack {
-	return &stringStack{
+func NewStringStack(vs ...string) *StringStack {
+	return &StringStack{
 		values: vs,
 	}
 }
 
-// Push implements the StringStack interface.
-func (s *stringStack) Push(vs ...string) {
+// Push adds strings to the top of the stack.
+func (s *StringStack) Push(vs ...string) {
 	s.values = append(s.values, vs...)
 }
 
-// Pop implements the StringStack interface.
-func (s *stringStack) Pop() (string, error) {
+// Pop removes and returns the top string of the stack.
+func (s *StringStack) Pop() (string, error) {
 	lv := len(s.values)
 	if lv == 0 {
 		return "", errors.New(ErrEmpty, "string stack is empty")
@@ -126,8 +126,8 @@ func (s *stringStack) Pop() (string, error) {
 	return v, nil
 }
 
-// Peek implements the StringStack interface.
-func (s *stringStack) Peek() (string, error) {
+// Peek returns the top string of the stack.
+func (s *StringStack) Peek() (string, error) {
 	lv := len(s.values)
 	if lv == 0 {
 		return "", errors.New(ErrEmpty, "string stack is empty")
@@ -136,16 +136,16 @@ func (s *stringStack) Peek() (string, error) {
 	return v, nil
 }
 
-// All implements the StringStack interface.
-func (s *stringStack) All() []string {
+// All returns all strings bottom-up.
+func (s *StringStack) All() []string {
 	sl := len(s.values)
 	all := make([]string, sl)
 	copy(all, s.values)
 	return all
 }
 
-// AllReverse implements the StringStack interface.
-func (s *stringStack) AllReverse() []string {
+// AllReverse returns all strings top-down.
+func (s *StringStack) AllReverse() []string {
 	sl := len(s.values)
 	all := make([]string, sl)
 	for i, value := range s.values {
@@ -154,18 +154,18 @@ func (s *stringStack) AllReverse() []string {
 	return all
 }
 
-// Len implements the Base interface.
-func (s *stringStack) Len() int {
+// Len returns the number of entries in the stack.
+func (s *StringStack) Len() int {
 	return len(s.values)
 }
 
-// Deflate implements the Base interface.
-func (s *stringStack) Deflate() {
+// Deflate cleans the stack.
+func (s *StringStack) Deflate() {
 	s.values = []string{}
 }
 
-// Deflate implements the Stringer interface.
-func (s *stringStack) String() string {
+// String implements the fmt.Stringer interface.
+func (s *StringStack) String() string {
 	return fmt.Sprintf("%v", s.values)
 }
 
