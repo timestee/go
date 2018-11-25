@@ -37,13 +37,13 @@ import (
 // The deferred Restore() removes the temporary directory with all
 // contents.
 type TempDir struct {
-	assert asserts.Asserts
+	assert *asserts.Asserts
 	dir    string
 }
 
 // NewTempDir creates a new temporary directory usable for direct
 // usage or further subdirectories.
-func NewTempDir(assert asserts.Asserts) *TempDir {
+func NewTempDir(assert *asserts.Asserts) *TempDir {
 	id := make([]byte, 8)
 	td := &TempDir{
 		assert: assert,
@@ -110,12 +110,12 @@ func (td *TempDir) String() string {
 //
 // The deferred Restore() resets to the original values.
 type Variables struct {
-	assert asserts.Asserts
+	assert *asserts.Asserts
 	vars   map[string]string
 }
 
 // NewVariables create a new changer for environment variables.
-func NewVariables(assert asserts.Asserts) *Variables {
+func NewVariables(assert *asserts.Asserts) *Variables {
 	v := &Variables{
 		assert: assert,
 		vars:   make(map[string]string),
