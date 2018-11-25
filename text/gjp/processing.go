@@ -219,7 +219,7 @@ func process(node interface{}, parts []string, separator string, processor Value
 	if o, ok := isObject(node); ok {
 		if len(o) == 0 {
 			// Empty object.
-			return processor(pathify(parts, separator), &value{o, nil})
+			return processor(pathify(parts, separator), &Value{o, nil})
 		}
 		for field, subnode := range o {
 			fieldparts := append(parts, field)
@@ -232,7 +232,7 @@ func process(node interface{}, parts []string, separator string, processor Value
 	if a, ok := isArray(node); ok {
 		if len(a) == 0 {
 			// Empty array.
-			return processor(pathify(parts, separator), &value{a, nil})
+			return processor(pathify(parts, separator), &Value{a, nil})
 		}
 		for index, subnode := range a {
 			indexparts := append(parts, strconv.Itoa(index))
@@ -243,7 +243,7 @@ func process(node interface{}, parts []string, separator string, processor Value
 		return nil
 	}
 	// Reached a value at the end.
-	return processor(pathify(parts, separator), &value{node, nil})
+	return processor(pathify(parts, separator), &Value{node, nil})
 }
 
 // pathify creates a path out of parts and separator.

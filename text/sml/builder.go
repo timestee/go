@@ -114,8 +114,8 @@ func (nb *NodeBuilder) CommentNode(comment string) error {
 // KeyStringValueTreeBuilder implements Builder to parse a
 // file and create a KeyStringValueTree.
 type KeyStringValueTreeBuilder struct {
-	stack collections.StringStack
-	tree  collections.KeyStringValueTree
+	stack *collections.StringStack
+	tree  *collections.KeyStringValueTree
 	done  bool
 }
 
@@ -125,7 +125,7 @@ func NewKeyStringValueTreeBuilder() *KeyStringValueTreeBuilder {
 }
 
 // Tree returns the created tree.
-func (tb *KeyStringValueTreeBuilder) Tree() (collections.KeyStringValueTree, error) {
+func (tb *KeyStringValueTreeBuilder) Tree() (*collections.KeyStringValueTree, error) {
 	if !tb.done {
 		return nil, errors.New(ErrBuilder, "building is not yet done")
 	}

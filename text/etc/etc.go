@@ -47,7 +47,7 @@ var (
 // value helps to use the stringex.Defaulter.
 type value struct {
 	path    []string
-	changer collections.KeyStringValueChanger
+	changer *collections.KeyStringValueChanger
 }
 
 // Value retrieves the value or an error. It implements
@@ -71,72 +71,13 @@ type Application map[string]string
 // it. ThetcRoot node "etc" is automatically preceded to the path.
 // The node name have to consist out of 'a' to 'z', '0' to '9', and
 // '-'. The nodes of a path are separated by '/'.
-type Etc interface {
-	fmt.Stringer
-
-	// HasPath checks if the configurations has the defined path
-	// regardles of the value or possible subconfigurations.
-	HasPath(path string) bool
-
-	// Do iterates over the children of the given path and executes
-	// the function f with that path.
-	Do(path string, f func(p string) error) error
-
-	// ValueAsString retrieves the string value at a given path. If it
-	// doesn't exist the default value dv is returned.
-	ValueAsString(path, dv string) string
-
-	// ValueAsBool retrieves the bool value at a given path. If it
-	// doesn't exist the default value dv is returned.
-	ValueAsBool(path string, dv bool) bool
-
-	// ValueAsInt retrieves the int value at a given path. If it
-	// doesn't exist the default value dv is returned.
-	ValueAsInt(path string, dv int) int
-
-	// ValueAsFloat64 retrieves the float64 value at a given path. If it
-	// doesn't exist the default value dv is returned.
-	ValueAsFloat64(path string, dv float64) float64
-
-	// ValueAsTime retrieves the string value at a given path and
-	// interprets it as time with the passed format. If it
-	// doesn't exist the default value dv is returned.
-	ValueAsTime(path, layout string, dv time.Time) time.Time
-
-	// ValueAsDuration retrieves the duration value at a given path.
-	// If it doesn't exist the default value dv is returned.
-	ValueAsDuration(path string, dv time.Duration) time.Duration
-
-	// Spit produces a subconfiguration below the passed path.
-	// The last path part will be the new root, all values below
-	// that configuration node will be below the created root.
-	// In case of an invalid path an empty configuration will
-	// be returned as default.
-	Split(path string) (Etc, error)
-
-	// Dunp creates a map of paths and their values to apply
-	// them into other configurations.
-	Dump() (Application, error)
-
-	// Apply creates a new configuration by adding of overwriting
-	// the passed values. The keys of the map have to be slash
-	// separated configuration paths without the leading "etc".
-	Apply(appl Application) (Etc, error)
-
-	// Write writes the configuration as SML to the passed target.
-	// If prettyPrint is true the written SML is indented and has
-	// linebreaks.
-	Write(target io.Writer, prettyPrint bool) error
-}
-
-// etc implements the Etc interface.
-type etc struct {
-	values collections.KeyStringValueTree
+type Etc struct {
+	values *collections.KeyStringValueTree
 }
 
 // Read reads the SML source of the configuration from a
 // reader, parses it, and returns the etc instance.
-func Read(source io.Reader) (Etc, error) {
+func Read(source io.Reader) (*Etc, error) {
 	builder := sml.NewKeyStringValueTreeBuilder()
 	err := sml.ReadSML(source, builder)
 	if err != nil {
@@ -149,7 +90,7 @@ func Read(source io.Reader) (Etc, error) {
 	if err = values.At("etc").Error(); err != nil {
 		return nil, errors.Annotate(err, ErrInvalidSourceFormat, "invalid source format")
 	}
-	cfg := &etc{
+	cfg := &Etc{
 		values: values,
 	}
 	if err = cfg.postProcess(); err != nil {
@@ -160,13 +101,13 @@ func Read(source io.Reader) (Etc, error) {
 
 // ReadString reads the SML source of the configuration from a
 // string, parses it, and returns the etc instance.
-func ReadString(source string) (Etc, error) {
+func ReadString(source string) (*Etc, error) {
 	return Read(strings.NewReader(source))
 }
 
 // ReadFile reads the SML source of a configuration file,
 // parses it, and returns the etc instance.
-func ReadFile(filename string) (Etc, error) {
+func ReadFile(filename string) (*Etc, error) {
 	source, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, errors.Annotate(err, ErrCannotReadFile, "cannot read file '%s'", filename)
@@ -174,15 +115,17 @@ func ReadFile(filename string) (Etc, error) {
 	return ReadString(string(source))
 }
 
-// HasPath implements the Etc interface.
-func (e *etc) HasPath(path string) bool {
+// HasPath checks if the configurations has the defined path
+// regardles of the value or possible subconfigurations.
+func (e *Etc) HasPath(path string) bool {
 	fullPath := makeFullPath(path)
 	changer := e.values.At(fullPath...)
 	return changer.Error() == nil
 }
 
-// Do implements the Etc interface.
-func (e *etc) Do(path string, f func(p string) error) error {
+// Do iterates over the children of the given path and executes
+// the function f with that path.
+func (e *Etc) Do(path string, f func(p string) error) error {
 	fullPath := makeFullPath(path)
 	changer := e.values.At(fullPath...)
 	if changer.Error() != nil {
@@ -202,44 +145,55 @@ func (e *etc) Do(path string, f func(p string) error) error {
 	return nil
 }
 
-// ValueAsString implements the Etc interface.
-func (e *etc) ValueAsString(path, dv string) string {
+// ValueAsString retrieves the string value at a given path. If it
+// doesn't exist the default value dv is returned.
+func (e *Etc) ValueAsString(path, dv string) string {
 	value := e.valueAt(path)
 	return defaulter.AsString(value, dv)
 }
 
-// ValueAsBool implements the Etc interface.
-func (e *etc) ValueAsBool(path string, dv bool) bool {
+// ValueAsBool retrieves the bool value at a given path. If it
+// doesn't exist the default value dv is returned.
+func (e *Etc) ValueAsBool(path string, dv bool) bool {
 	value := e.valueAt(path)
 	return defaulter.AsBool(value, dv)
 }
 
-// ValueAsInt implements the Etc interface.
-func (e *etc) ValueAsInt(path string, dv int) int {
+// ValueAsInt retrieves the int value at a given path. If it
+// doesn't exist the default value dv is returned.
+func (e *Etc) ValueAsInt(path string, dv int) int {
 	value := e.valueAt(path)
 	return defaulter.AsInt(value, dv)
 }
 
-// ValueAsFloat64 implements the Etc interface.
-func (e *etc) ValueAsFloat64(path string, dv float64) float64 {
+// ValueAsFloat64 retrieves the float64 value at a given path. If it
+// doesn't exist the default value dv is returned.
+func (e *Etc) ValueAsFloat64(path string, dv float64) float64 {
 	value := e.valueAt(path)
 	return defaulter.AsFloat64(value, dv)
 }
 
-// ValueAsTime implements the Etc interface.
-func (e *etc) ValueAsTime(path, format string, dv time.Time) time.Time {
+// ValueAsTime retrieves the string value at a given path and
+// interprets it as time with the passed format. If it
+// doesn't exist the default value dv is returned.
+func (e *Etc) ValueAsTime(path, format string, dv time.Time) time.Time {
 	value := e.valueAt(path)
 	return defaulter.AsTime(value, format, dv)
 }
 
-// ValueAsDuration implements the Etc interface.
-func (e *etc) ValueAsDuration(path string, dv time.Duration) time.Duration {
+// ValueAsDuration retrieves the duration value at a given path.
+// If it doesn't exist the default value dv is returned.
+func (e *Etc) ValueAsDuration(path string, dv time.Duration) time.Duration {
 	value := e.valueAt(path)
 	return defaulter.AsDuration(value, dv)
 }
 
-// Split implements the Etc interface.
-func (e *etc) Split(path string) (Etc, error) {
+// Spit produces a subconfiguration below the passed path.
+// The last path part will be the new root, all values below
+// that configuration node will be below the created root.
+// In case of an invalid path an empty configuration will
+// be returned as default.
+func (e *Etc) Split(path string) (*Etc, error) {
 	if !e.HasPath(path) {
 		// Path not found, return empty configuration.
 		return ReadString("{etc}")
@@ -250,14 +204,15 @@ func (e *etc) Split(path string) (Etc, error) {
 		return nil, errors.Annotate(err, ErrCannotSplit, "cannot split configuration")
 	}
 	values.At(fullPath[len(fullPath)-1:]...).SetKey("etc")
-	es := &etc{
+	es := &Etc{
 		values: values,
 	}
 	return es, nil
 }
 
-// Dump implements the Etc interface.
-func (e *etc) Dump() (Application, error) {
+// Dunp creates a map of paths and their values to apply
+// them into other configurations.
+func (e *Etc) Dump() (Application, error) {
 	appl := Application{}
 	err := e.values.DoAllDeep(func(ks []string, v string) error {
 		if len(ks) == 1 {
@@ -274,9 +229,11 @@ func (e *etc) Dump() (Application, error) {
 	return appl, nil
 }
 
-// Apply implements the Etc interface.
-func (e *etc) Apply(appl Application) (Etc, error) {
-	ec := &etc{
+// Apply creates a new configuration by adding of overwriting
+// the passed values. The keys of the map have to be slash
+// separated configuration paths without the leading "etc".
+func (e *Etc) Apply(appl Application) (*Etc, error) {
+	ec := &Etc{
 		values: e.values.Copy(),
 	}
 	for path, value := range appl {
@@ -289,8 +246,10 @@ func (e *etc) Apply(appl Application) (Etc, error) {
 	return ec, nil
 }
 
-// Write implements the Etc interface.
-func (e *etc) Write(target io.Writer, prettyPrint bool) error {
+// Write writes the configuration as SML to the passed target.
+// If prettyPrint is true the written SML is indented and has
+// linebreaks.
+func (e *Etc) Write(target io.Writer, prettyPrint bool) error {
 	// Build the nodes tree.
 	builder := sml.NewNodeBuilder()
 	depth := 0
@@ -333,14 +292,14 @@ func (e *etc) Write(target io.Writer, prettyPrint bool) error {
 	return sml.WriteSML(root, wctx)
 }
 
-// Apply implements the Stringer interface.
-func (e *etc) String() string {
+// String implements the fmt.Stringer interface.
+func (e *Etc) String() string {
 	return fmt.Sprintf("%v", e.values)
 }
 
 // valueAt retrieves and encapsulates the value
 // at a given path.
-func (e *etc) valueAt(path string) *value {
+func (e *Etc) valueAt(path string) *value {
 	fullPath := makeFullPath(path)
 	changer := e.values.At(fullPath...)
 	return &value{fullPath, changer}
@@ -348,7 +307,7 @@ func (e *etc) valueAt(path string) *value {
 
 // postProcess replaces templates formated [path||default]
 // with values found at that path or the default.
-func (e *etc) postProcess() error {
+func (e *Etc) postProcess() error {
 	re := regexp.MustCompile("\\[.+(||.+)\\]")
 	// Find all entries with template.
 	changers := e.values.FindAll(func(k, v string) (bool, error) {
@@ -392,13 +351,13 @@ func (e *etc) postProcess() error {
 //--------------------
 
 // NewContext returns a new context that carries a configuration.
-func NewContext(ctx context.Context, cfg Etc) context.Context {
+func NewContext(ctx context.Context, cfg *Etc) context.Context {
 	return context.WithValue(ctx, etcKey, cfg)
 }
 
 // FromContext returns the configuration stored in ctx, if any.
-func FromContext(ctx context.Context) (Etc, bool) {
-	cfg, ok := ctx.Value(etcKey).(Etc)
+func FromContext(ctx context.Context) (*Etc, bool) {
+	cfg, ok := ctx.Value(etcKey).(*Etc)
 	return cfg, ok
 }
 

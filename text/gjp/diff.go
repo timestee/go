@@ -8,43 +8,18 @@
 package gjp
 
 //--------------------
-// IMPORTS
-//--------------------
-
-import (
-	"tideland.one/go/trace/errors"
-)
-
-//--------------------
 // DIFFERENCE
 //--------------------
 
 // Diff manages the two parsed documents and their differences.
-type Diff interface {
-	// FirstDocument returns the first document passed to Diff().
-	FirstDocument() Document
-
-	// SecondDocument returns the second document passed to Diff().
-	SecondDocument() Document
-
-	// Differences returns a list of paths where the documents
-	// have different content.
-	Differences() []string
-
-	// DifferenceAt returns the differences at the given path by
-	// returning the first and the second value.
-	DifferenceAt(path string) (Value, Value)
-}
-
-// diff implements Diff.
-type diff struct {
-	first  Document
-	second Document
+type Diff struct {
+	first  *Document
+	second *Document
 	paths  []string
 }
 
 // Compare parses and compares the documents and returns their differences.
-func Compare(first, second []byte, separator string) (Diff, error) {
+func Compare(first, second []byte, separator string) (*Diff, error) {
 	fd, err := Parse(first, separator)
 	if err != nil {
 		return nil, err
@@ -53,7 +28,7 @@ func Compare(first, second []byte, separator string) (Diff, error) {
 	if err != nil {
 		return nil, err
 	}
-	d := &diff{
+	d := &Diff{
 		first:  fd,
 		second: sd,
 	}
@@ -65,20 +40,12 @@ func Compare(first, second []byte, separator string) (Diff, error) {
 }
 
 // CompareDocuments compares the documents and returns their differences.
-func CompareDocuments(first, second Document, separator string) (Diff, error) {
-	fd, ok := first.(*document)
-	if !ok {
-		return nil, errors.New(ErrInvalidDocument, "invalid first document implementation")
-	}
-	fd.separator = separator
-	sd, ok := second.(*document)
-	if !ok {
-		return nil, errors.New(ErrInvalidDocument, "invalid second document implementation")
-	}
-	sd.separator = separator
-	d := &diff{
-		first:  fd,
-		second: sd,
+func CompareDocuments(first, second *Document, separator string) (*Diff, error) {
+	first.separator = separator
+	second.separator = separator
+	d := &Diff{
+		first:  first,
+		second: second,
 	}
 	err := d.compare()
 	if err != nil {
@@ -87,23 +54,25 @@ func CompareDocuments(first, second Document, separator string) (Diff, error) {
 	return d, nil
 }
 
-// FirstDocument implements Diff.
-func (d *diff) FirstDocument() Document {
+// FirstDocument returns the first document passed to Diff().
+func (d *Diff) FirstDocument() *Document {
 	return d.first
 }
 
-// SecondDocument implements Diff.
-func (d *diff) SecondDocument() Document {
+// SecondDocument returns the second document passed to Diff().
+func (d *Diff) SecondDocument() *Document {
 	return d.second
 }
 
-// Differences implements Diff.
-func (d *diff) Differences() []string {
+// Differences returns a list of paths where the documents
+// have different content.
+func (d *Diff) Differences() []string {
 	return d.paths
 }
 
-// DifferenceAt implements Diff.
-func (d *diff) DifferenceAt(path string) (Value, Value) {
+// DifferenceAt returns the differences at the given path by
+// returning the first and the second value.
+func (d *Diff) DifferenceAt(path string) (*Value, *Value) {
 	firstValue := d.first.ValueAt(path)
 	secondValue := d.second.ValueAt(path)
 	return firstValue, secondValue
@@ -111,9 +80,9 @@ func (d *diff) DifferenceAt(path string) (Value, Value) {
 
 // compare iterates over the both documents looking for different
 // values or even paths.
-func (d *diff) compare() error {
+func (d *Diff) compare() error {
 	firstPaths := map[string]struct{}{}
-	firstProcessor := func(path string, value Value) error {
+	firstProcessor := func(path string, value *Value) error {
 		firstPaths[path] = struct{}{}
 		if !value.Equals(d.second.ValueAt(path)) {
 			d.paths = append(d.paths, path)
@@ -124,7 +93,7 @@ func (d *diff) compare() error {
 	if err != nil {
 		return err
 	}
-	secondProcessor := func(path string, value Value) error {
+	secondProcessor := func(path string, value *Value) error {
 		_, ok := firstPaths[path]
 		if ok {
 			// Been there, done that.

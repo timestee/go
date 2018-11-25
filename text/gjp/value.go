@@ -22,41 +22,18 @@ import (
 //--------------------
 
 // Value contains one JSON value.
-type Value interface {
-	fmt.Stringer
-
-	// IsUndefined returns true if this value is undefined.
-	IsUndefined() bool
-
-	// AsString returns the value as string.
-	AsString(dv string) string
-
-	// AsInt returns the value as int.
-	AsInt(dv int) int
-
-	// AsFloat64 returns the value as float64.
-	AsFloat64(dv float64) float64
-
-	// AsBool returns the value as bool.
-	AsBool(dv bool) bool
-
-	// Equals compares a value with the passed one.
-	Equals(to Value) bool
-}
-
-// value implements Value.
-type value struct {
+type Value struct {
 	raw interface{}
 	err error
 }
 
-// IsUndefined implements Value.
-func (v *value) IsUndefined() bool {
+// IsUndefined returns true if this value is undefined.
+func (v *Value) IsUndefined() bool {
 	return v.raw == nil
 }
 
-// AsString implements Value.
-func (v *value) AsString(dv string) string {
+// AsString returns the value as string.
+func (v *Value) AsString(dv string) string {
 	if v.IsUndefined() {
 		return dv
 	}
@@ -73,8 +50,8 @@ func (v *value) AsString(dv string) string {
 	return dv
 }
 
-// AsInt implements Value.
-func (v *value) AsInt(dv int) int {
+// AsInt returns the value as int.
+func (v *Value) AsInt(dv int) int {
 	if v.IsUndefined() {
 		return dv
 	}
@@ -98,8 +75,8 @@ func (v *value) AsInt(dv int) int {
 	return dv
 }
 
-// AsFloat64 implements Value.
-func (v *value) AsFloat64(dv float64) float64 {
+// AsFloat64 returns the value as float64.
+func (v *Value) AsFloat64(dv float64) float64 {
 	if v.IsUndefined() {
 		return dv
 	}
@@ -123,8 +100,8 @@ func (v *value) AsFloat64(dv float64) float64 {
 	return dv
 }
 
-// AsBool implements Value.
-func (v *value) AsBool(dv bool) bool {
+// AsBool returns the value as bool.
+func (v *Value) AsBool(dv bool) bool {
 	if v.IsUndefined() {
 		return dv
 	}
@@ -145,22 +122,13 @@ func (v *value) AsBool(dv bool) bool {
 	return dv
 }
 
-// Equals implements Value.
-func (v *value) Equals(to Value) bool {
-	vto, ok := to.(*value)
-	if !ok {
-		return false
-	}
-	if vv, ok := isValue(v.raw); ok {
-		if vtov, ok := isValue(vto.raw); ok {
-			return vv == vtov
-		}
-	}
-	return reflect.DeepEqual(v.raw, vto.raw)
+// Equals compares a value with the passed one.
+func (v *Value) Equals(to *Value) bool {
+	return reflect.DeepEqual(v.raw, to.raw)
 }
 
 // String implements fmt.Stringer.
-func (v *value) String() string {
+func (v *Value) String() string {
 	if v.IsUndefined() {
 		return "null"
 	}

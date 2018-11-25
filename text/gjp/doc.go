@@ -5,11 +5,10 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package gjp of the Tideland Go Library package provides the
-// generic parsing and processing of JSON documents by paths. The
-// returned values are typed, also a default has to be provided.
-// The path separator for accessing can be defined when parsing
-// a document.
+// Package gjp provides the generic parsing and processing of JSON
+// documents by paths. The returned values are typed, also a default
+// has to be provided. The path separator for accessing can be defined
+// when parsing a document.
 //
 //     doc, err := gjp.Parse(myDoc, "/")
 //     if err != nil {

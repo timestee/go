@@ -77,7 +77,7 @@ func TestProcessing(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	bs, _ := createDocument(assert)
 	count := 0
-	processor := func(path string, value gjp.Value) error {
+	processor := func(path string, value *gjp.Value) error {
 		count++
 		assert.Logf("path %02d  =>  %-10q = %q", count, path, value.AsString("<undefined>"))
 		return nil
@@ -89,7 +89,7 @@ func TestProcessing(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(count, 27)
 
-	processor = func(path string, value gjp.Value) error {
+	processor = func(path string, value *gjp.Value) error {
 		return errors.New("ouch")
 	}
 	err = doc.Process(processor)
@@ -407,7 +407,7 @@ type levelOne struct {
 	T time.Time
 }
 
-func createDocument(assert asserts.Asserts) ([]byte, *levelOne) {
+func createDocument(assert *asserts.Asserts) ([]byte, *levelOne) {
 	lo := &levelOne{
 		A: "Level One",
 		B: []*levelTwo{
@@ -459,7 +459,7 @@ func createDocument(assert asserts.Asserts) ([]byte, *levelOne) {
 	return bs, lo
 }
 
-func createCompareDocument(assert asserts.Asserts) []byte {
+func createCompareDocument(assert *asserts.Asserts) []byte {
 	lo := &levelOne{
 		A: "Level One",
 		B: []*levelTwo{

@@ -185,7 +185,7 @@ for foo := 0; foo < 42; foo++ {
 //--------------------
 
 // Create a node structure.
-func createNodeStructure(assert asserts.Asserts) sml.Node {
+func createNodeStructure(assert *asserts.Asserts) sml.Node {
 	builder := sml.NewNodeBuilder()
 
 	builder.BeginTagNode("root")
