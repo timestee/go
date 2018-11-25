@@ -356,7 +356,7 @@ func (rs *readSeeker) Seek(offset int64, whence int) (ret int64, err error) {
 // receiver is responsible for receiving the scrolled lines and
 // performing the assertions
 type receiver struct {
-	assert asserts.Asserts
+	assert *asserts.Asserts
 	data   []string
 	reader *io.PipeReader
 	writer *io.PipeWriter
@@ -364,7 +364,7 @@ type receiver struct {
 }
 
 // newReceiver creates a new receiver.
-func newReceiver(assert asserts.Asserts, data []string) *receiver {
+func newReceiver(assert *asserts.Asserts, data []string) *receiver {
 	r := &receiver{
 		assert: assert,
 		data:   data,

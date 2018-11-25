@@ -5,10 +5,9 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package stringex of the Tideland Go Library helps when working with
-// strings. So SplitFilter() and SplitMap() split given strings by a
-// separator and user defined functions are called for each part to
-// filter or map those.
+// Package stringex helps when working with strings. So SplitFilter()
+// and SplitMap() split given strings by a separator and user defined
+// functions are called for each part to filter or map those.
 //
 // Matches() provides a more simple string matching than regular
 // expressions. Patterns are ? for one char, * for multiple chars,
