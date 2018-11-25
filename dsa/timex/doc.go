@@ -1,12 +1,11 @@
-// Tideland Go Library - DSA - Sort
+// Tideland Go Library - DSA - Timex
 //
 // Copyright (C) 2018 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package sort provides a parallel quicksort. It uses the same interface
-// as the standard sort package.
-package sort
+// Package timex adds some useful functions for the work with them time type.
+package timex
 
 // EOF

@@ -71,7 +71,7 @@ type OrderMapReducer struct {
 	count    int
 	items    map[int][]*OrderItem
 	analyses map[string]*OrderItemAnalysis
-	assert   asserts.Asserts
+	assert   *asserts.Asserts
 }
 
 // Input has to return the input channel for the
