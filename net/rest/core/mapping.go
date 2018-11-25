@@ -120,7 +120,7 @@ type mapping struct {
 }
 
 // newMapping returns a new handler mapping.
-func newMapping(cfg etc.Etc) *mapping {
+func newMapping(cfg *etc.Etc) *mapping {
 	return &mapping{
 		ignoreFavicon: cfg.ValueAsBool("ignore-favicon", true),
 		handlers:      make(map[string]*handlerList),

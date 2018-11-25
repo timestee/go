@@ -103,7 +103,7 @@ func (r *Request) SetRequestProcessor(processor RequestProcessor) *Request {
 // MarshalBody sets the request body based on the type and
 // the marshalled data.
 func (r *Request) MarshalBody(
-	assert asserts.Asserts,
+	assert *asserts.Asserts,
 	contentType string,
 	data interface{},
 ) *Request {
@@ -160,7 +160,7 @@ func (r *Request) RenderTemplate(
 
 // Response wraps all infos of a test response.
 type Response struct {
-	assert  asserts.Asserts
+	assert  *asserts.Asserts
 	Status  int
 	Header  KeyValues
 	Cookies KeyValues
@@ -297,11 +297,11 @@ func (r *Response) AssertBodyContains(expected string) {
 // and uploads.
 type TestServer struct {
 	server *httptest.Server
-	assert asserts.Asserts
+	assert *asserts.Asserts
 }
 
 // StartServer starts a test server using the passed handler
-func StartServer(handler http.Handler, assert asserts.Asserts) *TestServer {
+func StartServer(handler http.Handler, assert *asserts.Asserts) *TestServer {
 	return &TestServer{
 		server: httptest.NewServer(handler),
 		assert: assert,

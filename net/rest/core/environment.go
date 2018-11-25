@@ -37,7 +37,7 @@ type Environment struct {
 
 // newEnvironment crerates an environment using the
 // passed context and configuration.
-func newEnvironment(ctx context.Context, cfg etc.Etc) *Environment {
+func newEnvironment(ctx context.Context, cfg *etc.Etc) *Environment {
 	env := &Environment{
 		basepath:        "/",
 		baseparts:       []string{},

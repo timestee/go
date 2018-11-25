@@ -61,7 +61,7 @@ type Multiplexer struct {
 //
 // The values shown here are the default values if the configuration
 // is nil or missing these settings.
-func NewMultiplexer(ctx context.Context, cfg etc.Etc) *Multiplexer {
+func NewMultiplexer(ctx context.Context, cfg *etc.Etc) *Multiplexer {
 	return &Multiplexer{
 		environment: newEnvironment(ctx, cfg),
 		mapping:     newMapping(cfg),

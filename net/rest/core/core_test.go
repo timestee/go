@@ -383,10 +383,10 @@ const testTemplateHTML = `
 
 type testHandler struct {
 	id     string
-	assert asserts.Asserts
+	assert *asserts.Asserts
 }
 
-func NewTestHandler(id string, assert asserts.Asserts) core.ResourceHandler {
+func NewTestHandler(id string, assert *asserts.Asserts) core.ResourceHandler {
 	return &testHandler{id, assert}
 }
 
@@ -577,7 +577,7 @@ func (dh *doubleHandler) Read(job *core.Job) (bool, error) {
 
 // newMultiplexer creates a new multiplexer with a testing context
 // and a testing configuration.
-func newMultiplexer(assert asserts.Asserts) *core.Multiplexer {
+func newMultiplexer(assert *asserts.Asserts) *core.Multiplexer {
 	ctx := context.WithValue(context.Background(), "test", "foo")
 	cfgStr := "{etc {basepath /base/}{default-domain testing}{default-resource index}}"
 	cfg, err := etc.ReadString(cfgStr)
