@@ -5,8 +5,8 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package errors of the Tideland Go Library allows to create more
-// detailed error values than with errors.New() or fmt.Errorf().
+// Package errors allows to create more detailed error values than
+// with errors.New() or fmt.Errorf().
 //
 // The errors package allows to easily created formatted errors
 // with New() like with the fmt.Errorf() function, but also with an

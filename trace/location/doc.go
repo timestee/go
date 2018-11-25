@@ -5,9 +5,9 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package location of the Tideland Go Library provides a way to retrieve
-// the current location in code. This can be used in logging or
-// monitoring. Passing an offset helps hiding calling wrappers.
+// Package location provides a way to retrieve the current location in code.
+// This can be used in logging or monitoring. Passing an offset helps hiding
+// calling wrappers.
 //
 //     pkg, file, fun, line := location.Here(0)
 //     here := location.HereID(0)
