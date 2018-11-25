@@ -5,10 +5,10 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package notifier of the Tideland Go Library provides helpers for the coordination
-// of multiple goroutines. First little helper is the Closer for the aggregation
-// of typical closer channels <-chan struct{} into one Closer.Done() <-chan struct{}.
-// This way for-select-loops don't need to each channel individually.
+// Package notifier help at the coordination of multiple goroutines. First little
+// helper is the Closer for the aggregation of typical closer channels <-chan struct{}
+// into one Closer.Done() <-chan struct{}. This way for-select-loops don't need to
+// each channel individually.
 //
 //     ca := make(chan struct{})
 //     cb := make(chan struct{})

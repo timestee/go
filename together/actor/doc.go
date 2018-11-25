@@ -5,11 +5,10 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package actor of the Tideland Go Library supports the simple
-// creation of concurrent applications following the idea of actor models.
-// The work to be done has to be defined as func() inside your
-// public methods or functions and sent to the actor running in
-// the background.
+// Package actor supports the simple creation of concurrent applications
+// following the idea of actor models. The work to be done has to be defined
+// as func() inside your public methods or functions and sent to the actor
+// running in the background.
 //
 //     type Counter struct {
 //         counter int
