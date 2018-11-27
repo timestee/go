@@ -19,8 +19,6 @@ import (
 
 	"tideland.one/go/audit/asserts"
 	"tideland.one/go/net/jwt/cache"
-	"tideland.one/go/net/jwt/claims"
-	"tideland.one/go/net/jwt/crypto"
 	"tideland.one/go/net/jwt/token"
 )
 
@@ -36,7 +34,7 @@ func TestCachePutGet(t *testing.T) {
 	cache := cache.New(nil, time.Minute, time.Minute, time.Minute, 10)
 	key := []byte("secret")
 	claims := initClaims()
-	jwtIn, err := token.Encode(claims, key, crypto.HS512)
+	jwtIn, err := token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	cache.Put(jwtIn)
 	token := jwtIn.String()
@@ -60,7 +58,7 @@ func TestCacheAccessCleanup(t *testing.T) {
 	defer cache.Stop()
 	key := []byte("secret")
 	claims := initClaims()
-	jwtIn, err := token.Encode(claims, key, crypto.HS512)
+	jwtIn, err := token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	cache.Put(jwtIn)
 	token := jwtIn.String()
@@ -89,7 +87,7 @@ func TestCacheValidityCleanup(t *testing.T) {
 	claims := initClaims()
 	claims.SetNotBefore(nbf)
 	claims.SetExpiration(exp)
-	jwtIn, err := token.Encode(claims, key, crypto.HS512)
+	jwtIn, err := token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	cache.Put(jwtIn)
 	token := jwtIn.String()
@@ -125,7 +123,7 @@ func TestCacheLoad(t *testing.T) {
 	for i = 0; i < 10; i++ {
 		time.Sleep(50 * time.Millisecond)
 		key := []byte(fmt.Sprintf("secret-%d", i))
-		jwtIn, err := token.Encode(claims, key, crypto.HS512)
+		jwtIn, err := token.Encode(claims, key, token.HS512)
 		assert.Nil(err)
 		size := cache.Put(jwtIn)
 		assert.True(size < 6)
@@ -140,7 +138,7 @@ func TestCacheContext(t *testing.T) {
 	cache := cache.New(ctx, time.Minute, time.Minute, time.Minute, 10)
 	key := []byte("secret")
 	claims := initClaims()
-	jwtIn, err := token.Encode(claims, key, crypto.HS512)
+	jwtIn, err := token.Encode(claims, key, token.HS512)
 	assert.Nil(err)
 	cache.Put(jwtIn)
 	// Now cancel and test to get token.
@@ -159,8 +157,8 @@ func TestCacheContext(t *testing.T) {
 //--------------------
 
 // initClaims creates test claims.
-func initClaims() claims.Claims {
-	c := claims.New()
+func initClaims() token.Claims {
+	c := token.NewClaims()
 	c.SetSubject("1234567890")
 	c.Set("name", "John Doe")
 	c.Set("admin", true)

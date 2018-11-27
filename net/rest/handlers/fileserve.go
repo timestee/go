@@ -16,9 +16,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"tideland.one/go/rest/core"
+	"tideland.one/go/net/rest/core"
 	"tideland.one/go/trace/errors"
-	"tideland.one/go/trace/logger"
 )
 
 //--------------------
@@ -56,10 +55,10 @@ func (h *fileServeHandler) Get(job *core.Job) (bool, error) {
 	cleanResourceID := filepath.Clean(strings.Replace(job.Path().ResourceID(), "../", "", -1))
 	filename, err := filepath.Abs(h.dir + cleanResourceID)
 	if err != nil {
-		logger.Errorf("file '%s' does not exist", filename)
+		job.Environment().Log().Errorf("file '%s' does not exist", filename)
 		return false, errors.Annotate(err, ErrDownloadingFile, msgDownloadingFile, filename)
 	}
-	logger.Infof("serving file '%s'", filename)
+	job.Environment().Log().Infof("serving file '%s'", filename)
 	http.ServeFile(job.ResponseWriter(), job.Request(), filename)
 	return true, nil
 }

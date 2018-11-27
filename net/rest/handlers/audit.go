@@ -13,7 +13,7 @@ package handlers
 
 import (
 	"tideland.one/go/audit/asserts"
-	"tideland.one/go/rest/core"
+	"tideland.one/go/net/rest/core"
 )
 
 //--------------------
@@ -22,19 +22,19 @@ import (
 
 // AuditHandlerFunc defines the function which will be executed
 // for each request. The assert can be used for tests.
-type AuditHandlerFunc func(assert *asserts.Assert, job *core.Job) (bool, error)
+type AuditHandlerFunc func(assert *asserts.Asserts, job *core.Job) (bool, error)
 
 // auditHandler helps testing other handlers.
 type auditHandler struct {
 	id     string
-	assert *asserts.Assert
+	assert *asserts.Asserts
 	handle AuditHandlerFunc
 }
 
 // NewAuditHandler creates a handler able to handle all types of
 // requests with the passed AuditHandlerFunc. Here the tests can
 // be done.
-func NewAuditHandler(id string, assert *asserts.Assert, ahf AuditHandlerFunc) core.ResourceHandler {
+func NewAuditHandler(id string, assert *asserts.Asserts, ahf AuditHandlerFunc) core.ResourceHandler {
 	return &auditHandler{id, assert, ahf}
 }
 

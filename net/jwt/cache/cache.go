@@ -13,12 +13,15 @@ package cache
 
 import (
 	"context"
+	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"tideland.one/go/net/jwt/token"
 	"tideland.one/go/together/loop"
 	"tideland.one/go/together/notifier"
+	"tideland.one/go/trace/errors"
 )
 
 //--------------------
@@ -88,6 +91,46 @@ func (c *Cache) Get(token string) (*token.JWT, bool) {
 	return nil, false
 }
 
+// RequestDecode tries to retrieve a token from the cache by
+// the requests authorization header. Otherwise it decodes it and
+// puts it.
+func (c *Cache) RequestDecode(req *http.Request) (*token.JWT, error) {
+	t, err := c.requestToken(req)
+	if err != nil {
+		return nil, err
+	}
+	jwt, ok := c.Get(t)
+	if ok {
+		return jwt, nil
+	}
+	jwt, err = token.Decode(t)
+	if err != nil {
+		return nil, err
+	}
+	c.Put(jwt)
+	return jwt, nil
+}
+
+// RequestVerify tries to retrieve a token from the cache by
+// the requests authorization header. Otherwise it verifies it and
+// puts it.
+func (c *Cache) RequestVerify(req *http.Request, key token.Key) (*token.JWT, error) {
+	t, err := c.requestToken(req)
+	if err != nil {
+		return nil, err
+	}
+	jwt, ok := c.Get(t)
+	if ok {
+		return jwt, nil
+	}
+	jwt, err = token.Verify(t, key)
+	if err != nil {
+		return nil, err
+	}
+	c.Put(jwt)
+	return jwt, nil
+}
+
 // Put adds a token to the cache and return the total number of entries.
 func (c *Cache) Put(jwt *token.JWT) int {
 	c.mu.Lock()
@@ -119,6 +162,19 @@ func (c *Cache) Cleanup() {
 // Stop tells the cache to end working.
 func (c *Cache) Stop() error {
 	return c.loop.Stop(nil)
+}
+
+// requestToken retrieves an authentication token out of a request.
+func (c *Cache) requestToken(req *http.Request) (string, error) {
+	authorization := req.Header.Get("Authorization")
+	if authorization == "" {
+		return "", errors.New(ErrNoAuthorizationHeader, msgNoAuthorizationHeader)
+	}
+	fields := strings.Fields(authorization)
+	if len(fields) != 2 || fields[0] != "Bearer" {
+		return "", errors.New(ErrInvalidAuthorizationHeader, msgInvalidAuthorizationHeader, authorization)
+	}
+	return fields[1], nil
 }
 
 // worker runs a cleaning session every five minutes.

@@ -27,13 +27,13 @@ const (
 )
 
 // NewContext returns a new context that carries a token.
-func NewContext(ctx context.Context, token JWT) context.Context {
+func NewContext(ctx context.Context, token *JWT) context.Context {
 	return context.WithValue(ctx, jwtKey, token)
 }
 
 // FromContext returns the token stored in ctx, if any.
-func FromContext(ctx context.Context) (JWT, bool) {
-	token, ok := ctx.Value(jwtKey).(JWT)
+func FromContext(ctx context.Context) (*JWT, bool) {
+	token, ok := ctx.Value(jwtKey).(*JWT)
 	return token, ok
 }
 
