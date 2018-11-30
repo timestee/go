@@ -50,12 +50,27 @@ func NewValues(assert *asserts.Asserts, values url.Values) Values {
 	}
 }
 
+// Values returns the inner values for direct usage.
+func (v Values) Values() url.Values {
+	return v.values
+}
+
 // AssertContainsKey tests if the values contain the passed key.
-func (v Values) AssertContainsKey(key string) {
+func (v Values) AssertContainsKey(key string, msgs ...string) {
 	restore := v.assert.IncrCallstackOffset()
 	defer restore()
 	_, ok := v.values[key]
-	v.assert.True(ok, "does not contain key")
+	v.assert.True(ok, msgs...)
+}
+
+// AssertKeyContainsValue tests if the values contain the passed key
+// and that the passed value.
+func (v Values) AssertContainsKey(key, value string, msgs ...string) {
+	restore := v.assert.IncrCallstackOffset()
+	defer restore()
+	vs, ok := v.values[key]
+	v.assert.True(ok, msgs...)
+	v.assert.Contents(value, vs, msgs...)
 }
 
 //--------------------

@@ -31,38 +31,50 @@ type RequestProcessor func(req *http.Request) *http.Request
 
 // Request wraps all infos for a test request.
 type Request struct {
+	assert           *asserts.Asserts
 	method           string
 	path             string
-	header           KeyValues
-	cookies          KeyValues
+	header           Values
+	cookies          Values
 	body             []byte
 	requestProcessor RequestProcessor
 }
 
 // NewRequest creates a new test request with the given method
 // and path.
-func NewRequest(method, path string) *Request {
+func NewRequest(assert *asserts.Asserts, method, path string) *Request {
 	return &Request{
+		assert: assert,
 		method: method,
 		path:   path,
 	}
 }
 
-// AddHeader adds or overwrites a request header.
+// AddHeader adds or appends a request header.
 func (r *Request) AddHeader(key, value string) *Request {
 	if r.header == nil {
-		r.header = KeyValues{}
+		r.header = NewValues(r.assert, url.Values{})
 	}
-	r.header[key] = value
+	vs, ok := r.header[key]
+	if ok {
+		r.header[key] = append(vs, value)
+	} else {
+		r.header[key] = []string{value}
+	}
 	return r
 }
 
 // AddCookie adds or overwrites a request header.
 func (r *Request) AddCookie(key, value string) *Request {
-	if r.cookies == nil {
-		r.cookies = KeyValues{}
+	if r.header == nil {
+		r.cookies = NewValues(r.assert, url.Values{})
 	}
-	r.cookies[key] = value
+	vs, ok := r.cookies[key]
+	if ok {
+		r.cookies[key] = append(vs, value)
+	} else {
+		r.cookies[key] = []string{value}
+	}
 	return r
 }
 
@@ -82,9 +94,12 @@ func (r *Request) SetRequestProcessor(processor RequestProcessor) *Request {
 	return r
 }
 
-// MarshalBody sets the request body based on the type and
+// MarshalBody sets the request body based on the set content type and
 // the marshalled data.
-func (r *Request) MarshalBody(assert *asserts.Asserts, data interface{}) *Request {
+func (r *Request) MarshalBody(data interface{}) *Request {
+	restore := r.assert.IncrCallstackOffset()
+	defer restore()
+	// Marshal the passed data into the request body.
 	var contentType string
 	if r.header != nil {
 		contentType = r.header[HeaderContentType]
@@ -92,13 +107,13 @@ func (r *Request) MarshalBody(assert *asserts.Asserts, data interface{}) *Reques
 	switch contentType {
 	case ApplicationJSON:
 		body, err := json.Marshal(data)
-		assert.Nil(err, "cannot marshal data to JSON")
+		r.assert.Nil(err, "cannot marshal data to JSON")
 		r.body = body
 		r.AddHeader(HeaderContentType, ApplicationJSON)
 		r.AddHeader(HeaderAccept, ApplicationJSON)
 	case ApplicationXML:
 		body, err := xml.Marshal(data)
-		assert.Nil(err, "cannot marshal data to XML")
+		r.assert.Nil(err, "cannot marshal data to XML")
 		r.body = body
 		r.AddHeader(HeaderContentType, ApplicationXML)
 		r.AddHeader(HeaderAccept, ApplicationXML)
@@ -109,13 +124,15 @@ func (r *Request) MarshalBody(assert *asserts.Asserts, data interface{}) *Reques
 // RenderTemplate renders the passed data into the template
 // and assigns it to the request body. The content type
 // will be set too.
-func (r *Request) RenderTemplate(assert asserts.Asserts, templateSource string, data interface{}) *Request {
+func (r *Request) RenderTemplate(templateSource string, data interface{}) *Request {
+	restore := r.assert.IncrCallstackOffset()
+	defer restore()
 	// Render template.
 	t, err := template.New(r.path).Parse(templateSource)
-	assert.Nil(err, "cannot parse template")
+	r.assert.Nil(err, "cannot parse template")
 	body := &bytes.Buffer{}
 	err = t.Execute(body, data)
-	assert.Nil(err, "cannot render template")
+	r.assert.Nil(err, "cannot render template")
 	r.body = body.Bytes()
 	return r
 }
@@ -128,9 +145,17 @@ func (r *Request) RenderTemplate(assert asserts.Asserts, templateSource string, 
 type Response struct {
 	assert     *asserts.Asserts
 	statusCode int
-	header     KeyValues
-	cookies    KeyValues
+	header     Values
+	cookies    Values
 	body       []byte
+}
+
+// NewResponse creates a test response wrapper.
+func NewResponse(assert *asserts.Asserts, statusCode int) *Response {
+	return &Response{
+		assert:     assert,
+		statusCode: statusCode,
+	}
 }
 
 // AssertStatusCodeEquals checks if the status is the expected one.
