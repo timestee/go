@@ -17,6 +17,7 @@ import (
 	"encoding/xml"
 	"html/template"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"tideland.one/go/audit/asserts"
@@ -34,8 +35,8 @@ type Request struct {
 	assert           *asserts.Asserts
 	method           string
 	path             string
-	header           Values
-	cookies          Values
+	header           *Values
+	cookies          *Values
 	body             []byte
 	requestProcessor RequestProcessor
 }
@@ -55,12 +56,7 @@ func (r *Request) AddHeader(key, value string) *Request {
 	if r.header == nil {
 		r.header = NewValues(r.assert, url.Values{})
 	}
-	vs, ok := r.header[key]
-	if ok {
-		r.header[key] = append(vs, value)
-	} else {
-		r.header[key] = []string{value}
-	}
+	r.header.Add(key, value)
 	return r
 }
 
@@ -69,12 +65,7 @@ func (r *Request) AddCookie(key, value string) *Request {
 	if r.header == nil {
 		r.cookies = NewValues(r.assert, url.Values{})
 	}
-	vs, ok := r.cookies[key]
-	if ok {
-		r.cookies[key] = append(vs, value)
-	} else {
-		r.cookies[key] = []string{value}
-	}
+	r.cookies.Add(key, value)
 	return r
 }
 
@@ -102,7 +93,7 @@ func (r *Request) MarshalBody(data interface{}) *Request {
 	// Marshal the passed data into the request body.
 	var contentType string
 	if r.header != nil {
-		contentType = r.header[HeaderContentType]
+		contentType = r.header.Values().Get(HeaderContentType)
 	}
 	switch contentType {
 	case ApplicationJSON:
@@ -170,9 +161,8 @@ func (r *Response) AssertHeaderExists(key string) string {
 	restore := r.assert.IncrCallstackOffset()
 	defer restore()
 	r.assert.NotEmpty(r.header, "response contains no header")
-	value, ok := r.header[key]
-	r.assert.True(ok, "header '"+key+"' not found")
-	return value
+	r.header.AssertKeyExists(key, "header '"+key+"' not found")
+	return r.header.Values().Get(key)
 }
 
 // AssertHeaderEquals checks if a header exists and compares
@@ -180,7 +170,7 @@ func (r *Response) AssertHeaderExists(key string) string {
 func (r *Response) AssertHeaderEquals(key, expected string) {
 	restore := r.assert.IncrCallstackOffset()
 	defer restore()
-	value := r.AssertHeader(key)
+	value := r.AssertHeaderExists(key)
 	r.assert.Equal(value, expected, "header value is not equal to expected")
 }
 

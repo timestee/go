@@ -43,34 +43,57 @@ type Values struct {
 }
 
 // NewValues creates a new values instance.
-func NewValues(assert *asserts.Asserts, values url.Values) Values {
-	return Values{
+func NewValues(assert *asserts.Asserts, values url.Values) *Values {
+	vs := &Values{
 		assert: assert,
 		values: values,
+	}
+	if vs.values == nil {
+		vs.values = url.Values{}
+	}
+	return vs
+}
+
+// Add adds or appends a value to a named field.
+func (vs *Values) Add(key, value string) {
+	vsvs, ok := v.values[key]
+	if ok {
+		vs.values[key] = append(vsvs, value)
+	} else {
+		vs.values[key] = []string{value}
 	}
 }
 
 // Values returns the inner values for direct usage.
-func (v Values) Values() url.Values {
-	return v.values
+func (vs *Values) Values() url.Values {
+	return vs.values
 }
 
-// AssertContainsKey tests if the values contain the passed key.
-func (v Values) AssertContainsKey(key string, msgs ...string) {
+// AssertKeyExists tests if the values contain the passed key.
+func (vs *Values) AssertKeyExists(key string, msgs ...string) {
 	restore := v.assert.IncrCallstackOffset()
 	defer restore()
-	_, ok := v.values[key]
+	_, ok := vs.values[key]
 	v.assert.True(ok, msgs...)
 }
 
 // AssertKeyContainsValue tests if the values contain the passed key
 // and that the passed value.
-func (v Values) AssertContainsKey(key, value string, msgs ...string) {
+func (vs *Values) AssertKeyContainsValue(key, expected string, msgs ...string) {
 	restore := v.assert.IncrCallstackOffset()
 	defer restore()
-	vs, ok := v.values[key]
+	vsvs, ok := vs.values[key]
 	v.assert.True(ok, msgs...)
-	v.assert.Contents(value, vs, msgs...)
+	v.assert.Contents(expected, vsvs, msgs...)
+}
+
+// AssertKeyValueEquals tests if the key value equals the expected value.
+func (vs *Values) AssertKeyValueEquals(key, expected string, msgs ...string) {
+	restore := v.assert.IncrCallstackOffset()
+	defer restore()
+	vsvs, ok := vs.values[key]
+	v.assert.True(ok, msgs...)
+	v.assert.Equal(vs.values.Get(key), expected, msgs...)
 }
 
 //--------------------
