@@ -17,7 +17,6 @@ import (
 	"encoding/xml"
 	"html/template"
 	"net/http"
-	"net/url"
 	"regexp"
 
 	"tideland.one/go/audit/asserts"
@@ -39,65 +38,101 @@ const (
 // VALUES
 //--------------------
 
-// Values wraps the query and cookie values for easy assertion
-// and access.
+// Values wraps header, cookie, query, and form values.
 type Values struct {
 	assert *asserts.Asserts
-	values url.Values
+	data   map[string][]string
 }
 
 // NewValues creates a new values instance.
-func NewValues(assert *asserts.Asserts, values url.Values) *Values {
+func NewValues(assert *asserts.Asserts) *Values {
 	vs := &Values{
 		assert: assert,
-		values: values,
+		data:   make(map[string][]string),
 	}
-	if vs.values == nil {
-		vs.values = url.Values{}
+	return vs
+}
+
+// ConsumeHeader consumes its values from the HTTP response header.
+func ConsumeHeader(assert *asserts.Asserts, resp *http.Response) *Values {
+	vs := NewValues(assert)
+	for key, values := range resp.Header {
+		for _, value := range values {
+			vs.Add(key, value)
+		}
+	}
+	return vs
+}
+
+// ConsumeCookies consumes its values from the HTTP response cookies.
+func ConsumeCookies(assert *asserts.Asserts, resp *http.Response) *Values {
+	vs := NewValues(assert)
+	for _, cookie := range resp.Cookies() {
+		vs.Add(cookie.Name, cookie.Value)
 	}
 	return vs
 }
 
 // Add adds or appends a value to a named field.
 func (vs *Values) Add(key, value string) {
-	vsvs, ok := v.values[key]
-	if ok {
-		vs.values[key] = append(vsvs, value)
-	} else {
-		vs.values[key] = []string{value}
-	}
+	kd := append(vs.data[key], value)
+	vs.data[key] = kd
 }
 
-// Values returns the inner values for direct usage.
-func (vs *Values) Values() url.Values {
-	return vs.values
+// Get returns the values for the passed key. May be nil.
+func (vs *Values) Get(key string) []string {
+	return vs.data[key]
 }
 
 // AssertKeyExists tests if the values contain the passed key.
 func (vs *Values) AssertKeyExists(key string, msgs ...string) {
-	restore := v.assert.IncrCallstackOffset()
+	restore := vs.assert.IncrCallstackOffset()
 	defer restore()
-	_, ok := vs.values[key]
-	v.assert.True(ok, msgs...)
+	_, ok := vs.data[key]
+	vs.assert.True(ok, msgs...)
 }
 
 // AssertKeyContainsValue tests if the values contain the passed key
 // and that the passed value.
 func (vs *Values) AssertKeyContainsValue(key, expected string, msgs ...string) {
-	restore := v.assert.IncrCallstackOffset()
+	restore := vs.assert.IncrCallstackOffset()
 	defer restore()
-	vsvs, ok := vs.values[key]
-	v.assert.True(ok, msgs...)
-	v.assert.Contents(expected, vsvs, msgs...)
+	kd, ok := vs.data[key]
+	vs.assert.True(ok, msgs...)
+	vs.assert.Contents(expected, kd, msgs...)
 }
 
-// AssertKeyValueEquals tests if the key value equals the expected value.
+// AssertKeyValueEquals tests if the first value for a key equals the expected value.
 func (vs *Values) AssertKeyValueEquals(key, expected string, msgs ...string) {
-	restore := v.assert.IncrCallstackOffset()
+	restore := vs.assert.IncrCallstackOffset()
 	defer restore()
-	vsvs, ok := vs.values[key]
-	v.assert.True(ok, msgs...)
-	v.assert.Equal(vs.values.Get(key), expected, msgs...)
+	values, ok := vs.data[key]
+	vs.assert.True(ok, msgs...)
+	vs.assert.NotEmpty(values, msgs...)
+	vs.assert.Equal(values[0], expected, msgs...)
+}
+
+// applyHeader applies its values to the HTTP request header.
+func (vs *Values) applyHeader(req *http.Request) {
+	for key, values := range vs.data {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+}
+
+// applyCookies applies its values to the HTTP request cookies.
+func (vs *Values) applyCookies(req *http.Request) {
+	restore := vs.assert.IncrCallstackOffset()
+	defer restore()
+	for key, kd := range vs.data {
+		vs.assert.NotEmpty(kd, "cookie must not be empty")
+		cookie := &http.Cookie{
+			Name:  key,
+			Value: kd[0],
+		}
+		req.AddCookie(cookie)
+	}
 }
 
 //--------------------
@@ -122,26 +157,22 @@ type Request struct {
 // and path.
 func NewRequest(assert *asserts.Asserts, method, path string) *Request {
 	return &Request{
-		assert: assert,
-		method: method,
-		path:   path,
+		assert:  assert,
+		method:  method,
+		path:    path,
+		header:  NewValues(assert),
+		cookies: NewValues(assert),
 	}
 }
 
 // AddHeader adds or appends a request header.
 func (r *Request) AddHeader(key, value string) *Request {
-	if r.header == nil {
-		r.header = NewValues(r.assert, url.Values{})
-	}
 	r.header.Add(key, value)
 	return r
 }
 
 // AddCookie adds or overwrites a request header.
 func (r *Request) AddCookie(key, value string) *Request {
-	if r.header == nil {
-		r.cookies = NewValues(r.assert, url.Values{})
-	}
 	r.cookies.Add(key, value)
 	return r
 }
@@ -162,17 +193,15 @@ func (r *Request) SetRequestProcessor(processor RequestProcessor) *Request {
 	return r
 }
 
-// MarshalBody sets the request body based on the set content type and
-// the marshalled data.
-func (r *Request) MarshalBody(data interface{}) *Request {
+// AssertMarshalBody sets the request body based on the set content type and
+// the marshalled data and asserts that everything works fine.
+func (r *Request) AssertMarshalBody(data interface{}) *Request {
 	restore := r.assert.IncrCallstackOffset()
 	defer restore()
 	// Marshal the passed data into the request body.
-	var contentType string
-	if r.header != nil {
-		contentType = r.header.Values().Get(HeaderContentType)
-	}
-	switch contentType {
+	contentType := r.header.Get(HeaderContentType)
+	r.assert.NotEmpty(contentType, "content type must be set for marshalling")
+	switch contentType[0] {
 	case ApplicationJSON:
 		body, err := json.Marshal(data)
 		r.assert.Nil(err, "cannot marshal data to JSON")
@@ -189,10 +218,9 @@ func (r *Request) MarshalBody(data interface{}) *Request {
 	return r
 }
 
-// RenderTemplate renders the passed data into the template
-// and assigns it to the request body. The content type
-// will be set too.
-func (r *Request) RenderTemplate(templateSource string, data interface{}) *Request {
+// AssertRenderTemplate renders the passed data into the template and
+// assigns it to the request body. It asserts that everything works fine.
+func (r *Request) AssertRenderTemplate(templateSource string, data interface{}) *Request {
 	restore := r.assert.IncrCallstackOffset()
 	defer restore()
 	// Render template.
@@ -213,8 +241,8 @@ func (r *Request) RenderTemplate(templateSource string, data interface{}) *Reque
 type Response struct {
 	assert     *asserts.Asserts
 	statusCode int
-	header     Values
-	cookies    Values
+	header     *Values
+	cookies    *Values
 	body       []byte
 }
 
@@ -226,6 +254,16 @@ func NewResponse(assert *asserts.Asserts, statusCode int) *Response {
 	}
 }
 
+// Header returns the header values of the response.
+func (r *Response) Header() *Values {
+	return r.header
+}
+
+// Cookies returns the cookie values of the response.
+func (r *Response) Cookies() *Values {
+	return r.cookies
+}
+
 // AssertStatusCodeEquals checks if the status is the expected one.
 func (r *Response) AssertStatusCodeEquals(expected int) {
 	restore := r.assert.IncrCallstackOffset()
@@ -233,69 +271,14 @@ func (r *Response) AssertStatusCodeEquals(expected int) {
 	r.assert.Equal(r.statusCode, expected, "response status differs")
 }
 
-// AssertHeaderExists checks if a header exists and retrieves it.
-func (r *Response) AssertHeaderExists(key string) string {
-	restore := r.assert.IncrCallstackOffset()
-	defer restore()
-	r.assert.NotEmpty(r.header, "response contains no header")
-	r.header.AssertKeyExists(key, "header '"+key+"' not found")
-	return r.header.Values().Get(key)
-}
-
-// AssertHeaderEquals checks if a header exists and compares
-// it to an expected one.
-func (r *Response) AssertHeaderEquals(key, expected string) {
-	restore := r.assert.IncrCallstackOffset()
-	defer restore()
-	value := r.AssertHeaderExists(key)
-	r.assert.Equal(value, expected, "header value is not equal to expected")
-}
-
-// AssertHeaderContains checks if a header exists and looks for
-// an expected part.
-func (r *Response) AssertHeaderContains(key, expected string) {
-	restore := r.assert.IncrCallstackOffset()
-	defer restore()
-	value := r.AssertHeader(key)
-	r.assert.Substring(expected, value, "header value does not contain expected")
-}
-
-// AssertCookieExists checks if a cookie exists and retrieves it.
-func (r *Response) AssertCookieExists(key string) string {
-	restore := r.assert.IncrCallstackOffset()
-	defer restore()
-	r.assert.NotEmpty(r.cookies, "response contains no cookies")
-	value, ok := r.cookies[key]
-	r.assert.True(ok, "cookie '"+key+"' not found")
-	return value
-}
-
-// AssertCookieEquals checks if a cookie exists and compares
-// it to an expected one.
-func (r *Response) AssertCookieEquals(key, expected string) {
-	restore := r.assert.IncrCallstackOffset()
-	defer restore()
-	value := r.AssertCookie(key)
-	r.assert.Equal(value, expected, "cookie value is not equal to expected")
-}
-
-// AssertCookieContains checks if a cookie exists and looks for
-// an expected part.
-func (r *Response) AssertCookieContains(key, expected string) {
-	restore := r.assert.IncrCallstackOffset()
-	defer restore()
-	value := r.AssertCookie(key)
-	r.assert.Substring(expected, value, "cookie value does not contain expected")
-}
-
 // AssertUnmarshalledBody retrieves the body based on the content type
-// and unmarshals it accordingly.
+// and unmarshals it accordingly. It asserts that everything works fine.
 func (r *Response) AssertUnmarshalledBody(data interface{}) {
 	restore := r.assert.IncrCallstackOffset()
 	defer restore()
-	contentType, ok := r.header[HeaderContentType]
-	r.assert.True(ok)
-	switch contentType {
+	contentType := r.header.Get(HeaderContentType)
+	r.assert.NotEmpty(contentType)
+	switch contentType[0] {
 	case ApplicationJSON:
 		err := json.Unmarshal(r.body, data)
 		r.assert.Nil(err, "cannot unmarshal JSON body")
@@ -303,7 +286,7 @@ func (r *Response) AssertUnmarshalledBody(data interface{}) {
 		err := xml.Unmarshal(r.body, data)
 		r.assert.Nil(err, "cannot unmarshal XML body")
 	default:
-		r.assert.Fail("unknown content type: " + contentType)
+		r.assert.Fail("unknown content type: " + contentType[0])
 	}
 }
 

@@ -18,7 +18,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 
 	"tideland.one/go/audit/asserts"
 )
@@ -58,26 +57,18 @@ func (ts *TestServer) DoRequest(req *Request) *Response {
 	// First prepare it.
 	transport := &http.Transport{}
 	c := &http.Client{Transport: transport}
-	url := ts.server.URL + req.Path
+	url := ts.server.URL + req.path
 	var bodyReader io.Reader
-	if req.Body != nil {
-		bodyReader = ioutil.NopCloser(bytes.NewBuffer(req.Body))
+	if req.body != nil {
+		bodyReader = ioutil.NopCloser(bytes.NewBuffer(req.body))
 	}
-	httpReq, err := http.NewRequest(req.Method, url, bodyReader)
+	httpReq, err := http.NewRequest(req.method, url, bodyReader)
 	ts.assert.Nil(err, "cannot prepare request")
-	for key, value := range req.Header {
-		httpReq.Header.Set(key, value)
-	}
-	for key, value := range req.Cookies {
-		cookie := &http.Cookie{
-			Name:  key,
-			Value: value,
-		}
-		httpReq.AddCookie(cookie)
-	}
+	req.header.applyHeader(httpReq)
+	req.cookies.applyCookies(httpReq)
 	// Check if request shall be pre-processed before performed.
-	if req.RequestProcessor != nil {
-		httpReq = req.RequestProcessor(httpReq)
+	if req.requestProcessor != nil {
+		httpReq = req.requestProcessor(httpReq)
 	}
 	// Now do it.
 	resp, err := c.Do(httpReq)
@@ -107,24 +98,18 @@ func (ts *TestServer) DoUpload(path, fieldname, filename, data string) *Response
 }
 
 // response creates a Response instance out of the http.Response-
-func (ts *TestServer) response(hr *http.Response) *Response {
-	respHeader := KeyValues{}
-	for key, values := range hr.Header {
-		respHeader[key] = strings.Join(values, ", ")
-	}
-	respCookies := KeyValues{}
-	for _, cookie := range hr.Cookies() {
-		respCookies[cookie.Name] = cookie.Value
-	}
-	respBody, err := ioutil.ReadAll(hr.Body)
+func (ts *TestServer) response(httpResp *http.Response) *Response {
+	header := ConsumeHeader(ts.assert, httpResp)
+	cookies := ConsumeCookies(ts.assert, httpResp)
+	body, err := ioutil.ReadAll(httpResp.Body)
 	ts.assert.Nil(err, "cannot read response")
-	defer hr.Body.Close()
+	defer httpResp.Body.Close()
 	return &Response{
-		assert:  ts.assert,
-		Status:  hr.StatusCode,
-		Header:  respHeader,
-		Cookies: respCookies,
-		Body:    respBody,
+		assert:     ts.assert,
+		statusCode: httpResp.StatusCode,
+		header:     header,
+		cookies:    cookies,
+		body:       body,
 	}
 }
 
