@@ -142,7 +142,8 @@ func (vs *Values) applyCookies(req *http.Request) {
 // RequestProcessor is for pre-processing HTTP requests.
 type RequestProcessor func(req *http.Request) *http.Request
 
-// Request wraps all infos for a test request.
+// Request provides a convenient way to create a manual request to be handled by
+// the TestServer and the registered handler there.
 type Request struct {
 	assert           *asserts.Asserts
 	method           string

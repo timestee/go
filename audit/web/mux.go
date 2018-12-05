@@ -29,13 +29,12 @@ type MultiplexMapper func(req *http.Request) (string, error)
 // to individual test handlers, e.g. stubbing the functionality of integrated
 // external systems.
 type Multiplexer struct {
-	assert     *asserts.Asserts
 	mapRequest MultiplexMapper
 	registry   map[string]http.HandlerFunc
 }
 
 // NewMultiplexer creates a new multiplexer with the passed mapper.
-func NewMultiplexer(assert *asserts.Asserts, mapper MultiplexMapper) *Multiplexer {
+func NewMultiplexer(mapper MultiplexMapper) *Multiplexer {
 	return &Multiplexer{
 		assert:     assert,
 		mapRequest: mapper,
@@ -45,6 +44,17 @@ func NewMultiplexer(assert *asserts.Asserts, mapper MultiplexMapper) *Multiplexe
 
 // ServerHTTP implements http.Handler.
 func (mux *Multiplexer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	handlerID, err := mux.mapRequest(req)
+	if err != nil {
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	handler, ok := mux.registry[handlerID]
+	if !ok {
+		http.Error(resp, "mapper returned invalid handler ID", http.StatusInternalServerError)
+		return
+	}
+	handler(resp, req)
 }
 
 // EOF

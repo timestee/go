@@ -54,6 +54,8 @@ func (ts *TestServer) URL() string {
 
 // DoRequest performs a request against the test server.
 func (ts *TestServer) DoRequest(req *Request) *Response {
+	restore := ts.assert.IncrCallstackOffset()
+	defer restore()
 	// First prepare it.
 	transport := &http.Transport{}
 	c := &http.Client{Transport: transport}
@@ -78,6 +80,8 @@ func (ts *TestServer) DoRequest(req *Request) *Response {
 
 // DoUpload is a special request for uploading a file.
 func (ts *TestServer) DoUpload(path, fieldname, filename, data string) *Response {
+	restore := ts.assert.IncrCallstackOffset()
+	defer restore()
 	// Prepare request.
 	transport := &http.Transport{}
 	c := &http.Client{Transport: transport}
