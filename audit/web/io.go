@@ -16,6 +16,9 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"html/template"
+	"io"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"regexp"
 
@@ -53,8 +56,8 @@ func NewValues(assert *asserts.Asserts) *Values {
 	return vs
 }
 
-// ConsumeHeader consumes its values from the HTTP response header.
-func ConsumeHeader(assert *asserts.Asserts, resp *http.Response) *Values {
+// consumeHeader consumes its values from the HTTP response header.
+func consumeHeader(assert *asserts.Asserts, resp *http.Response) *Values {
 	vs := NewValues(assert)
 	for key, values := range resp.Header {
 		for _, value := range values {
@@ -64,8 +67,8 @@ func ConsumeHeader(assert *asserts.Asserts, resp *http.Response) *Values {
 	return vs
 }
 
-// ConsumeCookies consumes its values from the HTTP response cookies.
-func ConsumeCookies(assert *asserts.Asserts, resp *http.Response) *Values {
+// consumeCookies consumes its values from the HTTP response cookies.
+func consumeCookies(assert *asserts.Asserts, resp *http.Response) *Values {
 	vs := NewValues(assert)
 	for _, cookie := range resp.Cookies() {
 		vs.Add(cookie.Name, cookie.Value)
@@ -142,14 +145,16 @@ func (vs *Values) applyCookies(req *http.Request) {
 // RequestProcessor is for pre-processing HTTP requests.
 type RequestProcessor func(req *http.Request) *http.Request
 
-// Request provides a convenient way to create a manual request to be handled by
-// the TestServer and the registered handler there.
+// Request provides a convenient way to create a manual test request wich will
+// be handled by the TestServer and the registered handler there.
 type Request struct {
 	assert           *asserts.Asserts
 	method           string
 	path             string
 	header           *Values
 	cookies          *Values
+	fieldname        string
+	filename         string
 	body             []byte
 	requestProcessor RequestProcessor
 }
@@ -194,6 +199,14 @@ func (r *Request) SetRequestProcessor(processor RequestProcessor) *Request {
 	return r
 }
 
+// Upload sets the request as a file upload request.
+func (r *Request) Upload(fieldname, filename, data string) *Request {
+	r.fieldname = fieldname
+	r.filename = filename
+	r.body = []byte(data)
+	return r
+}
+
 // AssertMarshalBody sets the request body based on the set content type and
 // the marshalled data and asserts that everything works fine.
 func (r *Request) AssertMarshalBody(data interface{}) *Request {
@@ -234,25 +247,66 @@ func (r *Request) AssertRenderTemplate(templateSource string, data interface{}) 
 	return r
 }
 
+// httpRequest returns the test request as HTTP request.
+func (r *Request) httpRequest(url string) *http.Request {
+	restore := r.assert.IncrCallstackOffset()
+	defer restore()
+	// First prepare it.
+	var bodyReader io.Reader
+	if r.filename != "" {
+		// Upload file content.
+		buffer := &bytes.Buffer{}
+		writer := multipart.NewWriter(buffer)
+		part, err := writer.CreateFormFile(r.fieldname, r.filename)
+		r.assert.Nil(err, "cannot create form file")
+		_, err = io.WriteString(part, string(r.body))
+		r.assert.Nil(err, "cannot write data")
+		r.SetContentType(writer.FormDataContentType())
+		err = writer.Close()
+		r.assert.Nil(err, "cannot close multipart writer")
+		r.method = http.MethodPost
+		bodyReader = ioutil.NopCloser(buffer)
+	} else if r.body != nil {
+		// Upload body content.
+		bodyReader = ioutil.NopCloser(bytes.NewBuffer(r.body))
+	}
+	httpReq, err := http.NewRequest(r.method, url+r.path, bodyReader)
+	r.assert.Nil(err, "cannot prepare request")
+	r.header.applyHeader(httpReq)
+	r.cookies.applyCookies(httpReq)
+	// Check if request shall be pre-processed before performed.
+	if r.requestProcessor != nil {
+		httpReq = r.requestProcessor(httpReq)
+	}
+	return httpReq
+}
+
 //--------------------
 // RESPONSE
 //--------------------
 
 // Response wraps all infos of a test response.
 type Response struct {
-	assert     *asserts.Asserts
-	statusCode int
-	header     *Values
-	cookies    *Values
-	body       []byte
+	assert   *asserts.Asserts
+	httpResp *http.Response
+	header   *Values
+	cookies  *Values
+	body     []byte
 }
 
-// NewResponse creates a test response wrapper.
-func NewResponse(assert *asserts.Asserts, statusCode int) *Response {
-	return &Response{
-		assert:     assert,
-		statusCode: statusCode,
+// newResponse creates a test response wrapper.
+func newResponse(assert *asserts.Asserts, httpResp *http.Response) *Response {
+	resp := &Response{
+		assert:   assert,
+		httpResp: httpResp,
+		header:   consumeHeader(assert, httpResp),
+		cookies:  consumeCookies(assert, httpResp),
 	}
+	body, err := ioutil.ReadAll(httpResp.Body)
+	assert.Nil(err, "cannot read response")
+	defer httpResp.Body.Close()
+	resp.body = body
+	return resp
 }
 
 // Header returns the header values of the response.
@@ -269,7 +323,7 @@ func (r *Response) Cookies() *Values {
 func (r *Response) AssertStatusCodeEquals(expected int) {
 	restore := r.assert.IncrCallstackOffset()
 	defer restore()
-	r.assert.Equal(r.statusCode, expected, "response status differs")
+	r.assert.Equal(r.httpResp.StatusCode, expected, "response status differs")
 }
 
 // AssertUnmarshalledBody retrieves the body based on the content type

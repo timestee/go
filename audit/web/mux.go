@@ -13,8 +13,6 @@ package web
 
 import (
 	"net/http"
-
-	"tideland.one/go/audit/asserts"
 )
 
 //--------------------
@@ -36,7 +34,6 @@ type Multiplexer struct {
 // NewMultiplexer creates a new multiplexer with the passed mapper.
 func NewMultiplexer(mapper MultiplexMapper) *Multiplexer {
 	return &Multiplexer{
-		assert:     assert,
 		mapRequest: mapper,
 		registry:   make(map[string]http.HandlerFunc),
 	}
