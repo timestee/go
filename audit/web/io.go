@@ -33,6 +33,7 @@ const (
 	HeaderAccept      = "Accept"
 	HeaderContentType = "Content-Type"
 
+	ApplicationText = "text/plain"
 	ApplicationJSON = "application/json"
 	ApplicationXML  = "application/xml"
 )

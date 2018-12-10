@@ -54,4 +54,10 @@ func (mux *Multiplexer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	handler(resp, req)
 }
 
+// Register assigns a http.HandlerFunc to an ID. That ID has to be returned by
+// the mapper to address the function.
+func (mux *Multiplexer) Register(handlerID string, handler http.HandlerFunc) {
+	mux.registry[handlerID] = handler
+}
+
 // EOF
