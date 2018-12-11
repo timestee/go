@@ -13,6 +13,7 @@ package web_test
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 
 	"tideland.one/go/audit/asserts"
@@ -23,14 +24,47 @@ import (
 // TESTS
 //--------------------
 
-// TestGetJSON tests the GET command with a JSON result.
-func TestGetJSON(t *testing.T) {
+// TestSimpleRequests tests simple requests to individual handlers.
+func TestSimpleRequests(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	ts := StartTestServer()
+	defer ts.Close()
 
-	req1 := web.NewRequest(assert, http.MethodGet, "/hello/world")
-	resp1 := ts.DoRequest(req1)
-	resp1.AssertStatusCodeEquals(http.StatusOK)
+	tests := []struct {
+		method     string
+		path       string
+		statusCode int
+		body       string
+	}{
+		{
+			method:     http.MethodGet,
+			path:       "/hello/world",
+			statusCode: http.StatusOK,
+			body:       "Hello, World!",
+		}, {
+			method:     http.MethodGet,
+			path:       "/hello/tester",
+			statusCode: http.StatusOK,
+			body:       "Hello, Tester!",
+		}, {
+			method:     http.MethodPost,
+			path:       "/hello/postman",
+			statusCode: http.StatusOK,
+			body:       "Hello, Postman!",
+		}, {
+			method:     http.MethodOptions,
+			path:       "/path/does/not/exist",
+			statusCode: http.StatusInternalServerError,
+		},
+	}
+	for _, test := range tests {
+		req := web.NewRequest(assert, test.method, test.path)
+		resp := ts.DoRequest(req)
+		resp.AssertStatusCodeEquals(test.statusCode)
+		if test.body != "" {
+			resp.AssertBodyMatches(test.body)
+		}
+	}
 }
 
 //--------------------
@@ -40,24 +74,22 @@ func TestGetJSON(t *testing.T) {
 // StartTestServer initialises and starts the test server.
 func StartTestServer() *web.TestServer {
 	mux := web.NewMultiplexer(Mapper)
-	mux.Register("hello-world", MakeHelloWorldHandler())
+	mux.Register("get/hello/world", MakeHelloWorldHandler("World"))
+	mux.Register("get/hello/tester", MakeHelloWorldHandler("Tester"))
+	mux.Register("post/hello/postman", MakeHelloWorldHandler("Postman"))
 
 	return web.StartServer(mux)
 }
 
 // Mapper returns the ID for the test handler to user.
-func Mapper(req *http.Request) (string, error) {
-	switch req.URL.Path {
-	case "/hello/world":
-		return "hello-world", nil
-	}
-	return "", nil
+func Mapper(r *http.Request) (string, error) {
+	return strings.ToLower(r.Method + r.URL.Path), nil
 }
 
 // MakeHelloWorldHandler creates a "Hello, World" handler.
-func MakeHelloWorldHandler() http.HandlerFunc {
+func MakeHelloWorldHandler(who string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		reply := "Hello, World (" + r.Method + ")"
+		reply := "Hello, " + who + "!"
 		w.Write([]byte(reply))
 		w.WriteHeader(http.StatusOK)
 	}
