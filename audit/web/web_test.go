@@ -76,6 +76,37 @@ func TestSimpleRequests(t *testing.T) {
 	}
 }
 
+// TestHeaderCookies tests access to header and cookies.
+func TestHeaderCookies(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+	ts := StartTestServer()
+	defer ts.Close()
+
+	tests := []struct {
+		path   string
+		header string
+		cookie string
+	}{
+		{
+			path:   "/header/cookies",
+			header: "foo",
+			cookie: "12345",
+		}, {
+			path:   "/header/cookies",
+			header: "bar",
+			cookie: "98765",
+		},
+	}
+	for i, test := range tests {
+		assert.Logf("test case #%d: GET %s", i, test.path)
+		req := web.NewRequest(assert, http.MethodGet, test.path)
+		req.AddHeader("HeaderIn", test.header)
+		resp := ts.DoRequest(req)
+		resp.AssertStatusCodeEquals(http.StatusOK)
+		resp.Header().AssertKeyValueEquals("HeaderOut", test.header)
+	}
+}
+
 //--------------------
 // MUX MAPPER AND HANDLER
 //--------------------
@@ -86,6 +117,7 @@ func StartTestServer() *web.TestServer {
 	mux.Register("get/hello/world", MakeHelloWorldHandler("World"))
 	mux.Register("get/hello/tester", MakeHelloWorldHandler("Tester"))
 	mux.Register("post/hello/postman", MakeHelloWorldHandler("Postman"))
+	mux.Register("get/header/cookies", MakeHeaderCookiesHandler())
 
 	return web.StartServer(mux)
 }
@@ -101,6 +133,15 @@ func MakeHelloWorldHandler(who string) http.HandlerFunc {
 		reply := "Hello, " + who + "!"
 		w.Header().Add(web.HeaderContentType, web.ContentTypeTextPlain)
 		w.Write([]byte(reply))
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+// MakeHeaderCookiesHandler creates a handler for header and cookies.
+func MakeHeaderCookiesHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		headerOut := r.Header["HeaderIn"][0]
+		w.Header().Add("HeaderOut", headerOut)
 		w.WriteHeader(http.StatusOK)
 	}
 }

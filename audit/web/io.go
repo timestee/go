@@ -83,6 +83,11 @@ func (vs *Values) Add(key, value string) {
 	vs.data[key] = kd
 }
 
+// Set sets value of a named field.
+func (vs *Values) Set(key, value string) {
+	vs.data[key] = []string{value}
+}
+
 // Get returns the values for the passed key. May be nil.
 func (vs *Values) Get(key string) []string {
 	return vs.data[key]
@@ -178,9 +183,9 @@ func (r *Request) AddHeader(key, value string) *Request {
 	return r
 }
 
-// AddCookie adds or overwrites a request header.
-func (r *Request) AddCookie(key, value string) *Request {
-	r.cookies.Add(key, value)
+// SetCookie adds or overwrites a request header.
+func (r *Request) SetCookie(key, value string) *Request {
+	r.cookies.Set(key, value)
 	return r
 }
 
