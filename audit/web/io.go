@@ -33,9 +33,9 @@ const (
 	HeaderAccept      = "Accept"
 	HeaderContentType = "Content-Type"
 
-	ApplicationText = "text/plain"
-	ApplicationJSON = "application/json"
-	ApplicationXML  = "application/xml"
+	ContentTypeTextPlain       = "text/plain"
+	ContentTypeApplicationJSON = "application/json"
+	ContentTypeApplicationXML  = "application/xml"
 )
 
 //--------------------
@@ -217,18 +217,18 @@ func (r *Request) AssertMarshalBody(data interface{}) *Request {
 	contentType := r.header.Get(HeaderContentType)
 	r.assert.NotEmpty(contentType, "content type must be set for marshalling")
 	switch contentType[0] {
-	case ApplicationJSON:
+	case ContentTypeApplicationJSON:
 		body, err := json.Marshal(data)
 		r.assert.Nil(err, "cannot marshal data to JSON")
 		r.body = body
-		r.AddHeader(HeaderContentType, ApplicationJSON)
-		r.AddHeader(HeaderAccept, ApplicationJSON)
-	case ApplicationXML:
+		r.AddHeader(HeaderContentType, ContentTypeApplicationJSON)
+		r.AddHeader(HeaderAccept, ContentTypeApplicationJSON)
+	case ContentTypeApplicationXML:
 		body, err := xml.Marshal(data)
 		r.assert.Nil(err, "cannot marshal data to XML")
 		r.body = body
-		r.AddHeader(HeaderContentType, ApplicationXML)
-		r.AddHeader(HeaderAccept, ApplicationXML)
+		r.AddHeader(HeaderContentType, ContentTypeApplicationXML)
+		r.AddHeader(HeaderAccept, ContentTypeApplicationXML)
 	}
 	return r
 }
@@ -335,10 +335,10 @@ func (r *Response) AssertUnmarshalledBody(data interface{}) {
 	contentType := r.header.Get(HeaderContentType)
 	r.assert.NotEmpty(contentType)
 	switch contentType[0] {
-	case ApplicationJSON:
+	case ContentTypeApplicationJSON:
 		err := json.Unmarshal(r.body, data)
 		r.assert.Nil(err, "cannot unmarshal JSON body")
-	case ApplicationXML:
+	case ContentTypeApplicationXML:
 		err := xml.Unmarshal(r.body, data)
 		r.assert.Nil(err, "cannot unmarshal XML body")
 	default:

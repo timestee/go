@@ -50,7 +50,7 @@ func (a *Asserts) SetPrinter(printer Printer) Printer {
 //         ...
 //     })
 //
-// This way the returned restorer function will be called when
+// So the returned restorer function will be called when
 // leaving the sub-test.
 func (a *Asserts) SetFailable(f Failable) func() {
 	tf, ok := a.failer.(*testingFailer)

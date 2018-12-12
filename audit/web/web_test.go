@@ -31,36 +31,45 @@ func TestSimpleRequests(t *testing.T) {
 	defer ts.Close()
 
 	tests := []struct {
-		method     string
-		path       string
-		statusCode int
-		body       string
+		method      string
+		path        string
+		statusCode  int
+		contentType string
+		body        string
 	}{
 		{
-			method:     http.MethodGet,
-			path:       "/hello/world",
-			statusCode: http.StatusOK,
-			body:       "Hello, World!",
+			method:      http.MethodGet,
+			path:        "/hello/world",
+			statusCode:  http.StatusOK,
+			contentType: web.ContentTypeTextPlain,
+			body:        "Hello, World!",
 		}, {
-			method:     http.MethodGet,
-			path:       "/hello/tester",
-			statusCode: http.StatusOK,
-			body:       "Hello, Tester!",
+			method:      http.MethodGet,
+			path:        "/hello/tester",
+			statusCode:  http.StatusOK,
+			contentType: web.ContentTypeTextPlain,
+			body:        "Hello, Tester!",
 		}, {
-			method:     http.MethodPost,
-			path:       "/hello/postman",
-			statusCode: http.StatusOK,
-			body:       "Hello, Postman!",
+			method:      http.MethodPost,
+			path:        "/hello/postman",
+			statusCode:  http.StatusOK,
+			contentType: web.ContentTypeTextPlain,
+			body:        "Hello, Postman!",
 		}, {
 			method:     http.MethodOptions,
 			path:       "/path/does/not/exist",
 			statusCode: http.StatusInternalServerError,
+			body:       "mapper returned invalid handler ID",
 		},
 	}
-	for _, test := range tests {
+	for i, test := range tests {
+		assert.Logf("test case #%d: %s %s", i, test.method, test.path)
 		req := web.NewRequest(assert, test.method, test.path)
 		resp := ts.DoRequest(req)
 		resp.AssertStatusCodeEquals(test.statusCode)
+		if test.contentType != "" {
+			resp.Header().AssertKeyValueEquals(web.HeaderContentType, test.contentType)
+		}
 		if test.body != "" {
 			resp.AssertBodyMatches(test.body)
 		}
@@ -90,6 +99,7 @@ func Mapper(r *http.Request) (string, error) {
 func MakeHelloWorldHandler(who string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reply := "Hello, " + who + "!"
+		w.Header().Add(web.HeaderContentType, web.ContentTypeTextPlain)
 		w.Write([]byte(reply))
 		w.WriteHeader(http.StatusOK)
 	}
