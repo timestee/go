@@ -101,9 +101,11 @@ func TestHeaderCookies(t *testing.T) {
 		assert.Logf("test case #%d: GET %s", i, test.path)
 		req := web.NewRequest(assert, http.MethodGet, test.path)
 		req.AddHeader("HeaderIn", test.header)
+		req.AddHeader("CookieIn", test.cookie)
 		resp := ts.DoRequest(req)
 		resp.AssertStatusCodeEquals(http.StatusOK)
 		resp.Header().AssertKeyValueEquals("HeaderOut", test.header)
+		resp.Cookies().AssertKeyValueEquals("CookieOut", test.header)
 	}
 }
 
@@ -140,8 +142,15 @@ func MakeHelloWorldHandler(who string) http.HandlerFunc {
 // MakeHeaderCookiesHandler creates a handler for header and cookies.
 func MakeHeaderCookiesHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		headerOut := r.Header["HeaderIn"][0]
+		headerOut := r.Header.Get("HeaderIn")
+		cookieOut := r.Header.Get("CookieIn")
+		http.SetCookie(w, &http.Cookie{
+			Name:  "CookieOut",
+			Value: cookieOut,
+		})
+		w.Header().Add(web.HeaderContentType, web.ContentTypeTextPlain)
 		w.Header().Add("HeaderOut", headerOut)
+		w.Write([]byte("Done!"))
 		w.WriteHeader(http.StatusOK)
 	}
 }
