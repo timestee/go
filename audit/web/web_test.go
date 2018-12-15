@@ -27,7 +27,7 @@ import (
 // TestSimpleRequests tests simple requests to individual handlers.
 func TestSimpleRequests(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	ts := StartTestServer()
+	ts := StartTestServer(assert)
 	defer ts.Close()
 
 	tests := []struct {
@@ -79,7 +79,7 @@ func TestSimpleRequests(t *testing.T) {
 // TestHeaderCookies tests access to header and cookies.
 func TestHeaderCookies(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	ts := StartTestServer()
+	ts := StartTestServer(assert)
 	defer ts.Close()
 
 	tests := []struct {
@@ -100,12 +100,12 @@ func TestHeaderCookies(t *testing.T) {
 	for i, test := range tests {
 		assert.Logf("test case #%d: GET %s", i, test.path)
 		req := web.NewRequest(assert, http.MethodGet, test.path)
-		req.AddHeader("HeaderIn", test.header)
-		req.AddHeader("CookieIn", test.cookie)
+		req.AddHeader("Header-In", test.header)
+		req.AddHeader("Cookie-In", test.cookie)
 		resp := ts.DoRequest(req)
 		resp.AssertStatusCodeEquals(http.StatusOK)
-		resp.Header().AssertKeyValueEquals("HeaderOut", test.header)
-		resp.Cookies().AssertKeyValueEquals("CookieOut", test.header)
+		resp.Header().AssertKeyValueEquals("Header-Out", test.header)
+		resp.Cookies().AssertKeyValueEquals("Cookie-Out", test.cookie)
 	}
 }
 
@@ -114,12 +114,12 @@ func TestHeaderCookies(t *testing.T) {
 //--------------------
 
 // StartTestServer initialises and starts the test server.
-func StartTestServer() *web.TestServer {
+func StartTestServer(assert *asserts.Asserts) *web.TestServer {
 	mux := web.NewMultiplexer(Mapper)
-	mux.Register("get/hello/world", MakeHelloWorldHandler("World"))
-	mux.Register("get/hello/tester", MakeHelloWorldHandler("Tester"))
-	mux.Register("post/hello/postman", MakeHelloWorldHandler("Postman"))
-	mux.Register("get/header/cookies", MakeHeaderCookiesHandler())
+	mux.Register("get/hello/world", MakeHelloWorldHandler(assert, "World"))
+	mux.Register("get/hello/tester", MakeHelloWorldHandler(assert, "Tester"))
+	mux.Register("post/hello/postman", MakeHelloWorldHandler(assert, "Postman"))
+	mux.Register("get/header/cookies", MakeHeaderCookiesHandler(assert))
 
 	return web.StartServer(mux)
 }
@@ -130,7 +130,7 @@ func Mapper(r *http.Request) (string, error) {
 }
 
 // MakeHelloWorldHandler creates a "Hello, World" handler.
-func MakeHelloWorldHandler(who string) http.HandlerFunc {
+func MakeHelloWorldHandler(assert *asserts.Asserts, who string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reply := "Hello, " + who + "!"
 		w.Header().Add(web.HeaderContentType, web.ContentTypeTextPlain)
@@ -140,16 +140,16 @@ func MakeHelloWorldHandler(who string) http.HandlerFunc {
 }
 
 // MakeHeaderCookiesHandler creates a handler for header and cookies.
-func MakeHeaderCookiesHandler() http.HandlerFunc {
+func MakeHeaderCookiesHandler(assert *asserts.Asserts) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		headerOut := r.Header.Get("HeaderIn")
-		cookieOut := r.Header.Get("CookieIn")
+		headerOut := r.Header.Get("Header-In")
+		cookieOut := r.Header.Get("Cookie-In")
 		http.SetCookie(w, &http.Cookie{
-			Name:  "CookieOut",
+			Name:  "Cookie-Out",
 			Value: cookieOut,
 		})
-		w.Header().Add(web.HeaderContentType, web.ContentTypeTextPlain)
-		w.Header().Add("HeaderOut", headerOut)
+		w.Header().Set(web.HeaderContentType, web.ContentTypeTextPlain)
+		w.Header().Set("Header-Out", headerOut)
 		w.Write([]byte("Done!"))
 		w.WriteHeader(http.StatusOK)
 	}
