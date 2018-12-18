@@ -317,10 +317,10 @@ func TestRESTHandler(t *testing.T) {
 
 type AuthHandler struct {
 	id     string
-	assert asserts.Asserts
+	assert *asserts.Asserts
 }
 
-func NewAuthHandler(id string, assert asserts.Asserts) core.ResourceHandler {
+func NewAuthHandler(id string, assert *asserts.Asserts) core.ResourceHandler {
 	return &AuthHandler{id, assert}
 }
 
@@ -486,10 +486,10 @@ func (th *testHandler) Delete(job *core.Job) (bool, error) {
 
 type restHandler struct {
 	id     string
-	assert asserts.Asserts
+	assert *asserts.Asserts
 }
 
-func NewRESTHandler(id string, assert asserts.Asserts) core.ResourceHandler {
+func NewRESTHandler(id string, assert *asserts.Asserts) core.ResourceHandler {
 	return &restHandler{id, assert}
 }
 
@@ -544,10 +544,10 @@ func (rh *restHandler) Info(job *core.Job) (bool, error) {
 // doubleHandler implements Get and Read. So Get should be chosen.
 type doubleHandler struct {
 	id     string
-	assert asserts.Asserts
+	assert *asserts.Asserts
 }
 
-func NewDoubleHandler(id string, assert asserts.Asserts) core.ResourceHandler {
+func NewDoubleHandler(id string, assert *asserts.Asserts) core.ResourceHandler {
 	return &doubleHandler{id, assert}
 }
 

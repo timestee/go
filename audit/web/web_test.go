@@ -106,6 +106,8 @@ func TestHeaderCookies(t *testing.T) {
 		resp.AssertStatusCodeEquals(http.StatusOK)
 		resp.Header().AssertKeyValueEquals("Header-Out", test.header)
 		resp.Cookies().AssertKeyValueEquals("Cookie-Out", test.cookie)
+		resp.AssertBodyGrep(".*[Dd]one.*")
+		resp.AssertBodyContains("!")
 	}
 }
 

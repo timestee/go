@@ -347,7 +347,7 @@ func (r *Response) AssertUnmarshalledBody(data interface{}) {
 		err := xml.Unmarshal(r.body, data)
 		r.assert.Nil(err, "cannot unmarshal XML body")
 	default:
-		r.assert.Fail("unknown content type: " + contentType[0])
+		r.assert.Fail("unmarshalled content type: " + contentType[0])
 	}
 }
 
