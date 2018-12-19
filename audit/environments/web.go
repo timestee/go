@@ -133,17 +133,76 @@ type WebResponse struct {
 // WebRequest provides simplified access to a request in context of
 // a web asserter.
 type WebRequest struct {
-	wa     *WebAsserter
-	path   string
-	header *Values
+	wa        *WebAsserter
+	path      string
+	header    *Values
+	cookies   *Values
+	fieldname string
+	filename  string
+	body      []byte
 }
 
-// Header
+// Header returns a values instance to add request header.
 func (wr *WebRequest) Header() *Values {
 	if wr.header == nil {
 		wr.header = newValues(wr.wa)
 	}
 	return wr.header
+}
+
+// SetContentType sets the header Content-Type.
+func (wr *WebRequest) SetContentType(contentType string) {
+	wr.Header().Add(HeaderContentType, contentType)
+}
+
+// SetAccept sets the header Accept.
+func (wr *WebRequest) SetAccept(contentType string) {
+	wr.Header().Set(HeaderAccept, contentType)
+}
+
+// Upload sets the request as a file upload request.
+func (wr *WebRequest) Upload(fieldname, filename, data string) {
+	wr.fieldname = fieldname
+	wr.filename = filename
+	wr.body = []byte(data)
+}
+
+// AssertMarshalBody sets the request body based on the set content type and
+// the marshalled data and asserts that everything works fine.
+func (wr *WebRequest) AssertMarshalBody(data interface{}) {
+	restore := wr.wa.assert.IncrCallstackOffset()
+	defer restore()
+	// Marshal the passed data into the request body.
+	contentType := wr.Header().Get(HeaderContentType)
+	wr.wa.ssert.NotEmpty(contentType, "content type must be set for marshalling")
+	switch contentType[0] {
+	case ContentTypeApplicationJSON:
+		body, err := json.Marshal(data)
+		wr.wa.assert.Nil(err, "cannot marshal data to JSON")
+		wr.body = body
+		wr.AddHeader(HeaderContentType, ContentTypeApplicationJSON)
+		wr.AddHeader(HeaderAccept, ContentTypeApplicationJSON)
+	case ContentTypeApplicationXML:
+		body, err := xml.Marshal(data)
+		wr.wa.assert.Nil(err, "cannot marshal data to XML")
+		wr.body = body
+		wr.AddHeader(HeaderContentType, ContentTypeApplicationXML)
+		wr.AddHeader(HeaderAccept, ContentTypeApplicationXML)
+	}
+}
+
+// AssertRenderTemplate renders the passed data into the template and
+// assigns it to the request body. It asserts that everything works fine.
+func (wr *WebRequest) AssertRenderTemplate(templateSource string, data interface{}) {
+	restore := wr.wa.assert.IncrCallstackOffset()
+	defer restore()
+	// Render template.
+	t, err := template.New(wr.path).Parse(templateSource)
+	wr.wa.assert.Nil(err, "cannot parse template")
+	body := &bytes.Buffer{}
+	err = t.Execute(body, data)
+	wr.wa.assert.Nil(err, "cannot render template")
+	wr.body = body.Bytes()
 }
 
 // Do performes the web request with the passed method.
