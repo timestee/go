@@ -12,6 +12,13 @@ package environments
 //--------------------
 
 import (
+	"bytes"
+	"encoding/json"
+	"encoding/xml"
+	"html/template"
+	"io"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 
@@ -46,6 +53,26 @@ func newValues(wa *WebAsserter) *Values {
 	vs := &Values{
 		wa:   wa,
 		data: make(map[string][]string),
+	}
+	return vs
+}
+
+// consumeHeader consumes its values from the HTTP response header.
+func consumeHeader(wa *WebAsserter, resp *http.Response) *Values {
+	vs := newValues(wa)
+	for key, values := range resp.Header {
+		for _, value := range values {
+			vs.Add(key, value)
+		}
+	}
+	return vs
+}
+
+// consumeCookies consumes its values from the HTTP response cookies.
+func consumeCookies(wa *WebAsserter, resp *http.Response) *Values {
+	vs := newValues(wa)
+	for _, cookie := range resp.Cookies() {
+		vs.Add(cookie.Name, cookie.Value)
 	}
 	return vs
 }
@@ -124,6 +151,11 @@ func (vs *Values) applyCookies(r *http.Request) {
 // WebResponse provides simplified access to a response in context of
 // a web asserter.
 type WebResponse struct {
+	wa      *WebAsserter
+	resp    *http.Response
+	header  *Values
+	cookies *Values
+	body    []byte
 }
 
 //--------------------
@@ -134,6 +166,7 @@ type WebResponse struct {
 // a web asserter.
 type WebRequest struct {
 	wa        *WebAsserter
+	method    string
 	path      string
 	header    *Values
 	cookies   *Values
@@ -142,72 +175,122 @@ type WebRequest struct {
 	body      []byte
 }
 
-// Header returns a values instance to add request header.
-func (wr *WebRequest) Header() *Values {
-	if wr.header == nil {
-		wr.header = newValues(wr.wa)
+// Header returns a values instance for request header.
+func (wreq *WebRequest) Header() *Values {
+	if wreq.header == nil {
+		wreq.header = newValues(wreq.wa)
 	}
-	return wr.header
+	return wreq.header
+}
+
+// Cookies returns a values instance for request cookies.
+func (wreq *WebRequest) Cookies() *Values {
+	if wreq.cookies == nil {
+		wreq.cookies = newValues(wreq.wa)
+	}
+	return wreq.cookies
 }
 
 // SetContentType sets the header Content-Type.
-func (wr *WebRequest) SetContentType(contentType string) {
-	wr.Header().Add(HeaderContentType, contentType)
+func (wreq *WebRequest) SetContentType(contentType string) {
+	wreq.Header().Add(HeaderContentType, contentType)
 }
 
 // SetAccept sets the header Accept.
-func (wr *WebRequest) SetAccept(contentType string) {
-	wr.Header().Set(HeaderAccept, contentType)
+func (wreq *WebRequest) SetAccept(contentType string) {
+	wreq.Header().Set(HeaderAccept, contentType)
 }
 
 // Upload sets the request as a file upload request.
-func (wr *WebRequest) Upload(fieldname, filename, data string) {
-	wr.fieldname = fieldname
-	wr.filename = filename
-	wr.body = []byte(data)
+func (wreq *WebRequest) Upload(fieldname, filename, data string) {
+	wreq.fieldname = fieldname
+	wreq.filename = filename
+	wreq.body = []byte(data)
 }
 
 // AssertMarshalBody sets the request body based on the set content type and
 // the marshalled data and asserts that everything works fine.
-func (wr *WebRequest) AssertMarshalBody(data interface{}) {
-	restore := wr.wa.assert.IncrCallstackOffset()
+func (wreq *WebRequest) AssertMarshalBody(data interface{}) {
+	restore := wreq.wa.assert.IncrCallstackOffset()
 	defer restore()
 	// Marshal the passed data into the request body.
-	contentType := wr.Header().Get(HeaderContentType)
-	wr.wa.ssert.NotEmpty(contentType, "content type must be set for marshalling")
+	contentType := wreq.Header().Get(HeaderContentType)
+	wreq.wa.assert.NotEmpty(contentType, "content type must be set for marshalling")
 	switch contentType[0] {
 	case ContentTypeApplicationJSON:
 		body, err := json.Marshal(data)
-		wr.wa.assert.Nil(err, "cannot marshal data to JSON")
-		wr.body = body
-		wr.AddHeader(HeaderContentType, ContentTypeApplicationJSON)
-		wr.AddHeader(HeaderAccept, ContentTypeApplicationJSON)
+		wreq.wa.assert.Nil(err, "cannot marshal data to JSON")
+		wreq.body = body
+		wreq.Header().Add(HeaderContentType, ContentTypeApplicationJSON)
+		wreq.Header().Add(HeaderAccept, ContentTypeApplicationJSON)
 	case ContentTypeApplicationXML:
 		body, err := xml.Marshal(data)
-		wr.wa.assert.Nil(err, "cannot marshal data to XML")
-		wr.body = body
-		wr.AddHeader(HeaderContentType, ContentTypeApplicationXML)
-		wr.AddHeader(HeaderAccept, ContentTypeApplicationXML)
+		wreq.wa.assert.Nil(err, "cannot marshal data to XML")
+		wreq.body = body
+		wreq.Header().Add(HeaderContentType, ContentTypeApplicationXML)
+		wreq.Header().Add(HeaderAccept, ContentTypeApplicationXML)
 	}
 }
 
 // AssertRenderTemplate renders the passed data into the template and
 // assigns it to the request body. It asserts that everything works fine.
-func (wr *WebRequest) AssertRenderTemplate(templateSource string, data interface{}) {
-	restore := wr.wa.assert.IncrCallstackOffset()
+func (wreq *WebRequest) AssertRenderTemplate(templateSource string, data interface{}) {
+	restore := wreq.wa.assert.IncrCallstackOffset()
 	defer restore()
 	// Render template.
-	t, err := template.New(wr.path).Parse(templateSource)
-	wr.wa.assert.Nil(err, "cannot parse template")
+	t, err := template.New(wreq.path).Parse(templateSource)
+	wreq.wa.assert.Nil(err, "cannot parse template")
 	body := &bytes.Buffer{}
 	err = t.Execute(body, data)
-	wr.wa.assert.Nil(err, "cannot render template")
-	wr.body = body.Bytes()
+	wreq.wa.assert.Nil(err, "cannot render template")
+	wreq.body = body.Bytes()
 }
 
 // Do performes the web request with the passed method.
-func (wr *WebRequest) Do(method string) *WebResponse {
-	return &WebResponse{}
+func (wreq *WebRequest) Do(method string) *WebResponse {
+	restore := wreq.wa.assert.IncrCallstackOffset()
+	defer restore()
+	// First prepare it.
+	var bodyReader io.Reader
+	if wreq.filename != "" {
+		// Upload file content.
+		buffer := &bytes.Buffer{}
+		writer := multipart.NewWriter(buffer)
+		part, err := writer.CreateFormFile(wreq.fieldname, wreq.filename)
+		wreq.wa.assert.Nil(err, "cannot create form file")
+		_, err = io.WriteString(part, string(wreq.body))
+		wreq.wa.assert.Nil(err, "cannot write data")
+		wreq.SetContentType(writer.FormDataContentType())
+		err = writer.Close()
+		wreq.wa.assert.Nil(err, "cannot close multipart writer")
+		wreq.method = http.MethodPost
+		bodyReader = ioutil.NopCloser(buffer)
+	} else if wreq.body != nil {
+		// Upload body content.
+		bodyReader = ioutil.NopCloser(bytes.NewBuffer(wreq.body))
+	}
+	req, err := http.NewRequest(wreq.method, wreq.wa.URL()+wreq.path, bodyReader)
+	wreq.wa.assert.Nil(err, "cannot prepare request")
+	wreq.Header().applyHeader(req)
+	wreq.Cookies().applyCookies(req)
+	// Create client and perform request.
+	c := http.Client{
+		Transport: &http.Transport{},
+	}
+	resp, err := c.Do(req)
+	wreq.wa.assert.Nil(err, "cannot perform test request")
+	// Create web response.
+	wresp := &WebResponse{
+		wa:      wreq.wa,
+		resp:    resp,
+		header:  consumeHeader(wreq.wa, resp),
+		cookies: consumeCookies(wreq.wa, resp),
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	wreq.wa.assert.Nil(err, "cannot read response")
+	defer resp.Body.Close()
+	wresp.body = body
+	return wresp
 }
 
 //--------------------
@@ -258,10 +341,11 @@ func (wa *WebAsserter) Close() {
 
 // CreateRequest prepares a web request to be performed
 // against this web asserter.
-func (wa *WebAsserter) CreateRequest(path string) *WebRequest {
+func (wa *WebAsserter) CreateRequest(method, path string) *WebRequest {
 	return &WebRequest{
-		wa:   wa,
-		path: path,
+		wa:     wa,
+		method: method,
+		path:   path,
 	}
 }
 
