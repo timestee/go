@@ -21,6 +21,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 
 	"tideland.one/go/audit/asserts"
 )
@@ -156,6 +157,67 @@ type WebResponse struct {
 	header  *Values
 	cookies *Values
 	body    []byte
+}
+
+// Header returns the header values of the response.
+func (wresp *WebResponse) Header() *Values {
+	return wresp.header
+}
+
+// Cookies returns the cookie values of the response.
+func (wresp *WebResponse) Cookies() *Values {
+	return wresp.cookies
+}
+
+// AssertStatusCodeEquals checks if the status is the expected one.
+func (wresp *WebResponse) AssertStatusCodeEquals(expected int) {
+	restore := wresp.wa.assert.IncrCallstackOffset()
+	defer restore()
+	wresp.wa.assert.Equal(wresp.resp.StatusCode, expected, "response status differs")
+}
+
+// AssertUnmarshalledBody retrieves the body based on the content type
+// and unmarshals it accordingly. It asserts that everything works fine.
+func (wresp *WebResponse) AssertUnmarshalledBody(data interface{}) {
+	restore := wresp.wa.assert.IncrCallstackOffset()
+	defer restore()
+	contentType := wresp.header.Get(HeaderContentType)
+	wresp.wa.assert.NotEmpty(contentType)
+	switch contentType[0] {
+	case ContentTypeApplicationJSON:
+		err := json.Unmarshal(wresp.body, data)
+		wresp.wa.assert.Nil(err, "cannot unmarshal JSON body")
+	case ContentTypeApplicationXML:
+		err := xml.Unmarshal(wresp.body, data)
+		wresp.wa.assert.Nil(err, "cannot unmarshal XML body")
+	default:
+		wresp.wa.assert.Fail("unmarshalled content type: " + contentType[0])
+	}
+}
+
+// AssertBodyMatches checks if the body matches a regular expression.
+func (wresp *WebResponse) AssertBodyMatches(pattern string) {
+	restore := wresp.wa.assert.IncrCallstackOffset()
+	defer restore()
+	ok, err := regexp.MatchString(pattern, string(wresp.body))
+	wresp.wa.assert.Nil(err, "illegal content match pattern")
+	wresp.wa.assert.True(ok, "body doesn't match pattern")
+}
+
+// AssertBodyGrep greps content out of the body.
+func (wresp *WebResponse) AssertBodyGrep(pattern string) []string {
+	restore := wresp.wa.assert.IncrCallstackOffset()
+	defer restore()
+	expr, err := regexp.Compile(pattern)
+	wresp.wa.assert.Nil(err, "illegal content grep pattern")
+	return expr.FindAllString(string(wresp.body), -1)
+}
+
+// AssertBodyContains checks if the body contains a string.
+func (wresp *WebResponse) AssertBodyContains(expected string) {
+	restore := wresp.wa.assert.IncrCallstackOffset()
+	defer restore()
+	wresp.wa.assert.Contents(expected, wresp.body, "body doesn't contains expected")
 }
 
 //--------------------
