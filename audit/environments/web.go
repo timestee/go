@@ -309,7 +309,7 @@ func (wreq *WebRequest) AssertRenderTemplate(templateSource string, data interfa
 }
 
 // Do performes the web request with the passed method.
-func (wreq *WebRequest) Do(method string) *WebResponse {
+func (wreq *WebRequest) Do() *WebResponse {
 	restore := wreq.wa.assert.IncrCallstackOffset()
 	defer restore()
 	// First prepare it.
