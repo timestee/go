@@ -1,6 +1,6 @@
 // Tideland Go Library - Text - String Extensions
 //
-// Copyright (C) 2018 Frank Mueller / Tideland / Oldenburg / Germay
+// Copyright (C) 2019 Frank Mueller / Tideland / Oldenburg / Germay
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.

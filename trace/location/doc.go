@@ -1,6 +1,6 @@
 // Tideland Go Library - Trace - Location
 //
-// Copyright (C) 2017-2018 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
