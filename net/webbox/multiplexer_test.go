@@ -16,7 +16,6 @@ import (
 	"testing"
 
 	"tideland.one/go/audit/asserts"
-	"tideland.one/go/audit/environments"
 	"tideland.one/go/net/webbox"
 )
 
@@ -32,7 +31,7 @@ func TestMethodMultiplexer(t *testing.T) {
 
 	mmux := webbox.NewMethodMux()
 
-	mmux.HandleFunc(http.MethodPut, MakeMethodEcho(assert))
+	mmux.HandleFunc(http.MethodGet, MakeMethodEcho(assert))
 	mmux.HandleFunc(http.MethodPatch, MakeMethodEcho(assert))
 	mmux.HandleFunc(http.MethodOptions, MakeMethodEcho(assert))
 
@@ -50,7 +49,7 @@ func TestMethodMultiplexer(t *testing.T) {
 		}, {
 			method:     http.MethodHead,
 			statusCode: http.StatusMethodNotAllowed,
-			body:       "no matching method handler found",
+			body:       "",
 		}, {
 			method:     http.MethodPost,
 			statusCode: http.StatusMethodNotAllowed,
@@ -87,28 +86,6 @@ func TestMethodMultiplexer(t *testing.T) {
 		wresp := wreq.Do()
 		wresp.AssertStatusCodeEquals(test.statusCode)
 		wresp.AssertBodyMatches(test.body)
-	}
-}
-
-//--------------------
-// WEB ASSERTER AND HANDLER
-//--------------------
-
-// StartTestServer initialises and starts the asserter for the tests.
-func StartWebAsserter(assert *asserts.Asserts) *environments.WebAsserter {
-	wa := environments.NewWebAsserter(assert, func(r *http.Request) (string, error) {
-		return r.URL.Path, nil
-	})
-	return wa
-}
-
-// MakeMethodEcho creates a handler echoing the HTTP method.
-func MakeMethodEcho(assert *asserts.Asserts) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		reply := "METHOD: " + r.Method + "!"
-		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
-		w.Write([]byte(reply))
-		w.WriteHeader(http.StatusOK)
 	}
 }
 
