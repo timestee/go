@@ -112,7 +112,7 @@ func TestHeaderCookies(t *testing.T) {
 }
 
 //--------------------
-// MUX MAPPER AND HANDLER
+// WEB ASSERTER AND HANDLER
 //--------------------
 
 // StartTestServer initialises and starts the asserter for the tests.
