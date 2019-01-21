@@ -24,6 +24,16 @@ import (
 // TESTS
 //--------------------
 
+// TestInvalidMethodWrapper tests the panic if the past handler for the
+// MethodWrapper is invalid.
+func TestInvalidMethodWrapper(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+
+	assert.Panics(func() {
+		webbox.NewMethodWrapper(nil)
+	}, "webbox: nil handler")
+}
+
 // TestMethodWrapper tests the wrapping of a handler for the dispatching
 // of HTTP methods.
 func TestMethodWrapper(t *testing.T) {

@@ -23,6 +23,31 @@ import (
 // TESTS
 //--------------------
 
+// TestInvalidMethodMultiplexer tests the panics for invalid values
+// passed to a MethodMux.
+func TestInvalidMethodMultiplexer(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+	mmux := webbox.NewMethodMux()
+
+	assert.Panics(func() {
+		mmux.HandleFunc("", MakeMethodEcho(assert))
+	}, "webbox: invalid method")
+
+	assert.Panics(func() {
+		mmux.HandleFunc("DO-SOMETHING", MakeMethodEcho(assert))
+	}, "webbox: invalid method")
+
+	assert.Panics(func() {
+		mmux.HandleFunc(http.MethodGet, nil)
+	}, "webbox: nil handler")
+
+	mmux.HandleFunc(http.MethodGet, MakeMethodEcho(assert))
+
+	assert.Panics(func() {
+		mmux.HandleFunc(http.MethodGet, MakeMethodEcho(assert))
+	}, "webbox: multiple registrations for GET")
+}
+
 // TestMethodMultiplexer tests the multiplexing of methods to different handler.
 func TestMethodMultiplexer(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
