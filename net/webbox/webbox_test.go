@@ -13,10 +13,44 @@ package webbox_test
 
 import (
 	"net/http"
+	"testing"
 
 	"tideland.one/go/audit/asserts"
 	"tideland.one/go/audit/environments"
+	"tideland.one/go/net/webbox"
 )
+
+//--------------------
+// TESTS
+//--------------------
+
+// TestPathField tests the checking and extrecting of a field out of
+// a request path.
+func TestPathField(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+
+	r, err := http.NewRequest(http.MethodGet, "http://localhost/foo", nil)
+	assert.NoError(err)
+	f, ok := webbox.PathField(r, 1)
+	assert.True(ok)
+	assert.Equal(f, "foo")
+	f, ok = webbox.PathField(r, 2)
+	assert.False(ok)
+	assert.Equal(f, "")
+
+	r, err = http.NewRequest(http.MethodGet, "http://localhost/orders/4711/items/1", nil)
+	assert.NoError(err)
+	f, ok = webbox.PathField(r, 2)
+	assert.True(ok)
+	assert.Equal(f, "4711")
+	f, ok = webbox.PathField(r, 4)
+	assert.True(ok)
+	assert.Equal(f, "1")
+	f, ok = webbox.PathField(r, 5)
+	assert.False(ok)
+	assert.Equal(f, "")
+
+}
 
 //--------------------
 // WEB ASSERTER AND HELPING HANDLER
