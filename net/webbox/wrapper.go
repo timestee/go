@@ -144,4 +144,56 @@ func (mw MethodWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mw.handler.ServeHTTP(w, r)
 }
 
+//--------------------
+// NESTED MULTIPLEXER
+//--------------------
+
+// partHandler assigns parts to handlers.
+type partHandler struct {
+	part    string
+	handler http.Handler
+}
+
+// NestedWrapper allows to put a number of handlers in a row. Every two
+// parts of a path are assigned to one handler. Additionally a path prefix
+// can be stored, e.g. for paths like /api/orders/{oid}/items/{iid}.
+type NestedWrapper struct {
+	prefix   string
+	handlers []partHandler
+}
+
+// NewNestedWrapper creates a wrapper for nested handlers.
+func NewNestedWrapper(prefix string) *NestedWrapper {
+	// Only in case the prefix is not empty ensure a leading slash.
+	if prefix != "" && prefix[0] != '/' {
+		prefix = "+" + prefix
+	}
+	return &NestedWrapper{
+		prefix:   prefix,
+		handlers: []partHandler{},
+	}
+}
+
+// Append adds a combination of part and handler.
+func (nw *NestedWrapper) Append(part string, handler http.Handler) {
+	if part == "" {
+		panic("webbox: empty part")
+	}
+	if handler == nil {
+		panic("webbox: nil handler")
+	}
+	nw.handlers = append(nw.handlers, partHandler{
+		part:    part,
+		handler: handler,
+	})
+}
+
+// ServeHTTP implements the http.Handler interface. It analyzes the path
+// and dispatches the request to the first or any later handler.
+func (nw *NestedWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Strip prefix.
+	// Check for leading slash.
+	// Dispatch according to length.
+}
+
 // EOF
