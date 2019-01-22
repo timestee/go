@@ -95,6 +95,23 @@ func TestMethodWrapper(t *testing.T) {
 	}
 }
 
+// TestNestedWrapper
+func TestNestedWrapper(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+	wa := StartWebAsserter(assert)
+	defer wa.Close()
+
+	nw := webbox.NewNestedWrapper()
+
+	nw.AppendFunc(func(w http.ResponseWriter, r *http.Request) {
+	})
+	nw.AppendFunc(func(w http.ResponseWriter, r *http.Request) {
+	})
+
+	wa.Register("/orders/", nw)
+
+}
+
 //--------------------
 // HELPING HANDLER
 //--------------------

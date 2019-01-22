@@ -13,6 +13,8 @@ package webbox
 
 import (
 	"net/http"
+	"strings"
+	"sync"
 )
 
 //--------------------
@@ -148,52 +150,58 @@ func (mw MethodWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // NESTED MULTIPLEXER
 //--------------------
 
-// partHandler assigns parts to handlers.
-type partHandler struct {
-	part    string
-	handler http.Handler
-}
-
 // NestedWrapper allows to put a number of handlers in a row. Every two
-// parts of a path are assigned to one handler. Additionally a path prefix
-// can be stored, e.g. for paths like /api/orders/{oid}/items/{iid}.
+// parts of a path are assigned to one handler.
 type NestedWrapper struct {
-	prefix   string
-	handlers []partHandler
+	mu       sync.RWMutex
+	handlers []http.Handler
 }
 
 // NewNestedWrapper creates a wrapper for nested handlers.
-func NewNestedWrapper(prefix string) *NestedWrapper {
-	// Only in case the prefix is not empty ensure a leading slash.
-	if prefix != "" && prefix[0] != '/' {
-		prefix = "+" + prefix
-	}
+func NewNestedWrapper() *NestedWrapper {
 	return &NestedWrapper{
-		prefix:   prefix,
 		handlers: []partHandler{},
 	}
 }
 
-// Append adds a combination of part and handler.
-func (nw *NestedWrapper) Append(part string, handler http.Handler) {
-	if part == "" {
-		panic("webbox: empty part")
-	}
+// Append adds a handler.
+func (nw *NestedWrapper) Append(handler http.Handler) {
+	nw.mu.Lock()
+	defer nw.mu.Unlock()
+
 	if handler == nil {
 		panic("webbox: nil handler")
 	}
-	nw.handlers = append(nw.handlers, partHandler{
-		part:    part,
-		handler: handler,
-	})
+	nw.handlers = append(nw.handlers, handler)
+}
+
+// AppendFunc adds a handler function.
+func (mw *NestedWrapper) AppendFunc(handler func(w http.ResponseWriter, r *http.Request)) {
+	mw.Append(http.HandlerFunc(handler))
 }
 
 // ServeHTTP implements the http.Handler interface. It analyzes the path
 // and dispatches the request to the first or any later handler.
 func (nw *NestedWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Strip prefix.
-	// Check for leading slash.
-	// Dispatch according to length.
+	parts := strings.Split(r.URL.Path, "/")
+	n := len(parts[1:]) / 2
+	handler, ok := mw.handler(n)
+	if !ok {
+		http.Error(w, "handler not found", http.StatusNotFound)
+		return
+	}
+	handler.ServeHTTP(w, r)
+}
+
+// handler returns the nth handler and true or nil and false.
+func (nw *NestedWrapper) handler(n int) (http.Handler, bool) {
+	nw.mu.RLock()
+	defer nw.mu.RUnlock()
+
+	if len(mw.handlers) < n+1 {
+		return nil, false
+	}
+	return mw.handlers[n], true
 }
 
 // EOF

@@ -49,7 +49,6 @@ func TestPathField(t *testing.T) {
 	f, ok = webbox.PathField(r, 5)
 	assert.False(ok)
 	assert.Equal(f, "")
-
 }
 
 //--------------------

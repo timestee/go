@@ -67,7 +67,9 @@ func (mux *MethodMux) HandleFunc(method string, handler func(w http.ResponseWrit
 // ServeHTTP implements the http.Handler interface. It dispatches the
 // request to a registered handler depending on the HTTP method.
 func (mux *MethodMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	mux.mu.RLock()
 	handler, ok := mux.handlers[r.Method]
+	mux.me.RUnlock()
 	if !ok {
 		http.Error(w, "no matching method handler found", http.StatusMethodNotAllowed)
 		return
