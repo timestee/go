@@ -13,7 +13,6 @@ package environments_test
 
 import (
 	"net/http"
-	"strings"
 	"testing"
 
 	"tideland.one/go/audit/asserts"
@@ -58,8 +57,8 @@ func TestSimpleRequests(t *testing.T) {
 		}, {
 			method:     http.MethodOptions,
 			path:       "/path/does/not/exist",
-			statusCode: http.StatusInternalServerError,
-			body:       "mapper returned invalid handler ID",
+			statusCode: http.StatusNotFound,
+			body:       "404 page not found",
 		},
 	}
 	for i, test := range tests {
@@ -117,13 +116,12 @@ func TestHeaderCookies(t *testing.T) {
 
 // StartTestServer initialises and starts the asserter for the tests.
 func StartWebAsserter(assert *asserts.Asserts) *environments.WebAsserter {
-	wa := environments.NewWebAsserter(assert, func(r *http.Request) (string, error) {
-		return strings.ToLower(r.Method + r.URL.Path), nil
-	})
-	wa.Register("get/hello/world", MakeHelloWorldHandler(assert, "World"))
-	wa.Register("get/hello/tester", MakeHelloWorldHandler(assert, "Tester"))
-	wa.Register("post/hello/postman", MakeHelloWorldHandler(assert, "Postman"))
-	wa.Register("get/header/cookies", MakeHeaderCookiesHandler(assert))
+	wa := environments.NewWebAsserter(assert)
+
+	wa.Handle("/hello/world/", MakeHelloWorldHandler(assert, "World"))
+	wa.Handle("/hello/tester/", MakeHelloWorldHandler(assert, "Tester"))
+	wa.Handle("/hello/postman/", MakeHelloWorldHandler(assert, "Postman"))
+	wa.Handle("/header/cookies/", MakeHeaderCookiesHandler(assert))
 	return wa
 }
 

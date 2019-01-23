@@ -169,6 +169,11 @@ func (wresp *WebResponse) Cookies() *Values {
 	return wresp.cookies
 }
 
+// Body returns the body of the response.
+func (wresp *WebResponse) Body() []byte {
+	return wresp.body
+}
+
 // AssertStatusCodeEquals checks if the status is the expected one.
 func (wresp *WebResponse) AssertStatusCodeEquals(expected int) {
 	restore := wresp.wa.assert.IncrCallstackOffset()
@@ -359,35 +364,34 @@ func (wreq *WebRequest) Do() *WebResponse {
 // WEB ASSERTER
 //--------------------
 
-// WebMultiplexer functions shall analyse requests and return the ID of
-// the handler registered at the WebAsserter where to map the request to.
-type WebMultiplexer func(r *http.Request) (string, error)
-
 // WebAsserter defines the test server with methods for requests
 // and uploads.
 type WebAsserter struct {
-	assert    *asserts.Asserts
-	server    *httptest.Server
-	registry  map[string]http.Handler
-	multiplex WebMultiplexer
+	assert *asserts.Asserts
+	server *httptest.Server
+	mux    *http.ServeMux
 }
 
 // NewWebAsserter creates a web test server for the tests of own handler
 // or the mocking of external systems.
-func NewWebAsserter(assert *asserts.Asserts, mux WebMultiplexer) *WebAsserter {
+func NewWebAsserter(assert *asserts.Asserts) *WebAsserter {
 	wa := &WebAsserter{
-		assert:    assert,
-		multiplex: mux,
-		registry:  make(map[string]http.Handler),
+		assert: assert,
+		mux:    http.NewServeMux(),
 	}
-	wa.server = httptest.NewServer(http.HandlerFunc(wa.dispatch))
+	wa.server = httptest.NewServer(wa.mux)
 	return wa
 }
 
-// Register assigns a http.HandlerFunc to an ID. That ID has to be returned by
-// the mapper to address the function.
-func (wa *WebAsserter) Register(id string, handler http.Handler) {
-	wa.registry[id] = handler
+// Handle registers the handler for the given pattern. If a handler
+// already exists for pattern, Handle panics.
+func (wa *WebAsserter) Handle(pattern string, handler http.Handler) {
+	wa.mux.Handle(pattern, handler)
+}
+
+// HandleFunc registers the handler function for the given pattern
+func (wa *WebAsserter) HandleFunc(pattern string, handler func(w http.ResponseWriter, r *http.Request)) {
+	wa.mux.HandleFunc(pattern, handler)
 }
 
 // URL returns the local URL of the internal test server.
@@ -409,23 +413,6 @@ func (wa *WebAsserter) CreateRequest(method, path string) *WebRequest {
 		method: method,
 		path:   path,
 	}
-}
-
-// dispatch is the handler of the internal test server. It uses
-// the request mapper function to retrieve the ID of the handler
-// to use and passes response writer and request to those.
-func (wa *WebAsserter) dispatch(rw http.ResponseWriter, r *http.Request) {
-	id, err := wa.multiplex(r)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	handler, ok := wa.registry[id]
-	if !ok {
-		http.Error(rw, "mapper returned invalid handler ID: "+id, http.StatusInternalServerError)
-		return
-	}
-	handler.ServeHTTP(rw, r)
 }
 
 // consumeHeader consumes its values from the HTTP response header.
