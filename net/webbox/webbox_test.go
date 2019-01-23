@@ -24,6 +24,31 @@ import (
 // TESTS
 //--------------------
 
+// TestPathFields tests the splitting of request paths into fields.
+func TestPathFields(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+
+	r, err := http.NewRequest(http.MethodGet, "http://localhost/", nil)
+	assert.NoError(err)
+	fs := webbox.PathFields(r)
+	assert.Length(fs, 0)
+
+	r, err = http.NewRequest(http.MethodGet, "http://localhost/foo", nil)
+	assert.NoError(err)
+	fs = webbox.PathFields(r)
+	assert.Length(fs, 1)
+
+	r, err = http.NewRequest(http.MethodGet, "http://localhost/foo/bar", nil)
+	assert.NoError(err)
+	fs = webbox.PathFields(r)
+	assert.Length(fs, 2)
+
+	r, err = http.NewRequest(http.MethodGet, "http://localhost/foo/bar?yadda=1", nil)
+	assert.NoError(err)
+	fs = webbox.PathFields(r)
+	assert.Length(fs, 2)
+}
+
 // TestPathField tests the checking and extrecting of a field out of
 // a request path.
 func TestPathField(t *testing.T) {
@@ -31,19 +56,19 @@ func TestPathField(t *testing.T) {
 
 	r, err := http.NewRequest(http.MethodGet, "http://localhost/foo", nil)
 	assert.NoError(err)
-	f, ok := webbox.PathField(r, 1)
+	f, ok := webbox.PathField(r, 0)
 	assert.True(ok)
 	assert.Equal(f, "foo")
-	f, ok = webbox.PathField(r, 2)
+	f, ok = webbox.PathField(r, 1)
 	assert.False(ok)
 	assert.Equal(f, "")
 
 	r, err = http.NewRequest(http.MethodGet, "http://localhost/orders/4711/items/1", nil)
 	assert.NoError(err)
-	f, ok = webbox.PathField(r, 2)
+	f, ok = webbox.PathField(r, 1)
 	assert.True(ok)
 	assert.Equal(f, "4711")
-	f, ok = webbox.PathField(r, 4)
+	f, ok = webbox.PathField(r, 3)
 	assert.True(ok)
 	assert.Equal(f, "1")
 	f, ok = webbox.PathField(r, 5)
@@ -57,9 +82,7 @@ func TestPathField(t *testing.T) {
 
 // StartTestServer initialises and starts the asserter for the tests.
 func StartWebAsserter(assert *asserts.Asserts) *environments.WebAsserter {
-	wa := environments.NewWebAsserter(assert, func(r *http.Request) (string, error) {
-		return r.URL.Path, nil
-	})
+	wa := environments.NewWebAsserter(assert)
 	return wa
 }
 

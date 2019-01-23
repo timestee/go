@@ -69,7 +69,7 @@ func (mux *MethodMux) HandleFunc(method string, handler func(w http.ResponseWrit
 func (mux *MethodMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.mu.RLock()
 	handler, ok := mux.handlers[r.Method]
-	mux.me.RUnlock()
+	mux.mu.RUnlock()
 	if !ok {
 		http.Error(w, "no matching method handler found", http.StatusMethodNotAllowed)
 		return

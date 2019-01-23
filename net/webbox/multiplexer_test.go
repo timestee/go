@@ -60,7 +60,7 @@ func TestMethodMultiplexer(t *testing.T) {
 	mmux.HandleFunc(http.MethodPatch, MakeMethodEcho(assert))
 	mmux.HandleFunc(http.MethodOptions, MakeMethodEcho(assert))
 
-	wa.Register("/mmux/", mmux)
+	wa.Handle("/mmux/", mmux)
 
 	tests := []struct {
 		method     string

@@ -13,7 +13,6 @@ package webbox
 
 import (
 	"net/http"
-	"strings"
 	"sync"
 )
 
@@ -160,7 +159,7 @@ type NestedWrapper struct {
 // NewNestedWrapper creates a wrapper for nested handlers.
 func NewNestedWrapper() *NestedWrapper {
 	return &NestedWrapper{
-		handlers: []partHandler{},
+		handlers: []http.Handler{},
 	}
 }
 
@@ -176,16 +175,20 @@ func (nw *NestedWrapper) Append(handler http.Handler) {
 }
 
 // AppendFunc adds a handler function.
-func (mw *NestedWrapper) AppendFunc(handler func(w http.ResponseWriter, r *http.Request)) {
-	mw.Append(http.HandlerFunc(handler))
+func (nw *NestedWrapper) AppendFunc(handler func(w http.ResponseWriter, r *http.Request)) {
+	nw.Append(http.HandlerFunc(handler))
 }
 
 // ServeHTTP implements the http.Handler interface. It analyzes the path
 // and dispatches the request to the first or any later handler.
 func (nw *NestedWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	parts := strings.Split(r.URL.Path, "/")
-	n := len(parts[1:]) / 2
-	handler, ok := mw.handler(n)
+	fields := PathFields(r)
+	fieldsLen := len(fields)
+	n := 0
+	if fieldsLen > 0 {
+		n = (fieldsLen - 1) / 2
+	}
+	handler, ok := nw.handler(n)
 	if !ok {
 		http.Error(w, "handler not found", http.StatusNotFound)
 		return
@@ -197,11 +200,13 @@ func (nw *NestedWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (nw *NestedWrapper) handler(n int) (http.Handler, bool) {
 	nw.mu.RLock()
 	defer nw.mu.RUnlock()
-
-	if len(mw.handlers) < n+1 {
+	if n < 0 {
+		n = 0
+	}
+	if len(nw.handlers) < n+1 {
 		return nil, false
 	}
-	return mw.handlers[n], true
+	return nw.handlers[n], true
 }
 
 // EOF

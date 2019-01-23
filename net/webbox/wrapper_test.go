@@ -41,7 +41,7 @@ func TestMethodWrapper(t *testing.T) {
 	wa := StartWebAsserter(assert)
 	defer wa.Close()
 
-	wa.Register("/mwrap/", webbox.NewMethodWrapper(MethodHandler{}))
+	wa.Handle("/mwrap/", webbox.NewMethodWrapper(MethodHandler{}))
 
 	tests := []struct {
 		method     string
@@ -104,12 +104,66 @@ func TestNestedWrapper(t *testing.T) {
 	nw := webbox.NewNestedWrapper()
 
 	nw.AppendFunc(func(w http.ResponseWriter, r *http.Request) {
+		reply := ""
+		if f, ok := webbox.PathField(r, 0); ok {
+			reply = f
+		}
+		if f, ok := webbox.PathField(r, 1); ok {
+			reply += "/" + f
+		}
+		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
+		w.Write([]byte(reply))
+		w.WriteHeader(http.StatusOK)
 	})
 	nw.AppendFunc(func(w http.ResponseWriter, r *http.Request) {
+		reply := ""
+		if f, ok := webbox.PathField(r, 2); ok {
+			reply = f
+		}
+		if f, ok := webbox.PathField(r, 3); ok {
+			reply += "/" + f
+		}
+		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
+		w.Write([]byte(reply))
+		w.WriteHeader(http.StatusOK)
 	})
 
-	wa.Register("/orders/", nw)
+	wa.Handle("/orders/", nw)
 
+	tests := []struct {
+		path       string
+		statusCode int
+		body       string
+	}{
+		{
+			path:       "/orders/",
+			statusCode: http.StatusOK,
+			body:       "orders",
+		}, {
+			path:       "/orders/4711",
+			statusCode: http.StatusOK,
+			body:       "orders/4711",
+		}, {
+			path:       "/orders/4711/items",
+			statusCode: http.StatusOK,
+			body:       "items",
+		}, {
+			path:       "/orders/4711/items/1",
+			statusCode: http.StatusOK,
+			body:       "items/1",
+		}, {
+			path:       "/orders/4711/items/1/nothingelse",
+			statusCode: http.StatusNotFound,
+			body:       "",
+		},
+	}
+	for i, test := range tests {
+		assert.Logf("test case #%d: %s", i, test.path)
+		wreq := wa.CreateRequest(http.MethodGet, test.path)
+		wresp := wreq.Do()
+		wresp.AssertStatusCodeEquals(test.statusCode)
+		wresp.AssertBodyMatches(test.body)
+	}
 }
 
 //--------------------

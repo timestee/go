@@ -20,16 +20,26 @@ import (
 // REQUEST TOOLS
 //--------------------
 
+// PathFields splits the request path into its fields.
+func PathFields(r *http.Request) []string {
+	rawFields := strings.Split(r.URL.Path, "/")
+	fields := []string{}
+	for _, field := range rawFields {
+		if field != "" {
+			fields = append(fields, field)
+		}
+	}
+	return fields
+}
+
 // PathField returns the nth field of the request path and true if it exists.
 // Otherwise an empty string and false.
 func PathField(r *http.Request, n int) (string, bool) {
-	if n < 1 {
+	if n < 0 {
 		panic("webbox: illegal path index")
 	}
-	fields := strings.Split(r.URL.Path, "/")
-	// Empty string before slash is field zero.
-	if len(fields)-1 < n {
-		// Does not exist.
+	fields := PathFields(r)
+	if len(fields) < n+1 {
 		return "", false
 	}
 	return fields[n], true
