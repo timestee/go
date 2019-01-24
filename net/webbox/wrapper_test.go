@@ -95,7 +95,26 @@ func TestMethodWrapper(t *testing.T) {
 	}
 }
 
-// TestNestedWrapper
+// TestNestedWrapperNoHandler tests the mapping of requests to a
+// nested wrapper w/o sub-handlers.
+func TestNestedWrapperNoHandler(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+	wa := StartWebAsserter(assert)
+	defer wa.Close()
+
+	nw := webbox.NewNestedWrapper()
+
+	wa.Handle("/foo", nw)
+
+	wreq := wa.CreateRequest(http.MethodGet, "/foo")
+	wresp := wreq.Do()
+
+	wresp.AssertStatusCodeEquals(http.StatusNotFound)
+	wresp.AssertBodyMatches("")
+}
+
+// TestNestedWrapper tests the mapping of requests to a number of
+// nested individual handlers.
 func TestNestedWrapper(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	wa := StartWebAsserter(assert)
@@ -129,6 +148,7 @@ func TestNestedWrapper(t *testing.T) {
 	})
 
 	wa.Handle("/orders/", nw)
+	wa.Handle("/", nw)
 
 	tests := []struct {
 		path       string
@@ -136,6 +156,10 @@ func TestNestedWrapper(t *testing.T) {
 		body       string
 	}{
 		{
+			path:       "/",
+			statusCode: http.StatusOK,
+			body:       "",
+		}, {
 			path:       "/orders/",
 			statusCode: http.StatusOK,
 			body:       "orders",
