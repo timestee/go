@@ -17,6 +17,17 @@ import (
 )
 
 //--------------------
+// CONSTANTS
+//--------------------
+
+const (
+	ContentTypePlain      = "text/plain"
+	ContentTypeXML        = "application/xml"
+	ContentTypeJSON       = "application/json"
+	ContentTypeURLEncoded = "application/x-www-form-urlencoded"
+)
+
+//--------------------
 // REQUEST TOOLS
 //--------------------
 
@@ -43,6 +54,11 @@ func PathField(r *http.Request, n int) (string, bool) {
 		return "", false
 	}
 	return fields[n], true
+}
+
+// AcceptsContentType checks if the requestor accepts a given content type.
+func AcceptsContentType(r *http.Request, contentType string) bool {
+	return strings.Contains(r.Header.Get("Accept"), contentType)
 }
 
 // EOF

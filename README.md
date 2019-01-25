@@ -4,7 +4,7 @@
 [![GitHub license](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://raw.githubusercontent.com/tideland/go/master/LICENSE)
 [![GoDoc](https://godoc.org/github.com/tideland/go?status.svg)](https://godoc.org/github.com/tideland/go)
 [![Sourcegraph](https://sourcegraph.com/github.com/tideland/go/-/badge.svg)](https://sourcegraph.com/github.com/tideland/go?badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tideland/golib)](https://goreportcard.com/report/tideland.one/go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tideland/go)](https://goreportcard.com/report/tideland.one/go)
 
 ## Description
 
@@ -15,8 +15,7 @@ are grouped by higher level packages.
   manipulation, and capturing of STDOUT and STDERR
 - `dsa` contains data structures and algorithms like collections and sorting, identifier
   generation, e.g. UUIDs, map/reduce, times, and semantic versions
-- `net` groups the work with the network like RESTful Web Applications and
-  JSON Web Tokens
+- `net` groups the work with the network like web applications and JSON Web Tokens (JWT)
 - `text` simplifies life with text data, text based configurations in the LISP like 
   simple markup language SML, with schemeless JSON, and the processing of continuously 
   written text lines
@@ -31,4 +30,4 @@ I hope you like it. ;)
 
 ## License
 
-**Tideland Go Library*** is distributed under the terms of the BSD 3-Clause license.
+**Tideland Go Library** is distributed under the terms of the BSD 3-Clause license.

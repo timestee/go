@@ -12,8 +12,15 @@ package webbox
 //--------------------
 
 import (
+	"encoding/json"
+	"encoding/xml"
 	"net/http"
+	"strconv"
 	"sync"
+	"time"
+
+	"tideland.one/go/net/jwt/cache"
+	"tideland.one/go/net/jwt/token"
 )
 
 //--------------------
@@ -207,6 +214,127 @@ func (nw *NestedWrapper) handler(n int) (http.Handler, bool) {
 		return nil, false
 	}
 	return nw.handlers[n], true
+}
+
+//--------------------
+// JWT WRAPPER
+//--------------------
+
+// JWTWrapperConfig allows to control how the JWT wrapper
+// works. All values are optional. In this case tokens are only
+// decoded without using a cache, validated for the current time
+// plus/minus a minute leeway, and there's no user defined gatekeeper
+// function running afterwards.
+type JWTWrapperConfig struct {
+	Cache      *cache.Cache
+	Key        token.Key
+	Leeway     time.Duration
+	Gatekeeper func(w http.ResponseWriter, r *http.Request, claims token.Claims) error
+}
+
+// JWTWrapper checks for a valid token and then runs
+// a gatekeeper function.
+type JWTWrapper struct {
+	handler    http.Handler
+	cache      *cache.Cache
+	key        token.Key
+	leeway     time.Duration
+	gatekeeper func(w http.ResponseWriter, r *http.Request, claims token.Claims) error
+}
+
+// NewJWTWrapper creates a handler checking for a valid JSON
+// Web Token in each request.
+func NewJWTWrapper(handler http.Handler, config *JWTWrapperConfig) *JWTWrapper {
+	jw := &JWTWrapper{
+		handler: handler,
+		leeway:  time.Minute,
+	}
+	if config != nil {
+		if config.Cache != nil {
+			jw.cache = config.Cache
+		}
+		if config.Key != nil {
+			jw.key = config.Key
+		}
+		if config.Leeway != 0 {
+			jw.leeway = config.Leeway
+		}
+		if config.Gatekeeper != nil {
+			jw.gatekeeper = config.Gatekeeper
+		}
+	}
+	return jw
+}
+
+// ServeHTTP implements the http.Handler interface. It checks for an existing
+// and valid token before calling the wrapped handler.
+func (jw *JWTWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if jw.isAuthorized(w, r) {
+		jw.handler.ServeHTTP(w, r)
+	}
+}
+
+// isAuthorized checks the request for a valid token and if configured
+// asks the gatekeepr if the request may pass.
+func (jw *JWTWrapper) isAuthorized(w http.ResponseWriter, r *http.Request) bool {
+	var jwt *token.JWT
+	var err error
+	switch {
+	case jw.cache != nil && jw.key != nil:
+		jwt, err = jw.cache.RequestVerify(r, jw.key)
+	case jw.cache != nil && jw.key == nil:
+		jwt, err = jw.cache.RequestDecode(r)
+	case jw.cache == nil && jw.key != nil:
+		jwt, err = token.RequestVerify(r, jw.key)
+	default:
+		jwt, err = token.RequestDecode(r)
+	}
+	// Now do the checks.
+	if err != nil {
+		jw.deny(w, r, err.Error(), http.StatusUnauthorized)
+		return false
+	}
+	if jwt == nil {
+		jw.deny(w, r, "no JSON Web Token", http.StatusUnauthorized)
+		return false
+	}
+	if !jwt.IsValid(jw.leeway) {
+		jw.deny(w, r, "the JSON Web Token claims 'nbf' and/or 'exp' are not valid", http.StatusForbidden)
+		return false
+	}
+	if jw.gatekeeper != nil {
+		err := jw.gatekeeper(w, r, jwt.Claims())
+		if err != nil {
+			jw.deny(w, r, "access rejected by gatekeeper: "+err.Error(), http.StatusUnauthorized)
+			return false
+		}
+	}
+	// All fine.
+	return true
+}
+
+// deny sends a negative feedback to the caller.
+func (jw *JWTWrapper) deny(w http.ResponseWriter, r *http.Request, msg string, statusCode int) {
+	feedback := map[string]string{
+		"statusCode": strconv.Itoa(statusCode),
+		"message":    msg,
+	}
+	switch {
+	case AcceptsContentType(r, ContentTypeJSON):
+		b, _ := json.Marshal(feedback)
+		w.WriteHeader(statusCode)
+		w.Header().Set("Content-Type", ContentTypeJSON)
+		w.Write(b)
+	case AcceptsContentType(r, ContentTypeXML):
+		b, _ := xml.Marshal(feedback)
+		w.WriteHeader(statusCode)
+		w.Header().Set("Content-Type", ContentTypeXML)
+		w.Write(b)
+	default:
+		w.WriteHeader(statusCode)
+		w.Header().Set("Content-Type", ContentTypePlain)
+		w.Write([]byte(msg))
+	}
 }
 
 // EOF
