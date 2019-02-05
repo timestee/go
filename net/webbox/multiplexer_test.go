@@ -30,35 +30,35 @@ func TestInvalidMethodMultiplexer(t *testing.T) {
 	mmux := webbox.NewMethodMux()
 
 	assert.Panics(func() {
-		mmux.HandleFunc("", MakeMethodEcho(assert))
+		mmux.HandleFunc("", makeMethodEcho(assert))
 	}, "webbox: invalid method")
 
 	assert.Panics(func() {
-		mmux.HandleFunc("DO-SOMETHING", MakeMethodEcho(assert))
+		mmux.HandleFunc("DO-SOMETHING", makeMethodEcho(assert))
 	}, "webbox: invalid method")
 
 	assert.Panics(func() {
 		mmux.HandleFunc(http.MethodGet, nil)
 	}, "webbox: nil handler")
 
-	mmux.HandleFunc(http.MethodGet, MakeMethodEcho(assert))
+	mmux.HandleFunc(http.MethodGet, makeMethodEcho(assert))
 
 	assert.Panics(func() {
-		mmux.HandleFunc(http.MethodGet, MakeMethodEcho(assert))
+		mmux.HandleFunc(http.MethodGet, makeMethodEcho(assert))
 	}, "webbox: multiple registrations for GET")
 }
 
 // TestMethodMultiplexer tests the multiplexing of methods to different handler.
 func TestMethodMultiplexer(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	wa := StartWebAsserter(assert)
+	wa := startWebAsserter(assert)
 	defer wa.Close()
 
 	mmux := webbox.NewMethodMux()
 
-	mmux.HandleFunc(http.MethodGet, MakeMethodEcho(assert))
-	mmux.HandleFunc(http.MethodPatch, MakeMethodEcho(assert))
-	mmux.HandleFunc(http.MethodOptions, MakeMethodEcho(assert))
+	mmux.HandleFunc(http.MethodGet, makeMethodEcho(assert))
+	mmux.HandleFunc(http.MethodPatch, makeMethodEcho(assert))
+	mmux.HandleFunc(http.MethodOptions, makeMethodEcho(assert))
 
 	wa.Handle("/mmux/", mmux)
 

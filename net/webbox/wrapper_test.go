@@ -12,11 +12,13 @@ package webbox_test
 //--------------------
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
 	"tideland.one/go/audit/asserts"
 	"tideland.one/go/audit/environments"
+	"tideland.one/go/net/jwt/token"
 	"tideland.one/go/net/webbox"
 )
 
@@ -38,7 +40,7 @@ func TestInvalidMethodWrapper(t *testing.T) {
 // of HTTP methods.
 func TestMethodWrapper(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	wa := StartWebAsserter(assert)
+	wa := startWebAsserter(assert)
 	defer wa.Close()
 
 	wa.Handle("/mwrap/", webbox.NewMethodWrapper(MethodHandler{}))
@@ -99,7 +101,7 @@ func TestMethodWrapper(t *testing.T) {
 // nested wrapper w/o sub-handlers.
 func TestNestedWrapperNoHandler(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	wa := StartWebAsserter(assert)
+	wa := startWebAsserter(assert)
 	defer wa.Close()
 
 	nw := webbox.NewNestedWrapper()
@@ -117,7 +119,7 @@ func TestNestedWrapperNoHandler(t *testing.T) {
 // nested individual handlers.
 func TestNestedWrapper(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	wa := StartWebAsserter(assert)
+	wa := startWebAsserter(assert)
 	defer wa.Close()
 
 	nw := webbox.NewNestedWrapper()
@@ -128,7 +130,7 @@ func TestNestedWrapper(t *testing.T) {
 			reply = f
 		}
 		if f, ok := webbox.PathField(r, 1); ok {
-			reply += "/" + f
+			reply += " && " + f
 		}
 		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
 		w.Write([]byte(reply))
@@ -140,7 +142,7 @@ func TestNestedWrapper(t *testing.T) {
 			reply = f
 		}
 		if f, ok := webbox.PathField(r, 3); ok {
-			reply += "/" + f
+			reply += " && " + f
 		}
 		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
 		w.Write([]byte(reply))
@@ -166,7 +168,7 @@ func TestNestedWrapper(t *testing.T) {
 		}, {
 			path:       "/orders/4711",
 			statusCode: http.StatusOK,
-			body:       "orders/4711",
+			body:       "orders && 4711",
 		}, {
 			path:       "/orders/4711/items",
 			statusCode: http.StatusOK,
@@ -174,7 +176,7 @@ func TestNestedWrapper(t *testing.T) {
 		}, {
 			path:       "/orders/4711/items/1",
 			statusCode: http.StatusOK,
-			body:       "items/1",
+			body:       "items && 1",
 		}, {
 			path:       "/orders/4711/items/1/nothingelse",
 			statusCode: http.StatusNotFound,
@@ -184,6 +186,73 @@ func TestNestedWrapper(t *testing.T) {
 	for i, test := range tests {
 		assert.Logf("test case #%d: %s", i, test.path)
 		wreq := wa.CreateRequest(http.MethodGet, test.path)
+		wresp := wreq.Do()
+		wresp.AssertStatusCodeEquals(test.statusCode)
+		wresp.AssertBodyMatches(test.body)
+	}
+}
+
+// TestJWTWrapper tests access control by usage of the
+// JWT wrapper.
+func TestJWTWrapper(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+	wa := startWebAsserter(assert)
+	defer wa.Close()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
+		w.Write([]byte("request passed"))
+		w.WriteHeader(http.StatusOK)
+	})
+	jwtWrapper := webbox.NewJWTWrapper(handler, &webbox.JWTWrapperConfig{
+		Key: []byte("secret"),
+		Gatekeeper: func(w http.ResponseWriter, r *http.Request, claims token.Claims) error {
+			access, ok := claims.GetString("access")
+			if !ok || access != "allowed" {
+				return errors.New("access is not allowed")
+			}
+			return nil
+		},
+	})
+
+	wa.Handle("/", jwtWrapper)
+
+	tests := []struct {
+		key         string
+		accessClaim string
+		statusCode  int
+		body        string
+	}{
+		{
+			key:         "unknown",
+			accessClaim: "allowed",
+			statusCode:  http.StatusUnauthorized,
+			body:        "cannot verify the signature",
+		}, {
+			key:         "secret",
+			accessClaim: "allowed",
+			statusCode:  http.StatusOK,
+			body:        "request passed",
+		}, {
+			key:         "unknown",
+			accessClaim: "forbidden",
+			statusCode:  http.StatusUnauthorized,
+			body:        "cannot verify the signature",
+		}, {
+			key:         "secret",
+			accessClaim: "forbidden",
+			statusCode:  http.StatusUnauthorized,
+			body:        "access rejected by gatekeeper: access is not allowed",
+		},
+	}
+	for i, test := range tests {
+		assert.Logf("test case #%d: %s / %s", i, test.key, test.accessClaim)
+		claims := token.NewClaims()
+		claims.Set("access", test.accessClaim)
+		jwt, err := token.Encode(claims, []byte(test.key), token.HS512)
+		assert.NoError(err)
+		wreq := wa.CreateRequest(http.MethodGet, "/")
+		wreq.Header().Set("Authorization", "Bearer "+jwt.String())
 		wresp := wreq.Do()
 		wresp.AssertStatusCodeEquals(test.statusCode)
 		wresp.AssertBodyMatches(test.body)

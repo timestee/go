@@ -17,6 +17,7 @@ import (
 
 	"tideland.one/go/audit/asserts"
 	"tideland.one/go/audit/environments"
+	"tideland.one/go/net/jwt/token"
 	"tideland.one/go/net/webbox"
 )
 
@@ -77,23 +78,32 @@ func TestPathField(t *testing.T) {
 }
 
 //--------------------
-// WEB ASSERTER AND HELPING HANDLER
+// WEB ASSERTER AND HELPERS
 //--------------------
 
 // StartTestServer initialises and starts the asserter for the tests.
-func StartWebAsserter(assert *asserts.Asserts) *environments.WebAsserter {
+func startWebAsserter(assert *asserts.Asserts) *environments.WebAsserter {
 	wa := environments.NewWebAsserter(assert)
 	return wa
 }
 
-// MakeMethodEcho creates a handler echoing the HTTP method.
-func MakeMethodEcho(assert *asserts.Asserts) http.HandlerFunc {
+// makeMethodEcho creates a handler echoing the HTTP method.
+func makeMethodEcho(assert *asserts.Asserts) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reply := "METHOD: " + r.Method + "!"
 		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
 		w.Write([]byte(reply))
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+// createToken creates a test JWT with the passed access claim.
+func createToken(assert *asserts.Asserts, access string) *token.JWT {
+	claims := token.NewClaims()
+	claims.Set("access", access)
+	jwt, err := token.Encode(claims, []byte("secret"), token.HS512)
+	assert.NoError(err)
+	return jwt
 }
 
 // EOF
