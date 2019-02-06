@@ -31,34 +31,46 @@ import (
 func TestLimitOK(t *testing.T) {
 	// Init.
 	assert := asserts.NewTesting(t, true)
-	max := 0
-	act := 0
-	job := func() error {
-		act++
-		if act > max {
-			max = act
+	runs := 100
+	startedC := make(chan struct{}, 1)
+	stoppedC := make(chan struct{}, 1)
+	resultC := make(chan int, 1)
+	go func() {
+		max := 0
+		act := 0
+		count := 0
+		for count < runs {
+			select {
+			case <-startedC:
+				act++
+				if act > max {
+					max = act
+				}
+			case <-stoppedC:
+				act--
+			}
+			count++
 		}
-		time.Sleep(25 * time.Millisecond)
-		act--
+		resultC <- max
+	}()
+	job := func() error {
+		startedC <- struct{}{}
+		time.Sleep(50 * time.Millisecond)
+		stoppedC <- struct{}{}
 		return nil
 	}
 	l := limiter.New(10)
 	ctx := context.Background()
 
-	var wg sync.WaitGroup
-	wg.Add(25)
-
 	// Test.
-	for i := 0; i < 25; i++ {
+	for i := 0; i < runs; i++ {
 		go func() {
 			err := l.Do(ctx, job)
 			assert.NoError(err)
-			wg.Done()
 		}()
 	}
 
-	wg.Wait()
-	assert.Equal(max, 10)
+	assert.True(<-resultC <= 11)
 }
 
 // TestLimitError tests the returning of en error by an

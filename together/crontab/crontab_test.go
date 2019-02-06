@@ -112,28 +112,36 @@ func TestSubmitAt(t *testing.T) {
 	// Init.
 	assert := asserts.NewTesting(t, true)
 	atOne := time.Now().Add(100 * time.Millisecond)
-	oneDiff := 0 * time.Millisecond
+	oneDiffC := make(chan time.Duration, 1)
 	oneDiffExtend := float64(10 * time.Millisecond)
 	atTwo := atOne.Add(200 * time.Millisecond)
-	count := 0
+	syncC := make(chan struct{}, 10)
 
 	// Test.
 	err := crontab.SubmitAt("bar-1", atOne, func() error {
-		oneDiff = time.Now().Sub(atOne)
-		count++
+		oneDiffC <- time.Now().Sub(atOne)
+		syncC <- struct{}{}
 		return nil
 	})
 	assert.NoError(err)
 	err = crontab.SubmitAt("bar-2", atTwo, func() error {
-		count *= 5
+		syncC <- struct{}{}
 		return nil
 	})
 	assert.NoError(err)
-	time.Sleep(200 * time.Millisecond)
-	assert.About(float64(oneDiff), 0.0, oneDiffExtend)
-	assert.Equal(count, 1)
-	time.Sleep(time.Second)
-	assert.Equal(count, 5)
+
+	count := 0
+waiting:
+	for {
+		select {
+		case <-syncC:
+			count++
+		case <-time.After(time.Second):
+			break waiting
+		}
+	}
+	assert.About(float64(<-oneDiffC), 0.0, oneDiffExtend)
+	assert.Equal(count, 2)
 
 	status, err := crontab.Status("bar-1")
 	assert.NoError(err)
@@ -153,18 +161,26 @@ func TestSubmitEvery(t *testing.T) {
 	// Init.
 	assert := asserts.NewTesting(t, true)
 	every := 200 * time.Millisecond
-	count := 0
+	syncC := make(chan struct{}, 1)
 
 	// Test.
 	err := crontab.SubmitEvery("baz-1", every, func() error {
-		count++
+		syncC <- struct{}{}
 		return nil
 	})
 	assert.NoError(err)
-	time.Sleep(700 * time.Millisecond)
-	assert.Equal(count, 3)
-	time.Sleep(400 * time.Millisecond)
-	assert.Equal(count, 5)
+
+	count := 0
+	start := time.Now()
+	for range syncC {
+		count++
+		if count > 10 {
+			break
+		}
+	}
+	duration := time.Now().Sub(start)
+
+	assert.Range(duration, 2100*time.Millisecond, 2300*time.Millisecond)
 
 	err = crontab.Revoke("baz-1")
 	assert.NoError(err)
@@ -177,16 +193,26 @@ func TestSubmitAtEvery(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	at := time.Now().Add(500 * time.Millisecond)
 	every := 100 * time.Millisecond
-	count := 0
+	syncC := make(chan struct{}, 1)
 
 	// Test.
 	err := crontab.SubmitAtEvery("babbel-1", at, every, func() error {
-		count++
+		syncC <- struct{}{}
 		return nil
 	})
 	assert.NoError(err)
-	time.Sleep(750 * time.Millisecond)
-	assert.Equal(count, 3)
+
+	count := 0
+	start := time.Now()
+	for range syncC {
+		count++
+		if count > 10 {
+			break
+		}
+	}
+	duration := time.Now().Sub(start)
+
+	assert.Range(duration, 1500*time.Millisecond, 1700*time.Millisecond)
 
 	err = crontab.Revoke("babbel-1")
 	assert.NoError(err)
@@ -199,16 +225,26 @@ func TestSubmitAfterEvery(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	pause := 500 * time.Millisecond
 	every := 100 * time.Millisecond
-	count := 0
+	syncC := make(chan struct{}, 1)
 
 	// Test.
 	err := crontab.SubmitAfterEvery("daddel-1", pause, every, func() error {
-		count++
+		syncC <- struct{}{}
 		return nil
 	})
 	assert.NoError(err)
-	time.Sleep(750 * time.Millisecond)
-	assert.Equal(count, 3)
+
+	count := 0
+	start := time.Now()
+	for range syncC {
+		count++
+		if count > 10 {
+			break
+		}
+	}
+	duration := time.Now().Sub(start)
+
+	assert.Range(duration, 1500*time.Millisecond, 1700*time.Millisecond)
 
 	err = crontab.Revoke("daddel-1")
 	assert.NoError(err)

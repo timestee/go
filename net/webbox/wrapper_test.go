@@ -224,6 +224,11 @@ func TestJWTWrapper(t *testing.T) {
 		body        string
 	}{
 		{
+			key:         "",
+			accessClaim: "",
+			statusCode:  http.StatusUnauthorized,
+			body:        "request contains no authorization header",
+		}, {
 			key:         "unknown",
 			accessClaim: "allowed",
 			statusCode:  http.StatusUnauthorized,
@@ -247,12 +252,14 @@ func TestJWTWrapper(t *testing.T) {
 	}
 	for i, test := range tests {
 		assert.Logf("test case #%d: %s / %s", i, test.key, test.accessClaim)
-		claims := token.NewClaims()
-		claims.Set("access", test.accessClaim)
-		jwt, err := token.Encode(claims, []byte(test.key), token.HS512)
-		assert.NoError(err)
 		wreq := wa.CreateRequest(http.MethodGet, "/")
-		wreq.Header().Set("Authorization", "Bearer "+jwt.String())
+		if test.key != "" && test.accessClaim != "" {
+			claims := token.NewClaims()
+			claims.Set("access", test.accessClaim)
+			jwt, err := token.Encode(claims, []byte(test.key), token.HS512)
+			assert.NoError(err)
+			wreq.Header().Set("Authorization", "Bearer "+jwt.String())
+		}
 		wresp := wreq.Do()
 		wresp.AssertStatusCodeEquals(test.statusCode)
 		wresp.AssertBodyMatches(test.body)
