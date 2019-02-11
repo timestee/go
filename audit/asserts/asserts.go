@@ -14,6 +14,7 @@ package asserts
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -325,8 +326,8 @@ func (a *Asserts) PathExists(obtained string, msgs ...string) bool {
 	return true
 }
 
-// Wait until a received signal or a timeout. The signal has
-// to be the expected value.
+// Wait receives a signal from a channel and compares it to the
+// expired value. Assert also fails on timeout.
 func (a *Asserts) Wait(
 	sigc <-chan interface{},
 	expected interface{},
@@ -344,9 +345,53 @@ func (a *Asserts) Wait(
 	}
 }
 
-// WaitTested wait until a received signal or a timeout. The signal then
-// is tested by the passed function which has to return nil for a successful
-// assert.
+// WaitClosed waits until a channel closing, the assert fails on a timeout.
+func (a *Asserts) WaitClosed(
+	sigc <-chan interface{},
+	timeout time.Duration,
+	msgs ...string,
+) bool {
+	done := time.NewTimer(timeout)
+	defer done.Stop()
+	for {
+		select {
+		case _, ok := <-sigc:
+			if !ok {
+				// Only return true if channel has been closed.
+				return true
+			}
+		case <-done.C:
+			return a.failer.Fail(WaitClosed, "timeout "+timeout.String(), "closed", msgs...)
+		}
+	}
+}
+
+// WaitGroup waits until a wait group instance is done, the assert fails on a timeout.
+func (a *Asserts) WaitGroup(
+	wg *sync.WaitGroup,
+	timeout time.Duration,
+	msgs ...string,
+) bool {
+	stopc := make(chan struct{}, 1)
+	done := time.NewTimer(timeout)
+	defer done.Stop()
+	go func() {
+		wg.Wait()
+		stopc <- struct{}{}
+	}()
+	for {
+		select {
+		case <-stopc:
+			return true
+		case <-done.C:
+			return a.failer.Fail(WaitGroup, "timeout "+timeout.String(), "done", msgs...)
+		}
+	}
+}
+
+// WaitTested receives a signal from a channel and runs the passed tester
+// function on it. That has to return nil for a signal assert. In case of
+// a timeout the assert fails.
 func (a *Asserts) WaitTested(
 	sigc <-chan interface{},
 	tester func(interface{}) error,
@@ -358,7 +403,7 @@ func (a *Asserts) WaitTested(
 		err := tester(obtained)
 		return a.Nil(err, msgs...)
 	case <-time.After(timeout):
-		return a.failer.Fail(Wait, "timeout "+timeout.String(), "signal true", msgs...)
+		return a.failer.Fail(WaitTested, "timeout "+timeout.String(), "signal tested", msgs...)
 	}
 }
 

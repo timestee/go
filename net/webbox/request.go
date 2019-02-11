@@ -12,19 +12,11 @@ package webbox
 //--------------------
 
 import (
+	"encoding/json"
+	"encoding/xml"
+	"fmt"
 	"net/http"
 	"strings"
-)
-
-//--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	ContentTypePlain      = "text/plain"
-	ContentTypeXML        = "application/xml"
-	ContentTypeJSON       = "application/json"
-	ContentTypeURLEncoded = "application/x-www-form-urlencoded"
 )
 
 //--------------------
@@ -58,7 +50,42 @@ func PathField(r *http.Request, n int) (string, bool) {
 
 // AcceptsContentType checks if the requestor accepts a given content type.
 func AcceptsContentType(r *http.Request, contentType string) bool {
-	return strings.Contains(r.Header.Get("Accept"), contentType)
+	return strings.Contains(r.Header.Get(HeaderAccept), contentType)
+}
+
+// HasContentType checks if the requestor has a given content type.
+func HasContentType(r *http.Request, contentType string) bool {
+	return strings.Contains(r.Header.Get(HeaderContentType), contentType)
+}
+
+// UnmarshalRequestBody parses the body data of a request based on the
+// content type header stores the result in the value pointed by v.
+// Currently JSON and XML are supported.
+func UnmarshalRequestBody(r *http.Request, v interface{}) error {
+	switch {
+	case HasContentType(r, ContentTypeJSON):
+		body, err := readBody(r)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(body, &v)
+		if err != nil {
+			return fmt.Errorf("webbox: cannot unmarshal request body: %v", err)
+		}
+		return nil
+	case HasContentType(r, ContentTypeXML):
+		body, err := readBody(r)
+		if err != nil {
+			return err
+		}
+		err = xml.Unmarshal(body, &v)
+		if err != nil {
+			return fmt.Errorf("webbox: cannot unmarshal request body: %v", err)
+		}
+		return nil
+	default:
+		return fmt.Errorf("webbox: invalid content-type")
+	}
 }
 
 // EOF

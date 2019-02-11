@@ -50,6 +50,8 @@ const (
 	Panics
 	PathExists
 	Wait
+	WaitClosed
+	WaitGroup
 	WaitTested
 	Retry
 	Fail
@@ -81,6 +83,9 @@ var testNames = []string{
 	Panics:       "panics",
 	PathExists:   "path exists",
 	Wait:         "wait",
+	WaitClosed:   "wait closed",
+	WaitGroup:    "wait group",
+	WaitTested:   "wait tested",
 	Retry:        "retry",
 	Fail:         "fail",
 }

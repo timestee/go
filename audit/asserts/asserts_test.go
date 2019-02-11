@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -341,6 +342,52 @@ func TestAssertWait(t *testing.T) {
 	failingAssert.Wait(waitc, true, 100*time.Millisecond, "should timeout")
 }
 
+// TestAssertWaitClosed tests the wait closed testing.
+func TestAssertWaitClosed(t *testing.T) {
+	successfulAssert := successfulAsserts(t)
+	failingAssert := failingAsserts(t)
+
+	waitc := asserts.MakeWaitChan()
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		close(waitc)
+	}()
+	successfulAssert.WaitClosed(waitc, 100*time.Millisecond, "should be true")
+
+	waitc = asserts.MakeWaitChan()
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		close(waitc)
+	}()
+	failingAssert.WaitClosed(waitc, 100*time.Millisecond, "should timeout")
+}
+
+// TestAssertWaitGroup tests the wait group testing.
+func TestAssertWaitGroup(t *testing.T) {
+	successfulAssert := successfulAsserts(t)
+	failingAssert := failingAsserts(t)
+
+	var wg sync.WaitGroup
+
+	wg.Add(5)
+	go func() {
+		for i := 0; i < 5; i++ {
+			time.Sleep(50 * time.Millisecond)
+			wg.Done()
+		}
+	}()
+	successfulAssert.WaitGroup(&wg, 500*time.Millisecond, "should be done")
+
+	wg.Add(5)
+	go func() {
+		for i := 0; i < 5; i++ {
+			time.Sleep(50 * time.Millisecond)
+			wg.Done()
+		}
+	}()
+	failingAssert.WaitGroup(&wg, 200*time.Millisecond, "should timeout")
+}
+
 // TestAssertWaitTested tests the wait tested testing.
 func TestAssertWaitTested(t *testing.T) {
 	successfulAssert := successfulAsserts(t)
@@ -461,7 +508,7 @@ func TestValidationAssertion(t *testing.T) {
 	details := failures.Details()
 	location, fun := details[0].Location()
 	tt := details[0].Test()
-	if location != "asserts_test.go:448:0:" || fun != "TestValidationAssertion" {
+	if location != "asserts_test.go:495:0:" || fun != "TestValidationAssertion" {
 		t.Errorf("wrong location %q or function %q of first detail", location, fun)
 	}
 	if tt != asserts.True {
@@ -469,7 +516,7 @@ func TestValidationAssertion(t *testing.T) {
 	}
 	location, fun = details[1].Location()
 	tt = details[1].Test()
-	if location != "asserts_test.go:449:0:" || fun != "TestValidationAssertion" {
+	if location != "asserts_test.go:496:0:" || fun != "TestValidationAssertion" {
 		t.Errorf("wrong location %q or function %q of second detail", location, fun)
 	}
 	if tt != asserts.Equal {

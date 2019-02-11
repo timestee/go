@@ -106,4 +106,11 @@ func createToken(assert *asserts.Asserts, access string) *token.JWT {
 	return jwt
 }
 
+// data is used in marshalling tests.
+type data struct {
+	Number int
+	Name   string
+	Tags   []string
+}
+
 // EOF
