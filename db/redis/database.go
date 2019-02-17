@@ -78,13 +78,12 @@ func configureDatabase(cfg *etc.Etc) (*Database, error) {
 		return nil, errors.New(ErrNoConfiguration, msgNoConfiguration)
 	}
 	db := &Database{
-		address:    cfg.ValueAsString("address", defaultSocket),
-		network:    cfg.ValueAsString("network", defaultNetwork),
-		timeout:    cfg.ValueAsDuration("timeout", defaultTimeout),
-		index:      cfg.ValueAsInt("index", defaultIndex),
-		password:   cfg.ValueAsString("password", defaultPassword),
-		logging:    cfg.ValueAsBool("logging", defaultLogging),
-		monitoring: cfg.ValueAsBool("monitoring", defaultMonitoring),
+		address:  cfg.ValueAsString("address", defaultSocket),
+		network:  cfg.ValueAsString("network", defaultNetwork),
+		timeout:  cfg.ValueAsDuration("timeout", defaultTimeout),
+		index:    cfg.ValueAsInt("index", defaultIndex),
+		password: cfg.ValueAsString("password", defaultPassword),
+		logging:  cfg.ValueAsBool("logging", defaultLogging),
 	}
 	return db, nil
 }

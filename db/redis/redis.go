@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"tideland.one/go/text/etc"
 	"tideland.one/go/trace/errors"
@@ -32,6 +33,7 @@ const (
 	defaultTimeout  = 30 * time.Second
 	defaultIndex    = 0
 	defaultPassword = ""
+	defaultLogging  = "true"
 )
 
 //--------------------
@@ -63,6 +65,7 @@ func NewConfiguration(e etc.Etc) Configuration {
 
 // validate checks the configuration and sets default values.
 func (cfg *Configuration) validate() error {
+	return nil
 }
 
 //--------------------
