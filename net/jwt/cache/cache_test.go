@@ -149,7 +149,7 @@ func TestCacheContext(t *testing.T) {
 	assert.False(ok)
 	assert.Nil(jwtOut)
 	err = cache.Stop()
-	assert.ErrorMatch(err, "loop not working")
+	assert.ErrorMatch(err, ".* loop not working")
 }
 
 //--------------------

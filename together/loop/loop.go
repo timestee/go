@@ -12,11 +12,11 @@ package loop
 //--------------------
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	"tideland.one/go/together/notifier"
+	"tideland.one/go/trace/errors"
 )
 
 //--------------------
@@ -111,7 +111,7 @@ func (l *Loop) Work() error {
 	l.mu.Lock()
 	if l.bundle.Status() != notifier.Ready {
 		l.mu.Unlock()
-		return fmt.Errorf(errLoopNotReady)
+		return errors.New(ErrLoopNotReady, msgLoopNotReady)
 	}
 	// Start working.
 	defer l.bundle.Notify(notifier.Stopped)
@@ -136,7 +136,7 @@ func (l *Loop) Stop(err error) error {
 		if l.err != nil {
 			return l.err
 		}
-		return fmt.Errorf(errLoopNotWorking)
+		return errors.New(ErrLoopNotWorking, msgLoopNotWorking)
 	}
 	defer l.mu.Unlock()
 	// Stop and wait.
@@ -144,7 +144,7 @@ func (l *Loop) Stop(err error) error {
 	select {
 	case <-l.bundle.Stopped():
 	case <-time.After(30 * time.Second):
-		l.err = fmt.Errorf(errTimeout)
+		l.err = errors.New(ErrTimeout, msgTimeout)
 	}
 	if l.err == nil {
 		l.err = err

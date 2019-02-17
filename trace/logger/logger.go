@@ -63,14 +63,114 @@ func PanicFatalExiter() {
 // FilterFunc allows to filter the output of the logging. Filters
 // have to return true if the received entry shall be filtered and
 // not output.
-type FilterFunc func(level LogLevel, info, msg string) bool
+type FilterFunc func(level LogLevel, msg string) bool
 
 //--------------------
-// LOGGER
+// LOGGER API
 //--------------------
 
-// Logger provides a flexible configurable logging system.
-type Logger struct {
+// Level returns the current log level.
+func Level() LogLevel {
+	backend.mu.RLock()
+	defer backend.mu.RUnlock()
+	return backend.level
+}
+
+// SetLevel sets the log level to a new one and returns the current.
+func SetLevel(level LogLevel) LogLevel {
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
+	current := backend.level
+	switch {
+	case level <= LevelDebug:
+		backend.level = LevelDebug
+	case level >= LevelFatal:
+		backend.level = LevelFatal
+	default:
+		backend.level = level
+	}
+	return current
+}
+
+// SetWriter sets the writing target to a new one and returns the current.
+func SetWriter(out Writer) Writer {
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
+	current := backend.out
+	if out != nil {
+		backend.out = out
+	}
+	return current
+}
+
+// SetFatalExiter sets the fatal exiter function to a new one and returns the current.
+func SetFatalExiter(fef FatalExiterFunc) FatalExiterFunc {
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
+	current := backend.fatalExiter
+	if fef != nil {
+		println("=====> set new fatal exiter")
+		backend.fatalExiter = fef
+	}
+	return current
+}
+
+// SetFilter sets the global output filter to a new one and returns the current.
+// Nil function is allowed, it unsets the filter.
+func SetFilter(ff FilterFunc) FilterFunc {
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
+	current := backend.shallWrite
+	backend.shallWrite = ff
+	return current
+}
+
+// UnsetFilter removes the global output filter and returns the current.
+func UnsetFilter() FilterFunc {
+	return SetFilter(nil)
+}
+
+// Debugf logs a message at debug level.
+func Debugf(format string, args ...interface{}) {
+	backend.log(LevelDebug, location.HereID(1)+" "+format, args...)
+}
+
+// Infof logs a message at info level.
+func Infof(format string, args ...interface{}) {
+	backend.log(LevelInfo, format, args...)
+}
+
+// Warningf logs a message at warning level.
+func Warningf(format string, args ...interface{}) {
+	backend.log(LevelWarning, format, args...)
+}
+
+// Errorf logs a message at error level.
+func Errorf(format string, args ...interface{}) {
+	backend.log(LevelError, format, args...)
+}
+
+// Criticalf logs a message at critical level.
+func Criticalf(format string, args ...interface{}) {
+	backend.log(LevelCritical, location.HereID(1)+" "+format, args...)
+}
+
+// Fatalf logs a message at fatal level. After logging the message the
+// function calls the fatal exiter function, which by default means exiting
+// the application with error code -1. So only call in real fatal cases.
+func Fatalf(format string, args ...interface{}) {
+	backend.log(LevelFatal, location.HereID(1)+" "+format, args...)
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
+	backend.fatalExiter()
+}
+
+//--------------------
+// LOGGER IMPLEMENTATION
+//--------------------
+
+// loggerBackend provides a flexible configurable logging system.
+type loggerBackend struct {
 	mu          sync.RWMutex
 	level       LogLevel
 	out         Writer
@@ -78,156 +178,34 @@ type Logger struct {
 	shallWrite  FilterFunc
 }
 
-// NewStandard returns a standard logger.
-func NewStandard(out Writer) *Logger {
-	return &Logger{
-		level:       LevelInfo,
-		out:         out,
-		fatalExiter: OSFatalExiter,
+// log checks level and filter and performs the logging.
+func (lb *loggerBackend) log(level LogLevel, format string, args ...interface{}) {
+	// Copies to not block the logger.
+	lb.mu.RLock()
+	lbLevel := lb.level
+	lbShallWrite := lb.shallWrite
+	lb.mu.RUnlock()
+	if lbLevel > level {
+		// Passed level is too low.
+		return
 	}
-}
-
-// NewTest returns a testing logger.
-func NewTest() (*Logger, Entries) {
-	out := NewTestWriter()
-	l := &Logger{
-		level:       LevelInfo,
-		out:         out,
-		fatalExiter: OSFatalExiter,
+	msg := fmt.Sprintf(format, args...)
+	if lbShallWrite != nil && !lbShallWrite(level, msg) {
+		// Filter rejects log entry.
+		return
 	}
-	return l, out
+	lb.mu.Lock()
+	lb.out.Write(level, msg)
+	lb.mu.Unlock()
 }
 
-// Level returns the current log level.
-func (l *Logger) Level() LogLevel {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	return l.level
-}
-
-// SetLevel switches to a new log level and returns
-// the current one.
-func (l *Logger) SetLevel(level LogLevel) LogLevel {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	current := l.level
-	switch {
-	case level <= LevelDebug:
-		l.level = LevelDebug
-	case level >= LevelFatal:
-		l.level = LevelFatal
-	default:
-		l.level = level
-	}
-	return current
-}
-
-// SetFatalExiter sets the fatal exiter function and
-// returns the current one.
-func (l *Logger) SetFatalExiter(fef FatalExiterFunc) FatalExiterFunc {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	current := l.fatalExiter
-	if fef != nil {
-		l.fatalExiter = fef
-	}
-	return current
-}
-
-// SetFilter sets the global output filter and returns the current one.
-func (l *Logger) SetFilter(ff FilterFunc) FilterFunc {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	current := l.shallWrite
-	l.shallWrite = ff
-	return current
-}
-
-// UnsetFilter removes the global output filter and returns the current one.
-func (l *Logger) UnsetFilter() FilterFunc {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	current := l.shallWrite
-	l.shallWrite = nil
-	return current
-}
-
-// Debugf logs a message at debug level.
-func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	if l.level <= LevelDebug {
-		here := location.HereID(1)
-
-		l.writeChecked(LevelDebug, here, fmt.Sprintf(format, args...))
-	}
-}
-
-// Infof logs a message at info level.
-func (l *Logger) Infof(format string, args ...interface{}) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	if l.level <= LevelInfo {
-		here := location.HereID(1)
-
-		l.writeChecked(LevelInfo, here, fmt.Sprintf(format, args...))
-	}
-}
-
-// Warningf logs a message at warning level.
-func (l *Logger) Warningf(format string, args ...interface{}) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	if l.level <= LevelWarning {
-		here := location.HereID(1)
-
-		l.writeChecked(LevelWarning, here, fmt.Sprintf(format, args...))
-	}
-}
-
-// Errorf logs a message at error level.
-func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	if l.level <= LevelError {
-		here := location.HereID(1)
-
-		l.writeChecked(LevelError, here, fmt.Sprintf(format, args...))
-	}
-}
-
-// Criticalf logs a message at critical level.
-func (l *Logger) Criticalf(format string, args ...interface{}) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	if l.level <= LevelCritical {
-		here := location.HereID(1)
-
-		l.writeChecked(LevelCritical, here, fmt.Sprintf(format, args...))
-	}
-}
-
-// Fatalf logs a message independent of any level. After logging the message the functions
-// calls the fatal exiter function, which by default means exiting the application
-// with error code -1.
-func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	here := location.HereID(1)
-
-	l.out.Write(LevelFatal, here, fmt.Sprintf(format, args...))
-	l.fatalExiter()
-}
-
-// writeChecked is used to check if a specific logging is wanted
-// and writes the log if it is.
-func (l *Logger) writeChecked(level LogLevel, here, msg string) {
-	if l.shallWrite != nil {
-		if !l.shallWrite(level, here, msg) {
-			return
-		}
-	}
-	l.out.Write(level, here, msg)
+// backend provides the logger backend. It is initialised with
+// info level, using stdout for writing, and ends with os.Exit(-1)
+// in case of a fatal entry.
+var backend = &loggerBackend{
+	level:       LevelInfo,
+	out:         NewStandardOutWriter(),
+	fatalExiter: OSFatalExiter,
 }
 
 // EOF
