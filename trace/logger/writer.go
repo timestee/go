@@ -42,7 +42,7 @@ var levelText = map[LogLevel]string{
 type Writer interface {
 	// Write writes the given message with additional
 	// information at the specific log level.
-	Write(level LogLevel, here, msg string)
+	Write(level LogLevel, msg string)
 }
 
 // standardWriter is a simple writer writing to the given I/O
@@ -75,7 +75,7 @@ func NewStandardOutWriter() Writer {
 }
 
 // Write implements Writer.
-func (w *standardWriter) Write(level LogLevel, here, msg string) {
+func (w *standardWriter) Write(level LogLevel, msg string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	text, ok := levelText[level]
@@ -86,8 +86,6 @@ func (w *standardWriter) Write(level LogLevel, here, msg string) {
 	io.WriteString(w.out, " [")
 	io.WriteString(w.out, text)
 	io.WriteString(w.out, "] ")
-	io.WriteString(w.out, here)
-	io.WriteString(w.out, " ")
 	io.WriteString(w.out, msg)
 	io.WriteString(w.out, "\n")
 }
@@ -101,12 +99,12 @@ func NewGoWriter() Writer {
 }
 
 // Write implements Writer.
-func (w *goWriter) Write(level LogLevel, here, msg string) {
+func (w *goWriter) Write(level LogLevel, msg string) {
 	text, ok := levelText[level]
 	if !ok {
 		text = "INVALID"
 	}
-	log.Println("["+text+"]", here, msg)
+	log.Println("["+text+"]", msg)
 }
 
 // Entries contains the collected entries of a test writer.
@@ -140,7 +138,7 @@ func NewTestWriter() TestWriter {
 }
 
 // Write implements Writer.
-func (w *testWriter) Write(level LogLevel, here, msg string) {
+func (w *testWriter) Write(level LogLevel, msg string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -148,7 +146,7 @@ func (w *testWriter) Write(level LogLevel, here, msg string) {
 	if !ok {
 		text = "INVALID"
 	}
-	entry := fmt.Sprintf("%d [%s] %s %s", time.Now().UnixNano(), text, here, msg)
+	entry := fmt.Sprintf("%d [%s] %s", time.Now().UnixNano(), text, msg)
 	w.entries = append(w.entries, entry)
 }
 

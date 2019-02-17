@@ -13,9 +13,9 @@ package loop
 
 import (
 	"context"
-	"fmt"
 
 	"tideland.one/go/together/notifier"
+	"tideland.one/go/trace/errors"
 )
 
 //--------------------
@@ -29,7 +29,7 @@ type Option func(l *Loop) error
 func WithContext(ctx context.Context) Option {
 	return func(l *Loop) error {
 		if ctx == nil {
-			return fmt.Errorf(errInvalidLoopOption, "context is nil")
+			return errors.New(ErrInvalidLoopOption, msgInvalidLoopOption, "context is nil")
 		}
 		l.closeCs = append(l.closeCs, ctx.Done())
 		return nil
@@ -40,7 +40,7 @@ func WithContext(ctx context.Context) Option {
 func WithRecoverer(recoverer Recoverer) Option {
 	return func(l *Loop) error {
 		if recoverer == nil {
-			return fmt.Errorf(errInvalidLoopOption, "recoverer is nil")
+			return errors.New(ErrInvalidLoopOption, msgInvalidLoopOption, "recoverer is nil")
 		}
 		l.recover = recoverer
 		return nil
@@ -52,7 +52,7 @@ func WithRecoverer(recoverer Recoverer) Option {
 func WithNotifier(notifier *notifier.Notifier) Option {
 	return func(l *Loop) error {
 		if notifier == nil {
-			return fmt.Errorf(errInvalidLoopOption, "notifier is nil")
+			return errors.New(ErrInvalidLoopOption, msgInvalidLoopOption, "notifier is nil")
 		}
 		l.bundle.Add(notifier)
 		return nil
@@ -64,7 +64,7 @@ func WithNotifier(notifier *notifier.Notifier) Option {
 func WithFinalizer(finalizer Finalizer) Option {
 	return func(l *Loop) error {
 		if finalizer == nil {
-			return fmt.Errorf(errInvalidLoopOption, "finalizer is nil")
+			return errors.New(ErrInvalidLoopOption, msgInvalidLoopOption, "finalizer is nil")
 		}
 		l.finalize = finalizer
 		return nil

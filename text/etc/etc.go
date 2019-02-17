@@ -188,7 +188,7 @@ func (e *Etc) ValueAsDuration(path string, dv time.Duration) time.Duration {
 	return defaulter.AsDuration(value, dv)
 }
 
-// Spit produces a subconfiguration below the passed path.
+// Split produces a subconfiguration below the passed path.
 // The last path part will be the new root, all values below
 // that configuration node will be below the created root.
 // In case of an invalid path an empty configuration will
@@ -210,7 +210,7 @@ func (e *Etc) Split(path string) (*Etc, error) {
 	return es, nil
 }
 
-// Dunp creates a map of paths and their values to apply
+// Dump creates a map of paths and their values to apply
 // them into other configurations.
 func (e *Etc) Dump() (Application, error) {
 	appl := Application{}

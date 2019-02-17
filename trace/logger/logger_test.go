@@ -25,109 +25,114 @@ import (
 // TestGetSetLevel tests the setting of the logging level.
 func TestGetSetLevel(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	log, entries := logger.NewTest()
+	tw := logger.NewTestWriter()
+	cw := logger.SetWriter(tw)
+	defer logger.SetWriter(cw)
 
-	log.SetLevel(logger.LevelDebug)
-	log.Debugf("Debug.")
-	log.Infof("Info.")
-	log.Warningf("Warning.")
-	log.Errorf("Error.")
-	log.Criticalf("Critical.")
+	logger.SetLevel(logger.LevelDebug)
+	logger.Debugf("Debug.")
+	logger.Infof("Info.")
+	logger.Warningf("Warning.")
+	logger.Errorf("Error.")
+	logger.Criticalf("Critical.")
 
-	assert.Length(entries, 5)
-	entries.Reset()
+	assert.Length(tw, 5)
+	tw.Reset()
 
-	log.SetLevel(logger.LevelError)
-	log.Debugf("Debug.")
-	log.Infof("Info.")
-	log.Warningf("Warning.")
-	log.Errorf("Error.")
-	log.Criticalf("Critical.")
+	logger.SetLevel(logger.LevelError)
+	logger.Debugf("Debug.")
+	logger.Infof("Info.")
+	logger.Warningf("Warning.")
+	logger.Errorf("Error.")
+	logger.Criticalf("Critical.")
 
-	assert.Length(entries, 2)
-	assert.Contents("TestGetSetLevel:44", entries.Entries()[0])
-	assert.Contents("TestGetSetLevel:45", entries.Entries()[1])
-	entries.Reset()
+	assert.Length(tw, 2)
+	assert.Contents("[ERROR]", tw.Entries()[0])
+	assert.Contents("[CRITICAL]", tw.Entries()[1])
+	tw.Reset()
 }
 
 // TestFiltering tests the filtering of the logging.
 func TestFiltering(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
+	tw := logger.NewTestWriter()
+	cw := logger.SetWriter(tw)
+	defer logger.SetWriter(cw)
 
-	log, entries := logger.NewTest()
-
-	log.SetLevel(logger.LevelDebug)
-	log.SetFilter(func(level logger.LogLevel, here, msg string) bool {
+	logger.SetLevel(logger.LevelDebug)
+	logger.SetFilter(func(level logger.LogLevel, msg string) bool {
 		return level >= logger.LevelWarning && level <= logger.LevelError
 	})
 
-	log.Debugf("Debug.")
-	log.Infof("Info.")
-	log.Warningf("Warning.")
-	log.Errorf("Error.")
-	log.Criticalf("Critical.")
+	logger.Debugf("Debug.")
+	logger.Infof("Info.")
+	logger.Warningf("Warning.")
+	logger.Errorf("Error.")
+	logger.Criticalf("Critical.")
 
-	assert.Length(entries, 2)
-	entries.Reset()
+	assert.Length(tw, 2)
+	tw.Reset()
 
-	log.UnsetFilter()
+	logger.UnsetFilter()
 
-	log.Debugf("Debug.")
-	log.Infof("Info.")
-	log.Warningf("Warning.")
-	log.Errorf("Error.")
-	log.Criticalf("Critical.")
+	logger.Debugf("Debug.")
+	logger.Infof("Info.")
+	logger.Warningf("Warning.")
+	logger.Errorf("Error.")
+	logger.Criticalf("Critical.")
 
-	assert.Length(entries, 5)
-	entries.Reset()
+	assert.Length(tw, 5)
+	tw.Reset()
 }
 
 // TestGoLogger tests logging with the go logger.
 func TestGoLogger(t *testing.T) {
-	log := logger.NewStandard(logger.NewGoWriter())
+	cw := logger.SetWriter(logger.NewGoWriter())
+	defer logger.SetWriter(cw)
 
-	log.Debugf("Debug.")
-	log.Infof("Info.")
-	log.Warningf("Warning.")
-	log.Errorf("Error.")
-	log.Criticalf("Critical.")
+	logger.Debugf("Debug.")
+	logger.Infof("Info.")
+	logger.Warningf("Warning.")
+	logger.Errorf("Error.")
+	logger.Criticalf("Critical.")
 }
 
 // TestSysLogger tests logging with the syslogger.
 func TestSysLogger(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	out, err := logger.NewSysWriter("GOTRACE")
+	sw, err := logger.NewSysWriter("GOTRACELOGGER")
 	assert.Nil(err)
-	log := logger.NewStandard(out)
+	cw := logger.SetWriter(sw)
+	defer logger.SetWriter(cw)
 
-	log.SetLevel(logger.LevelDebug)
+	logger.SetLevel(logger.LevelDebug)
 
-	log.Debugf("Debug.")
-	log.Infof("Info.")
-	log.Warningf("Warning.")
-	log.Errorf("Error.")
-	log.Criticalf("Critical.")
+	logger.Debugf("Debug.")
+	logger.Infof("Info.")
+	logger.Warningf("Warning.")
+	logger.Errorf("Error.")
+	logger.Criticalf("Critical.")
 }
 
 // TestFatalExit tests the call of the fatal exiter after a
 // fatal error log.
 func TestFatalExit(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-
-	log, entries := logger.NewTest()
+	tw := logger.NewTestWriter()
+	cw := logger.SetWriter(tw)
+	defer logger.SetWriter(cw)
 
 	exited := false
 	fatalExiter := func() {
 		exited = true
 	}
 
-	log.SetFatalExiter(fatalExiter)
+	logger.SetFatalExiter(fatalExiter)
+	logger.Fatalf("Fatal.")
 
-	log.Fatalf("fatal")
-
-	assert.Length(entries, 1)
+	assert.Length(tw, 1)
 	assert.True(exited)
-	entries.Reset()
+	tw.Reset()
 }
 
 // EOF
