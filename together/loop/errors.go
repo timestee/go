@@ -8,18 +8,34 @@
 package loop
 
 //--------------------
+// IMPORTS
+//--------------------
+
+import (
+	"tideland.one/go/trace/errors"
+)
+
+//--------------------
 // ERRORS
 //--------------------
 
 // Error codes of the loop package.
 const (
-	errInvalidLoopOption = "invalid loop option: %v"
-	errLoopNotReady      = "loop not ready"
-	errLoopNotWorking    = "loop not working"
-	errLoopPanicked      = "loop panicked: %v"
-	errHandlingFailed    = "error handling for %q failed"
-	errRestartNonStopped = "cannot restart unstopped loop"
-	errTimeout           = "timeout during stopping"
+	ErrInvalidLoopOption = "E001"
+	ErrLoopNotReady      = "E002"
+	ErrLoopNotWorking    = "E003"
+	ErrLoopPanicked      = "E004"
+	ErrHandlingFailed    = "E005"
+	ErrRestartNonStopped = "E006"
+	ErrTimeout           = "E007"
+
+	msgInvalidLoopOption = "invalid loop option: %v"
+	msgLoopNotReady      = "loop not ready"
+	msgLoopNotWorking    = "loop not working"
+	msgLoopPanicked      = "loop panicked: %v"
+	msgHandlingFailed    = "error handling for %q failed"
+	msgRestartNonStopped = "cannot restart unstopped loop"
+	msgTimeout           = "timeout during stopping"
 )
 
 //--------------------
@@ -28,12 +44,12 @@ const (
 
 // IsErrLoopNotReady returns true if the error marks a not ready loop.
 func IsErrLoopNotReady(err error) bool {
-	return err != nil && err.Error() == errLoopNotReady
+	return errors.IsError(err, ErrLoopNotReady)
 }
 
 // IsErrLoopNotWorking returns true if the error marks a not working loop.
 func IsErrLoopNotWorking(err error) bool {
-	return err != nil && err.Error() == errLoopNotWorking
+	return errors.IsError(err, ErrLoopNotWorking)
 }
 
 // EOF

@@ -86,7 +86,7 @@ func here(offset int) *location {
 		pkg = path.Join(pkg, parts[0])
 		fun = strings.Join(parts[1:], ".")
 		_, file := path.Split(frame.File)
-		id := fmt.Sprintf("(%s) %s:%s:%d", pkg, file, fun, frame.Line)
+		id := fmt.Sprintf("(%s:%s:%s:%d)", pkg, file, fun, frame.Line)
 		if !more {
 			l := &location{
 				pkg:  pkg,

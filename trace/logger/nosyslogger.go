@@ -38,12 +38,12 @@ func NewSysWriter(tag string) (Writer, error) {
 }
 
 // Write implements Writer.
-func (w *sysWriter) Write(level LogLevel, here, msg string) {
+func (w *sysWriter) Write(level LogLevel, msg string) {
 	text, ok := levelText[level]
 	if !ok {
 		text = "INVALID"
 	}
-	log.Println("["+text+"]", info, msg)
+	log.Println("["+text+"]", msg)
 }
 
 // EOF

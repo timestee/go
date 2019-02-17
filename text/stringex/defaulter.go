@@ -28,69 +28,22 @@ import (
 // Defaulter provides an access to valuers interpreting the strings
 // as types. In case of access or conversion errors these errors
 // will be logged and the passed default values are returned.
-type Defaulter interface {
-	fmt.Stringer
-
-	// AsString returns the value itself, only an error will
-	// return the default.
-	AsString(v Valuer, dv string) string
-
-	// AsStringSlice returns the value as slice of strings
-	// separated by the passed separator.
-	AsStringSlice(v Valuer, sep string, dv []string) []string
-
-	// AsStringMap returns the value as map of strings to strings.
-	// The rows are separated by the rsep, the key/values per
-	// row with kvsep.
-	AsStringMap(v Valuer, rsep, kvsep string, dv map[string]string) map[string]string
-
-	// AsBool returns the value interpreted as bool. Here the
-	// strings 1, t, T, TRUE, true, True are interpreted as
-	// true, the strings 0, f, F, FALSE, false, False as false.
-	AsBool(v Valuer, dv bool) bool
-
-	// AsInt returns the value interpreted as int.
-	AsInt(v Valuer, dv int) int
-
-	// AsInt64 returns the value interpreted as int64.
-	AsInt64(v Valuer, dv int64) int64
-
-	// AsUint returns the value interpreted as uint.
-	AsUint(v Valuer, dv uint) uint
-
-	// AsUint64 returns the value interpreted as uint64.
-	AsUint64(v Valuer, dv uint64) uint64
-
-	// AsFloat64 returns the value interpreted as float64.
-	AsFloat64(v Valuer, dv float64) float64
-
-	// AsTime returns the value interpreted as time in
-	// the given layout.
-	AsTime(v Valuer, layout string, dv time.Time) time.Time
-
-	// AsDuration returns the value interpreted as duration.
-	AsDuration(v Valuer, dv time.Duration) time.Duration
-}
-
-// defaulter implements the Defaulter.
-type defaulter struct {
+type Defaulter struct {
 	id  string
-	log *logger.Logger
+	log bool
 }
 
 // NewDefaulter creates a defaulter with the given settings.
-func NewDefaulter(id string, log bool) Defaulter {
-	d := &defaulter{
-		id: id,
+func NewDefaulter(id string, log bool) *Defaulter {
+	return &Defaulter{
+		id:  id,
+		log: log,
 	}
-	if log {
-		d.log = logger.NewStandard(logger.NewStandardOutWriter())
-	}
-	return d
 }
 
-// AsString implements Defaulter.
-func (d *defaulter) AsString(v Valuer, dv string) string {
+// AsString returns the value itself, only an error will
+// return the default.
+func (d *Defaulter) AsString(v Valuer, dv string) string {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -99,8 +52,9 @@ func (d *defaulter) AsString(v Valuer, dv string) string {
 	return value
 }
 
-// AsStringSlice implements Defaulter.
-func (d *defaulter) AsStringSlice(v Valuer, sep string, dv []string) []string {
+// AsStringSlice returns the value as slice of strings
+// separated by the passed separator.
+func (d *Defaulter) AsStringSlice(v Valuer, sep string, dv []string) []string {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -109,8 +63,10 @@ func (d *defaulter) AsStringSlice(v Valuer, sep string, dv []string) []string {
 	return strings.Split(value, sep)
 }
 
-// AsStringMap implements Defaulter.
-func (d *defaulter) AsStringMap(v Valuer, rsep, kvsep string, dv map[string]string) map[string]string {
+// AsStringMap returns the value as map of strings to strings.
+// The rows are separated by the rsep, the key/values per
+// row with kvsep.
+func (d *Defaulter) AsStringMap(v Valuer, rsep, kvsep string, dv map[string]string) map[string]string {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -129,8 +85,10 @@ func (d *defaulter) AsStringMap(v Valuer, rsep, kvsep string, dv map[string]stri
 	return mvalue
 }
 
-// AsBool implements Defaulter.
-func (d *defaulter) AsBool(v Valuer, dv bool) bool {
+// AsBool returns the value interpreted as bool. Here the
+// strings 1, t, T, TRUE, true, True are interpreted as
+// true, the strings 0, f, F, FALSE, false, False as false.
+func (d *Defaulter) AsBool(v Valuer, dv bool) bool {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -144,8 +102,8 @@ func (d *defaulter) AsBool(v Valuer, dv bool) bool {
 	return bvalue
 }
 
-// AsInt implements Defaulter.
-func (d *defaulter) AsInt(v Valuer, dv int) int {
+// AsInt returns the value interpreted as int.
+func (d *Defaulter) AsInt(v Valuer, dv int) int {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -159,8 +117,8 @@ func (d *defaulter) AsInt(v Valuer, dv int) int {
 	return int(ivalue)
 }
 
-// AsInt64 implements Defaulter.
-func (d *defaulter) AsInt64(v Valuer, dv int64) int64 {
+// AsInt64 returns the value interpreted as int64.
+func (d *Defaulter) AsInt64(v Valuer, dv int64) int64 {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -174,8 +132,8 @@ func (d *defaulter) AsInt64(v Valuer, dv int64) int64 {
 	return int64(ivalue)
 }
 
-// AsUint implements Defaulter.
-func (d *defaulter) AsUint(v Valuer, dv uint) uint {
+// AsUint returns the value interpreted as uint.
+func (d *Defaulter) AsUint(v Valuer, dv uint) uint {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -189,8 +147,8 @@ func (d *defaulter) AsUint(v Valuer, dv uint) uint {
 	return uint(uivalue)
 }
 
-// AsUint64 implements Defaulter.
-func (d *defaulter) AsUint64(v Valuer, dv uint64) uint64 {
+// AsUint64 returns the value interpreted as uint64.
+func (d *Defaulter) AsUint64(v Valuer, dv uint64) uint64 {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -204,8 +162,8 @@ func (d *defaulter) AsUint64(v Valuer, dv uint64) uint64 {
 	return uint64(uivalue)
 }
 
-// AsFloat64 implements Defaulter.
-func (d *defaulter) AsFloat64(v Valuer, dv float64) float64 {
+// AsFloat64 returns the value interpreted as float64.
+func (d *Defaulter) AsFloat64(v Valuer, dv float64) float64 {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -219,8 +177,9 @@ func (d *defaulter) AsFloat64(v Valuer, dv float64) float64 {
 	return fvalue
 }
 
-// AsTime implements Defaulter.
-func (d *defaulter) AsTime(v Valuer, layout string, dv time.Time) time.Time {
+// AsTime returns the value interpreted as time in
+// the given layout.
+func (d *Defaulter) AsTime(v Valuer, layout string, dv time.Time) time.Time {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -234,8 +193,8 @@ func (d *defaulter) AsTime(v Valuer, layout string, dv time.Time) time.Time {
 	return tvalue
 }
 
-// AsDuration implements Defaulter.
-func (d *defaulter) AsDuration(v Valuer, dv time.Duration) time.Duration {
+// AsDuration returns the value interpreted as duration.
+func (d *Defaulter) AsDuration(v Valuer, dv time.Duration) time.Duration {
 	value, err := v.Value()
 	if err != nil {
 		d.logValuerError(err)
@@ -250,30 +209,30 @@ func (d *defaulter) AsDuration(v Valuer, dv time.Duration) time.Duration {
 }
 
 // String implements fmt.Stringer.
-func (d *defaulter) String() string {
+func (d *Defaulter) String() string {
 	return fmt.Sprintf("Defaulter{%s}", d.id)
 }
 
 // logValuerError logs the passed valuer error if configured.
-func (d *defaulter) logValuerError(err error) {
+func (d *Defaulter) logValuerError(err error) {
 	d.logError("value returned with error", err)
 }
 
 // logFormatError logs the passed format error if configured.
-func (d *defaulter) logFormatError(t string, err error) {
+func (d *Defaulter) logFormatError(t string, err error) {
 	d.logError(fmt.Sprintf("value has illegal format for %q", t), err)
 }
 
 // logError finally checks logging and formatting before logging an error.
-func (d *defaulter) logError(format string, err error) {
-	if d.log == nil {
+func (d *Defaulter) logError(format string, err error) {
+	if !d.log {
 		return
 	}
 	format += ": %v"
 	if len(d.id) > 0 {
-		d.log.Errorf("(%s) "+format, d.id, err)
+		logger.Errorf("(%s) "+format, d.id, err)
 	} else {
-		d.log.Errorf(format, err)
+		logger.Errorf(format, err)
 	}
 }
 

@@ -12,7 +12,7 @@ package scroller
 //--------------------
 
 import (
-	"tideland.one/gotrace/errors"
+	"tideland.one/go/trace/errors"
 )
 
 //--------------------
