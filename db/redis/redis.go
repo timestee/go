@@ -33,7 +33,7 @@ const (
 	defaultTimeout  = 30 * time.Second
 	defaultIndex    = 0
 	defaultPassword = ""
-	defaultLogging  = "true"
+	defaultLogging  = true
 )
 
 //--------------------

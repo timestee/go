@@ -1,6 +1,6 @@
-// Tideland Go Redis Client - Unit Tests - Commands
+// Tideland Go Library - Database - Redis Client
 //
-// Copyright (C) 2009-2016 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tideland/golib/audit"
-	"github.com/tideland/golib/errors"
-	"github.com/tideland/golib/redis"
+	"tideland.one/go/audit/asserts"
+	"tideland.one/go/db/redis"
+	"tideland.one/go/trace/errors"
 )
 
 //--------------------
