@@ -14,8 +14,8 @@ package gjp
 import (
 	"encoding/json"
 
-	"tideland.one/go/text/stringex"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/text/stringex"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

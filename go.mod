@@ -1,1 +1,1 @@
-module tideland.one/go
+module tideland.dev/go

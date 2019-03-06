@@ -18,10 +18,10 @@ import (
 	"sync"
 	"time"
 
-	"tideland.one/go/net/jwt/token"
-	"tideland.one/go/together/loop"
-	"tideland.one/go/together/notifier"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/net/jwt/token"
+	"tideland.dev/go/together/loop"
+	"tideland.dev/go/together/notifier"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

@@ -14,7 +14,7 @@ package collections
 import (
 	"fmt"
 
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

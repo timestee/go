@@ -20,9 +20,9 @@ import (
 	"strings"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/audit/environments"
-	"tideland.one/go/text/etc"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/audit/environments"
+	"tideland.dev/go/text/etc"
 )
 
 //--------------------

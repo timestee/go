@@ -14,8 +14,8 @@ package logger_test
 import (
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/trace/logger"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/trace/logger"
 )
 
 //--------------------

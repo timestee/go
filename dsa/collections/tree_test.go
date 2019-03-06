@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/dsa/collections"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/dsa/collections"
 )
 
 //--------------------

@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"time"
 
-	"tideland.one/go/together/actor"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/together/actor"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

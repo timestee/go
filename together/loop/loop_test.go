@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/together/loop"
-	"tideland.one/go/together/notifier"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/together/loop"
+	"tideland.dev/go/together/notifier"
 )
 
 //--------------------

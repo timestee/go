@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/together/limiter"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/together/limiter"
 )
 
 //--------------------

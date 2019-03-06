@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/text/stringex"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/text/stringex"
 )
 
 //--------------------

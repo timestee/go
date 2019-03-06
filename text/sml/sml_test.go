@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/text/sml"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/text/sml"
 )
 
 //--------------------

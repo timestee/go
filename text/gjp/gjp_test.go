@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/text/gjp"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/text/gjp"
 )
 
 //--------------------

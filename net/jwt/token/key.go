@@ -19,7 +19,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

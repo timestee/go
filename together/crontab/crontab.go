@@ -17,9 +17,9 @@ import (
 	"sync"
 	"time"
 
-	"tideland.one/go/together/actor"
-	"tideland.one/go/together/loop"
-	"tideland.one/go/together/notifier"
+	"tideland.dev/go/together/actor"
+	"tideland.dev/go/together/loop"
+	"tideland.dev/go/together/notifier"
 )
 
 //--------------------

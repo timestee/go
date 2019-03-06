@@ -17,7 +17,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"tideland.one/go/audit/asserts"
+	"tideland.dev/go/audit/asserts"
 )
 
 //--------------------

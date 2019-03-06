@@ -15,8 +15,8 @@ import (
 	goerrors "errors"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
@@ -31,7 +31,7 @@ func TestIsError(t *testing.T) {
 	emsg := "test error %d"
 	err := errors.New(ec, emsg, 1)
 
-	assert.Equal(err.Error(), "(tideland.one/go/trace/errors_test:errors_test.go:TestIsError:32) [E001] test error 1")
+	assert.Equal(err.Error(), "(tideland.dev/go/trace/errors_test:errors_test.go:TestIsError:32) [E001] test error 1")
 	assert.True(errors.IsError(err, ec))
 	assert.False(errors.IsError(err, "0"))
 
@@ -60,7 +60,7 @@ func TestValidation(t *testing.T) {
 
 	hereID, lerr := errors.Location(err)
 	assert.Nil(lerr)
-	assert.Equal(hereID, "(tideland.one/go/trace/errors_test:errors_test.go:TestValidation:58)")
+	assert.Equal(hereID, "(tideland.dev/go/trace/errors_test:errors_test.go:TestValidation:58)")
 
 	// Now an invalid error.
 	err = goerrors.New("ouch")

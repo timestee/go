@@ -16,8 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/dsa/timex"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/dsa/timex"
 )
 
 //--------------------

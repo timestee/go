@@ -15,8 +15,8 @@ import (
 	"net/http"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/audit/environments"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/audit/environments"
 )
 
 //--------------------

@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"strings"
 
-	"tideland.one/go/trace/location"
+	"tideland.dev/go/trace/location"
 )
 
 //--------------------

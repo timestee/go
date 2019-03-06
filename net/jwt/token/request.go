@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"strings"
 
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

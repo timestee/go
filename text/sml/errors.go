@@ -12,7 +12,7 @@ package sml
 //--------------------
 
 import (
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

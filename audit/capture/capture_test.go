@@ -16,8 +16,8 @@ import (
 	"os"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/audit/capture"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/audit/capture"
 )
 
 //--------------------
