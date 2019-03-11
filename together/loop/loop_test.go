@@ -17,17 +17,10 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/together/loop"
-	"tideland.one/go/together/notifier"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/together/loop"
+	"tideland.dev/go/together/notifier"
 )
-
-//--------------------
-// CONSTANTS
-//--------------------
-
-// timeout is the waitng time for events from inside of loops.
-var timeout time.Duration = 5 * time.Second
 
 //--------------------
 // TESTS

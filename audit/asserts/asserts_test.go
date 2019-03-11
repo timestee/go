@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
+	"tideland.dev/go/audit/asserts"
 )
 
 //--------------------

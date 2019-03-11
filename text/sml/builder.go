@@ -14,8 +14,8 @@ package sml
 import (
 	"strings"
 
-	"tideland.one/go/dsa/collections"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/dsa/collections"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

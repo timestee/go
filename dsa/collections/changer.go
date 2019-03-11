@@ -12,7 +12,7 @@ package collections
 //--------------------
 
 import (
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

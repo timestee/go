@@ -17,9 +17,9 @@ import (
 	"strconv"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/dsa/identifier"
-	"tideland.one/go/dsa/mapreduce"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/dsa/identifier"
+	"tideland.dev/go/dsa/mapreduce"
 )
 
 //--------------------

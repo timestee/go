@@ -23,7 +23,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 
-	"tideland.one/go/audit/asserts"
+	"tideland.dev/go/audit/asserts"
 )
 
 //--------------------

@@ -18,8 +18,8 @@ import (
 	"net/http"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/net/webbox"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/net/webbox"
 )
 
 //--------------------

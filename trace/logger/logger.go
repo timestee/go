@@ -16,7 +16,7 @@ import (
 	"os"
 	"sync"
 
-	"tideland.one/go/trace/location"
+	"tideland.dev/go/trace/location"
 )
 
 //--------------------

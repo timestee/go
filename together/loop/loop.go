@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"tideland.one/go/together/notifier"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/together/notifier"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

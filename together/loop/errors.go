@@ -12,7 +12,7 @@ package loop
 //--------------------
 
 import (
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
@@ -24,17 +24,11 @@ const (
 	ErrInvalidLoopOption = "E001"
 	ErrLoopNotReady      = "E002"
 	ErrLoopNotWorking    = "E003"
-	ErrLoopPanicked      = "E004"
-	ErrHandlingFailed    = "E005"
-	ErrRestartNonStopped = "E006"
-	ErrTimeout           = "E007"
+	ErrTimeout           = "E999"
 
 	msgInvalidLoopOption = "invalid loop option: %v"
 	msgLoopNotReady      = "loop not ready"
 	msgLoopNotWorking    = "loop not working"
-	msgLoopPanicked      = "loop panicked: %v"
-	msgHandlingFailed    = "error handling for %q failed"
-	msgRestartNonStopped = "cannot restart unstopped loop"
 	msgTimeout           = "timeout during stopping"
 )
 

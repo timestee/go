@@ -31,7 +31,7 @@ type Tester struct{}
 
 // IsTrue checks if obtained is true.
 func (t Tester) IsTrue(obtained bool) bool {
-	return obtained == true
+	return obtained
 }
 
 // IsNil checks if obtained is nil in a safe way.

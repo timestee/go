@@ -14,8 +14,8 @@ package version_test
 import (
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/dsa/version"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/dsa/version"
 )
 
 //--------------------

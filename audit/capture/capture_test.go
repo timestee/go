@@ -16,8 +16,8 @@ import (
 	"os"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/audit/capture"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/audit/capture"
 )
 
 //--------------------
@@ -40,7 +40,7 @@ func TestStderr(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	ouch := "ouch"
 	cptrd := capture.Stderr(func() {
-		fmt.Fprintf(os.Stderr, ouch)
+		fmt.Fprint(os.Stderr, ouch)
 	})
 	assert.Equal(cptrd.String(), ouch)
 	assert.Length(cptrd, len(ouch))
@@ -53,8 +53,8 @@ func TestBoth(t *testing.T) {
 	hello := "Hello, World!"
 	ouch := "ouch"
 	cout, cerr := capture.Both(func() {
-		fmt.Fprintf(os.Stdout, hello)
-		fmt.Fprintf(os.Stderr, ouch)
+		fmt.Fprint(os.Stdout, hello)
+		fmt.Fprint(os.Stderr, ouch)
 	})
 	assert.Equal(cout.String(), hello)
 	assert.Length(cout, len(hello))
@@ -68,8 +68,8 @@ func TestBytes(t *testing.T) {
 	foo := "foo"
 	boo := []byte(foo)
 	cout, cerr := capture.Both(func() {
-		fmt.Fprintf(os.Stdout, foo)
-		fmt.Fprintf(os.Stderr, foo)
+		fmt.Fprint(os.Stdout, foo)
+		fmt.Fprint(os.Stderr, foo)
 	})
 	assert.Equal(cout.Bytes(), boo)
 	assert.Equal(cerr.Bytes(), boo)
@@ -83,8 +83,8 @@ func TestRestore(t *testing.T) {
 	oldOut := os.Stdout
 	oldErr := os.Stderr
 	cout, cerr := capture.Both(func() {
-		fmt.Fprintf(os.Stdout, foo)
-		fmt.Fprintf(os.Stderr, foo)
+		fmt.Fprint(os.Stdout, foo)
+		fmt.Fprint(os.Stderr, foo)
 	})
 	assert.Equal(cout.String(), foo)
 	assert.Length(cout, len(foo))

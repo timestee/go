@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"tideland.one/go/trace/logger"
+	"tideland.dev/go/trace/logger"
 )
 
 //--------------------

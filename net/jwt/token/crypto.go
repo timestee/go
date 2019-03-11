@@ -24,7 +24,7 @@ import (
 	_ "crypto/sha256"
 	_ "crypto/sha512"
 
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

@@ -21,8 +21,8 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/net/jwt/token"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/net/jwt/token"
 )
 
 //--------------------

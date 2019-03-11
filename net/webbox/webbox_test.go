@@ -15,10 +15,10 @@ import (
 	"net/http"
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/audit/environments"
-	"tideland.one/go/net/jwt/token"
-	"tideland.one/go/net/webbox"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/audit/environments"
+	"tideland.dev/go/net/jwt/token"
+	"tideland.dev/go/net/webbox"
 )
 
 //--------------------

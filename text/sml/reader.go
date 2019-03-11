@@ -17,7 +17,7 @@ import (
 	"io"
 	"unicode"
 
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
@@ -35,10 +35,8 @@ const (
 	rcHash
 	rcTag
 	rcEOF
-	rcInvalid
 
 	// Chars for the rune classes.
-	chSpace       = ' '
 	chOpen        = '{'
 	chClose       = '}'
 	chEscape      = '^'

@@ -21,10 +21,10 @@ import (
 	"strings"
 	"time"
 
-	"tideland.one/go/dsa/collections"
-	"tideland.one/go/text/sml"
-	"tideland.one/go/text/stringex"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/dsa/collections"
+	"tideland.dev/go/text/sml"
+	"tideland.dev/go/text/stringex"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

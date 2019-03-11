@@ -19,8 +19,8 @@ import (
 	"sync"
 	"time"
 
-	"tideland.one/go/net/jwt/cache"
-	"tideland.one/go/net/jwt/token"
+	"tideland.dev/go/net/jwt/cache"
+	"tideland.dev/go/net/jwt/token"
 )
 
 //--------------------

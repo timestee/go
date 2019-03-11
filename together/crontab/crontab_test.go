@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/together/crontab"
-	"tideland.one/go/together/notifier"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/together/crontab"
+	"tideland.dev/go/together/notifier"
 )
 
 //--------------------
@@ -119,7 +119,7 @@ func TestSubmitAt(t *testing.T) {
 
 	// Test.
 	err := crontab.SubmitAt("bar-1", atOne, func() error {
-		oneDiffC <- time.Now().Sub(atOne)
+		oneDiffC <- time.Since(atOne)
 		syncC <- struct{}{}
 		return nil
 	})
@@ -178,7 +178,7 @@ func TestSubmitEvery(t *testing.T) {
 			break
 		}
 	}
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 
 	assert.Range(duration, 2100*time.Millisecond, 2300*time.Millisecond)
 
@@ -210,7 +210,7 @@ func TestSubmitAtEvery(t *testing.T) {
 			break
 		}
 	}
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 
 	assert.Range(duration, 1500*time.Millisecond, 1700*time.Millisecond)
 
@@ -242,7 +242,7 @@ func TestSubmitAfterEvery(t *testing.T) {
 			break
 		}
 	}
-	duration := time.Now().Sub(start)
+	duration := time.Since(start)
 
 	assert.Range(duration, 1500*time.Millisecond, 1700*time.Millisecond)
 

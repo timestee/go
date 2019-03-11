@@ -14,8 +14,8 @@ package location_test
 import (
 	"testing"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/trace/location"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/trace/location"
 )
 
 //--------------------
@@ -29,14 +29,14 @@ func TestHere(t *testing.T) {
 
 	pkg, file, fn, line := location.Here(0)
 
-	assert.Equal(pkg, "tideland.one/go/trace/location_test")
+	assert.Equal(pkg, "tideland.dev/go/trace/location_test")
 	assert.Equal(file, "location_test.go")
 	assert.Equal(fn, "TestHere")
 	assert.Equal(line, 30)
 
 	id := location.HereID(0)
 
-	assert.Equal(id, "(tideland.one/go/trace/location_test:location_test.go:TestHere:37)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestHere:37)")
 }
 
 // TestOffset tests retrieving the location with an offset.
@@ -44,19 +44,19 @@ func TestOffset(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
 	id := there()
 
-	assert.Equal(id, "(tideland.one/go/trace/location_test:location_test.go:TestOffset:45)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:45)")
 
 	id = nestedThere()
 
-	assert.Equal(id, "(tideland.one/go/trace/location_test:location_test.go:TestOffset:49)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:49)")
 
 	id = nameless()
 
-	assert.Equal(id, "(tideland.one/go/trace/location_test:location_test.go:nameless.func1:93)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:nameless.func1:93)")
 
 	id = location.HereID(-5)
 
-	assert.Equal(id, "(tideland.one/go/trace/location_test:location_test.go:TestOffset:57)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:57)")
 }
 
 // TestCache tests the caching of locations.
@@ -66,7 +66,7 @@ func TestCache(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		id := nameless()
 
-		assert.Equal(id, "(tideland.one/go/trace/location_test:location_test.go:nameless.func1:93)")
+		assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:nameless.func1:93)")
 	}
 }
 
