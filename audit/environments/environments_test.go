@@ -62,7 +62,7 @@ func TestTempDirRestore(t *testing.T) {
 	assert.True(fi.IsDir())
 
 	td.Restore()
-	fi, err = os.Stat(tds)
+	_, err = os.Stat(tds)
 	assert.ErrorMatch(err, "stat .* no such file or directory")
 }
 

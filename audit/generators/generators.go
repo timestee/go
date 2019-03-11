@@ -202,7 +202,7 @@ func (g *Generator) FlipCoin(percent int) bool {
 
 // OneByteOf returns one of the passed bytes.
 func (g *Generator) OneByteOf(values ...byte) byte {
-	if values == nil || len(values) == 0 {
+	if len(values) == 0 {
 		return 0
 	}
 	i := g.Int(0, len(values)-1)
@@ -221,7 +221,7 @@ func (g *Generator) OneRuneOf(values string) rune {
 
 // OneIntOf returns one of the passed ints.
 func (g *Generator) OneIntOf(values ...int) int {
-	if values == nil || len(values) == 0 {
+	if len(values) == 0 {
 		return 0
 	}
 	i := g.Int(0, len(values)-1)
@@ -230,7 +230,7 @@ func (g *Generator) OneIntOf(values ...int) int {
 
 // OneStringOf returns one of the passed strings.
 func (g *Generator) OneStringOf(values ...string) string {
-	if values == nil || len(values) == 0 {
+	if len(values) == 0 {
 		return ""
 	}
 	i := g.Int(0, len(values)-1)

@@ -91,9 +91,6 @@ func TestBytes(t *testing.T) {
 	for i := 0; i < 10000; i++ {
 		uuid := gen.UUID()
 		assert.Length(uuid, 16)
-		for _, b := range uuid {
-			assert.True(b >= 0 && b <= 255)
-		}
 	}
 }
 

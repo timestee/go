@@ -31,9 +31,8 @@ type valueLink struct {
 // RingBuffer defines a buffer which is connected end-to-end. It
 // grows if needed.
 type RingBuffer struct {
-	start   *valueLink
-	end     *valueLink
-	current *valueLink
+	start *valueLink
+	end   *valueLink
 }
 
 // NewRingBuffer creates a new ring buffer.
@@ -56,7 +55,7 @@ func NewRingBuffer(size int) *RingBuffer {
 // Push adds values to the end of the buffer.
 func (rb *RingBuffer) Push(values ...interface{}) {
 	for _, value := range values {
-		if rb.end.next.used == false {
+		if !rb.end.next.used {
 			rb.end.next.used = true
 			rb.end.next.value = value
 			rb.end = rb.end.next
@@ -75,7 +74,7 @@ func (rb *RingBuffer) Push(values ...interface{}) {
 // Peek returns the first value of the buffer. If the
 // buffer is empty the second return value is false.
 func (rb *RingBuffer) Peek() (interface{}, bool) {
-	if rb.start.used == false {
+	if !rb.start.used {
 		return nil, false
 	}
 	return rb.start.value, true
@@ -84,7 +83,7 @@ func (rb *RingBuffer) Peek() (interface{}, bool) {
 // Pop removes and returns the first value of the buffer. If
 // the buffer is empty the second return value is false.
 func (rb *RingBuffer) Pop() (interface{}, bool) {
-	if rb.start.used == false {
+	if !rb.start.used {
 		return nil, false
 	}
 	value := rb.start.value
