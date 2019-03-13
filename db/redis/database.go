@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"tideland.one/go/text/etc"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/text/etc"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

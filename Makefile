@@ -1,4 +1,4 @@
-GO111MODULE=off
+GO111MODULE=on
 
 .PHONY: setup
 setup: ## Install all the build and lint dependencies

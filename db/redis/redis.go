@@ -17,9 +17,9 @@ import (
 	"strings"
 	"time"
 
-	"tideland.one/go/text/etc"
-	"tideland.one/go/trace/errors"
-	"tideland.one/go/trace/logger"
+	"tideland.dev/go/text/etc"
+	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/logger"
 )
 
 //--------------------

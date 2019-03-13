@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"strings"
 
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

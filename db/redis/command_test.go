@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/audit/asserts"
-	"tideland.one/go/db/redis"
-	"tideland.one/go/trace/errors"
+	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/db/redis"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------

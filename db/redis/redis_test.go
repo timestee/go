@@ -15,11 +15,11 @@ import (
 	"testing"
 	"time"
 
-	"tideland.one/go/text/etc"
-	"tideland.one/go/trace/logger"
+	"tideland.dev/go/text/etc"
+	"tideland.dev/go/trace/logger"
 	"tideland.one/golib/audit"
 
-	"tideland.one/go/db/redis"
+	"tideland.dev/go/db/redis"
 )
 
 //--------------------
