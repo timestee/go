@@ -54,7 +54,7 @@ func PollWithTimeout(ctx context.Context, interval, timeout time.Duration, condi
 // sends signals whenever the condition shall be checked. It closes the returned
 // channel when the polling shall stop with a timeout.
 func PollWithTicker(ctx context.Context, ticker Ticker, condition Condition) error {
-	tickCtx, cancel := context.WithCancel(ctx)
+	tickCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tickc := ticker(tickCtx)
 	for {
