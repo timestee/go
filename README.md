@@ -13,6 +13,7 @@ are grouped by higher level packages.
 
 - `audit` provides packages to support testing with better asserts, generators, environment
   manipulation, and capturing of STDOUT and STDERR
+  - `db` allows access to database systems like Redis and CouchDB
 - `dsa` contains data structures and algorithms like collections and sorting, identifier
   generation, e.g. UUIDs, map/reduce, times, and semantic versions
 - `net` groups the work with the network like web applications and JSON Web Tokens (JWT)

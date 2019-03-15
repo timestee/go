@@ -14,82 +14,49 @@ package wait
 import (
 	"context"
 	"time"
-
-	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
-// WAITER
+// CONDITION
 //--------------------
 
-// Waiter defines a function sending signals for each condition
-// check when waiting. The waiter can be canceled via the given
-// context.
-type Waiter func(ctx context.Context) <-chan struct{}
+// Condition has to be implemented for checking the wanted condition. A positive
+// condition will return true and nil, a negative false and nil. In case of errors
+// during the check false and the error have to be returned. The function will
+// be used by the poll functions.
+type Condition func() (bool, error)
 
-// MakeLimitedIntervalWaiter returns a waiter signalling in intervals
-// and stopping after timeout.
-func MakeLimitedIntervalWaiter(interval, timeout time.Duration) Waiter {
-	return func(ctx context.Context) <-chan struct{} {
-		waitc := make(chan struct{})
-		go func() {
-			defer close(waitc)
-			// Ticker for the interval.
-			ticker := time.NewTicker(interval)
-			defer ticker.Stop()
-			// Context with timeout if not 0.
-			waitCtx := ctx
-			if timeout != 0 {
-				var cancel func()
-				waitCtx, cancel = context.WithTimeout(ctx, timeout)
-				defer cancel()
-			}
-			// Loop sending signals.
-			for {
-				select {
-				case <-ticker.C:
-					// One interval tick.
-					select {
-					case waitc <- struct{}{}:
-					default:
-					}
-				case <-waitCtx.Done():
-					// Timeout or waiter stopped.
-					return
-				}
-			}
-		}()
-		return waitc
-	}
+//--------------------
+// WAIT
+//--------------------
+
+// WithTimout waits until condition returns, it's only called once. Also a timeout
+// or a cancelled context will stop the waiting.
+func WithTimout(ctx context.Context, timeout time.Duration, condition Condition) error {
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return wait(waitCtx, condition)
 }
 
 //--------------------
-// WAIT HELPER
+// HELPER
 //--------------------
 
-// wait waits until the condition returns true or an error. The waiter controls
-// e.g. interval and timeout, or only the interval. Also the context can stop
-// the waiting.
-func wait(ctx context.Context, waiter Waiter, condition Condition) error {
-	waitCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	waitc := waiter(waitCtx)
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case _, open := <-waitc:
-			ok, err := condition()
-			if err != nil {
-				return err
-			}
-			if ok {
-				return nil
-			}
-			if !open {
-				return errors.New(ErrWaitTimeout, msgWaitTimeout)
-			}
-		}
+func wait(ctx context.Context, condition Condition) error {
+	donec := make(chan error, 1)
+	defer close(donec)
+	go func() {
+		// Wait for condition in background.
+		_, err := condition()
+		donec <- err
+	}()
+	select {
+	case <-ctx.Done():
+		// Cancelled or timeout.
+		return ctx.Err()
+	case err := <-donec:
+		// Condition done, w/ or w/o error.
+		return err
 	}
 }
 
