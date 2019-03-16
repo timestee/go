@@ -17,9 +17,9 @@ package wait
 
 // Error codes of the wait package.
 const (
-	ErrWaitTimeout = "E001"
+	ErrTickerExceeded = "E001"
 
-	msgWaitTimeout = "timeout while waiting for the condition"
+	msgTickerExceeded = "ticker exceeded while waiting for the condition"
 )
 
 // EOF
