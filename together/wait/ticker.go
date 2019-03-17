@@ -13,6 +13,7 @@ package wait
 
 import (
 	"context"
+	"math/rand"
 	"time"
 )
 
@@ -61,23 +62,21 @@ func MakeIntervalTicker(interval time.Duration) Ticker {
 	}
 }
 
-// MakeChangingIntervalTicker returns a ticker signalling in intervals.
-// The interval can be changed with the tick changer, it starts with a
-// zero.
-func MakeChangingIntervalTicker(changer TickChanger) Ticker {
+// MakeChangingIntervalTicker returns a ticker signalling in intervals. First
+// argument is the initial interval.
+func MakeChangingIntervalTicker(interval time.Duration, changer TickChanger) Ticker {
 	return func(ctx context.Context) <-chan struct{} {
 		tickc := make(chan struct{})
-		interval := 0 * time.Millisecond
 		ok := true
 		go func() {
 			defer close(tickc)
+			// Ticker for the interval.
+			timer := time.NewTimer(interval)
+			defer timer.Stop()
 			// Loop sending signals.
 			for {
-				if interval, ok = changer(interval); !ok {
-					return
-				}
 				select {
-				case <-time.After(interval):
+				case <-timer.C:
 					// One interval tick. Ignore if needed.
 					select {
 					case tickc <- struct{}{}:
@@ -87,10 +86,30 @@ func MakeChangingIntervalTicker(changer TickChanger) Ticker {
 					// Given context stopped.
 					return
 				}
+				// Reset timer with next interval.
+				if interval, ok = changer(interval); !ok {
+					return
+				}
+				timer.Reset(interval)
 			}
 		}()
 		return tickc
 	}
+}
+
+// MakeJitteringTicker returns a ticker signalling in jittering intervals.
+// This avoids converging on periadoc behavior during condition check. The
+// ticker stops after reaching timeout.
+func MakeJitteringTicker(interval time.Duration, factor float64, timeout time.Duration) Ticker {
+	deadline := time.Now().Add(timeout)
+	// jitter returns a duration between i (interval) and i + factor * i.
+	jitter := func(i time.Duration) (time.Duration, bool) {
+		if factor <= 0.0 {
+			factor = 1.0
+		}
+		return i + time.Duration(rand.Float64()*factor*float64(i)), time.Now().Before(deadline)
+	}
+	return MakeChangingIntervalTicker(interval, jitter)
 }
 
 // MakeMaxIntervalTicker returns a ticker signalling in intervals. It

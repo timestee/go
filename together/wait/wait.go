@@ -13,7 +13,6 @@ package wait
 
 import (
 	"context"
-	"time"
 )
 
 //--------------------
@@ -30,19 +29,9 @@ type Condition func() (bool, error)
 // WAIT
 //--------------------
 
-// WithTimout waits until condition returns, it's only called once. Also a timeout
-// or a cancelled context will stop the waiting.
-func WithTimout(ctx context.Context, timeout time.Duration, condition Condition) error {
-	waitCtx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	return wait(waitCtx, condition)
-}
-
-//--------------------
-// HELPER
-//--------------------
-
-func wait(ctx context.Context, condition Condition) error {
+// Until waits until condition returns, it's only called once. A cancelled context,
+// e.g. with timeout or deadline, will stop the waiting.
+func Until(ctx context.Context, condition Condition) error {
 	donec := make(chan error, 1)
 	defer close(donec)
 	go func() {
@@ -59,5 +48,9 @@ func wait(ctx context.Context, condition Condition) error {
 		return err
 	}
 }
+
+//--------------------
+// HELPER
+//--------------------
 
 // EOF

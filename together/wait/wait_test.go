@@ -69,11 +69,7 @@ func TestPollWithChangingInterval(t *testing.T) {
 	// Init.
 	assert := asserts.NewTesting(t, true)
 	changer := func(interval time.Duration) (time.Duration, bool) {
-		if interval == 0 {
-			interval = 10 * time.Millisecond
-		} else {
-			interval *= 2
-		}
+		interval *= 2
 		if interval > time.Second {
 			return 0, false
 		}
@@ -85,7 +81,7 @@ func TestPollWithChangingInterval(t *testing.T) {
 	count := 0
 	err := wait.Poll(
 		context.Background(),
-		wait.MakeChangingIntervalTicker(changer),
+		wait.MakeChangingIntervalTicker(10*time.Millisecond, changer),
 		func() (bool, error) {
 			count++
 			if count == 5 {
@@ -101,7 +97,7 @@ func TestPollWithChangingInterval(t *testing.T) {
 	count = 0
 	err = wait.Poll(
 		context.Background(),
-		wait.MakeChangingIntervalTicker(changer),
+		wait.MakeChangingIntervalTicker(10*time.Millisecond, changer),
 		func() (bool, error) {
 			count++
 			return false, nil
@@ -116,7 +112,7 @@ func TestPollWithChangingInterval(t *testing.T) {
 	defer cancel()
 	err = wait.Poll(
 		ctx,
-		wait.MakeChangingIntervalTicker(changer),
+		wait.MakeChangingIntervalTicker(10*time.Millisecond, changer),
 		func() (bool, error) {
 			count++
 			return false, nil
