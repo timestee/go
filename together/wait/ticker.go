@@ -102,12 +102,16 @@ func MakeChangingIntervalTicker(interval time.Duration, changer TickChanger) Tic
 // ticker stops after reaching timeout.
 func MakeJitteringTicker(interval time.Duration, factor float64, timeout time.Duration) Ticker {
 	deadline := time.Now().Add(timeout)
-	// jitter returns a duration between i (interval) and i + factor * i.
-	jitter := func(i time.Duration) (time.Duration, bool) {
+	// jitter returns a duration between interval and interval + factor * interval.
+	// The input as changer function is ignored.
+	jitter := func(_ time.Duration) (time.Duration, bool) {
 		if factor <= 0.0 {
 			factor = 1.0
 		}
-		return i + time.Duration(rand.Float64()*factor*float64(i)), time.Now().Before(deadline)
+		if !time.Now().Before(deadline) {
+			return 0, false
+		}
+		return interval + time.Duration(rand.Float64()*factor*float64(interval)), true
 	}
 	return MakeChangingIntervalTicker(interval, jitter)
 }
