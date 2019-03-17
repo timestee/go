@@ -21,6 +21,12 @@ import (
 // POLL
 //--------------------
 
+// Condition has to be implemented for checking the wanted condition. A positive
+// condition will return true and nil, a negative false and nil. In case of errors
+// during the check false and the error have to be returned. The function will
+// be used by the poll functions.
+type Condition func() (bool, error)
+
 // Poll checks the condition until it returns true or an error. The ticker
 // sends signals whenever the condition shall be checked. It closes the returned
 // channel when the polling shall stop with a timeout.
