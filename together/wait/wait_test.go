@@ -70,7 +70,7 @@ func TestPollWithInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorMatch(err, "context deadline exceeded")
+	assert.True(wait.IsCancelled(err))
 	assert.Equal(count, 5)
 }
 
@@ -147,7 +147,7 @@ func TestPollWithMaxInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorMatch(err, "context deadline exceeded")
+	assert.True(wait.IsCancelled(err))
 	assert.Equal(count, 5)
 }
 
@@ -223,7 +223,7 @@ func TestPollWithDeadline(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorMatch(err, "context deadline exceeded")
+	assert.True(wait.IsCancelled(err))
 	assert.Equal(count, 5)
 }
 
@@ -299,7 +299,7 @@ func TestPollWithTimeout(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorMatch(err, "context deadline exceeded")
+	assert.True(wait.IsCancelled(err))
 	assert.Equal(count, 5)
 }
 
@@ -378,7 +378,7 @@ func TestPollWithChangingInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorMatch(err, "context deadline exceeded")
+	assert.True(wait.IsCancelled(err))
 	assert.Equal(count, 5)
 }
 
@@ -465,7 +465,7 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorMatch(err, "context deadline exceeded")
+	assert.True(wait.IsCancelled(err))
 	assert.Range(len(timestamps), 3, 7)
 }
 
@@ -535,7 +535,7 @@ func TestPoll(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorMatch(err, "context deadline exceeded")
+	assert.True(wait.IsCancelled(err))
 }
 
 // TestPanic tests the handling of panics during condition checks.

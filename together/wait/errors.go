@@ -22,15 +22,22 @@ import (
 // Error codes of the wait package.
 const (
 	ErrTickerExceeded    = "E001"
+	ErrContextCancelled  = "E002"
 	ErrConditionPanicked = "E999"
 
 	msgTickerExceeded    = "ticker exceeded while waiting for the condition"
+	msgContextCancelled  = "context has been cancelled"
 	msgConditionPanicked = "panic during condition check: %v"
 )
 
 // IsExceeded returns true of the given error represends an exceeded ticker.
 func IsExceeded(err error) bool {
 	return errors.IsError(err, ErrTickerExceeded)
+}
+
+// IsCancelled returns true of the given error represends a cancelled context.
+func IsCancelled(err error) bool {
+	return errors.IsError(err, ErrContextCancelled)
 }
 
 // IsPanicked returns true of the given error represends a panicked condition check.

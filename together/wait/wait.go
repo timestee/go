@@ -39,7 +39,7 @@ func Poll(ctx context.Context, ticker Ticker, condition Condition) error {
 		select {
 		case <-ctx.Done():
 			// Context is cancelled.
-			return ctx.Err()
+			return errors.Annotate(ctx.Err(), ErrContextCancelled, msgContextCancelled)
 		case _, open := <-tickc:
 			// Ticker sent a signal to check for condition.
 			if !open {
