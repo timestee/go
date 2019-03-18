@@ -11,15 +11,31 @@ package wait
 // IMPORTS
 //--------------------
 
+import (
+	"tideland.dev/go/trace/errors"
+)
+
 //--------------------
 // ERRORS
 //--------------------
 
 // Error codes of the wait package.
 const (
-	ErrTickerExceeded = "E001"
+	ErrTickerExceeded    = "E001"
+	ErrConditionPanicked = "E999"
 
-	msgTickerExceeded = "ticker exceeded while waiting for the condition"
+	msgTickerExceeded    = "ticker exceeded while waiting for the condition"
+	msgConditionPanicked = "panic during condition check: %v"
 )
+
+// IsExceeded returns true of the given error represends an exceeded ticker.
+func IsExceeded(err error) bool {
+	return errors.IsError(err, ErrTickerExceeded)
+}
+
+// IsPanicked returns true of the given error represends a panicked condition check.
+func IsPanicked(err error) bool {
+	return errors.IsError(err, ErrConditionPanicked)
+}
 
 // EOF

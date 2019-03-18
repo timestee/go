@@ -62,63 +62,9 @@ func MakeIntervalTicker(interval time.Duration) Ticker {
 	}
 }
 
-// MakeChangingIntervalTicker returns a ticker signalling in intervals. First
-// argument is the initial interval.
-func MakeChangingIntervalTicker(interval time.Duration, changer TickChanger) Ticker {
-	return func(ctx context.Context) <-chan struct{} {
-		tickc := make(chan struct{})
-		ok := true
-		go func() {
-			defer close(tickc)
-			// Ticker for the interval.
-			timer := time.NewTimer(interval)
-			defer timer.Stop()
-			// Loop sending signals.
-			for {
-				select {
-				case <-timer.C:
-					// One interval tick. Ignore if needed.
-					select {
-					case tickc <- struct{}{}:
-					default:
-					}
-				case <-ctx.Done():
-					// Given context stopped.
-					return
-				}
-				// Reset timer with next interval.
-				if interval, ok = changer(interval); !ok {
-					return
-				}
-				timer.Reset(interval)
-			}
-		}()
-		return tickc
-	}
-}
-
-// MakeJitteringTicker returns a ticker signalling in jittering intervals.
-// This avoids converging on periadoc behavior during condition check. The
-// ticker stops after reaching timeout.
-func MakeJitteringTicker(interval time.Duration, factor float64, timeout time.Duration) Ticker {
-	deadline := time.Now().Add(timeout)
-	// jitter returns a duration between interval and interval + factor * interval.
-	// The input as changer function is ignored.
-	jitter := func(_ time.Duration) (time.Duration, bool) {
-		if factor <= 0.0 {
-			factor = 1.0
-		}
-		if !time.Now().Before(deadline) {
-			return 0, false
-		}
-		return interval + time.Duration(rand.Float64()*factor*float64(interval)), true
-	}
-	return MakeChangingIntervalTicker(interval, jitter)
-}
-
-// MakeMaxIntervalTicker returns a ticker signalling in intervals. It
+// MakeMaxIntervalsTicker returns a ticker signalling in intervals. It
 // stops after a maximum number of signals.
-func MakeMaxIntervalTicker(interval time.Duration, max int) Ticker {
+func MakeMaxIntervalsTicker(interval time.Duration, max int) Ticker {
 	return func(ctx context.Context) <-chan struct{} {
 		tickc := make(chan struct{})
 		count := 0
@@ -192,6 +138,65 @@ func MakeDeadlinedIntervalTicker(interval time.Duration, deadline time.Time) Tic
 // and stopping after a timeout.
 func MakeExpiringIntervalTicker(interval, timeout time.Duration) Ticker {
 	return MakeDeadlinedIntervalTicker(interval, time.Now().Add(timeout))
+}
+
+// MakeChangingIntervalTicker returns a ticker signalling in intervals. First
+// argument is the initial interval. Changer will be called before usage to allow
+// immediate stopping.
+func MakeChangingIntervalTicker(interval time.Duration, changer TickChanger) Ticker {
+	return func(ctx context.Context) <-chan struct{} {
+		tickc := make(chan struct{})
+		ok := true
+		go func() {
+			defer close(tickc)
+			// Defensive changer call.
+			if interval, ok = changer(interval); !ok {
+				return
+			}
+			// Ticker for the interval.
+			timer := time.NewTimer(interval)
+			defer timer.Stop()
+			// Loop sending signals.
+			for {
+				select {
+				case <-timer.C:
+					// One interval tick. Ignore if needed.
+					select {
+					case tickc <- struct{}{}:
+					default:
+					}
+				case <-ctx.Done():
+					// Given context stopped.
+					return
+				}
+				// Reset timer with next interval.
+				if interval, ok = changer(interval); !ok {
+					return
+				}
+				timer.Reset(interval)
+			}
+		}()
+		return tickc
+	}
+}
+
+// MakeJitteringTicker returns a ticker signalling in jittering intervals.
+// This avoids converging on periadoc behavior during condition check. The
+// ticker stops after reaching timeout.
+func MakeJitteringTicker(interval time.Duration, factor float64, timeout time.Duration) Ticker {
+	deadline := time.Now().Add(timeout)
+	// jitter returns a duration between interval and interval + factor * interval.
+	// The input as changer function is ignored.
+	jitter := func(_ time.Duration) (time.Duration, bool) {
+		if !time.Now().Before(deadline) {
+			return 0, false
+		}
+		if factor <= 0.0 {
+			factor = 1.0
+		}
+		return interval + time.Duration(rand.Float64()*factor*float64(interval)), true
+	}
+	return MakeChangingIntervalTicker(interval, jitter)
 }
 
 // EOF

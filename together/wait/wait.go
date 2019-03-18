@@ -13,6 +13,7 @@ package wait
 
 import (
 	"context"
+	"time"
 
 	"tideland.dev/go/trace/errors"
 )
@@ -45,7 +46,7 @@ func Poll(ctx context.Context, ticker Ticker, condition Condition) error {
 				// Oh, ticker tells to end.
 				return errors.New(ErrTickerExceeded, msgTickerExceeded)
 			}
-			ok, err := condition()
+			ok, err := check(condition)
 			if err != nil {
 				// Condition has an error.
 				return err
@@ -56,6 +57,106 @@ func Poll(ctx context.Context, ticker Ticker, condition Condition) error {
 			}
 		}
 	}
+}
+
+// WithInterval is convenience for Poll() with MakeIntervalTicker().
+func WithInterval(
+	ctx context.Context,
+	interval time.Duration,
+	condition Condition,
+) error {
+	return Poll(
+		ctx,
+		MakeIntervalTicker(interval),
+		condition,
+	)
+}
+
+// WithMaxIntervals is convenience for Poll() with MakeMaxIntervalsTicker().
+func WithMaxIntervals(
+	ctx context.Context,
+	interval time.Duration,
+	max int,
+	condition Condition,
+) error {
+	return Poll(
+		ctx,
+		MakeMaxIntervalsTicker(interval, max),
+		condition,
+	)
+}
+
+// WithDeadline is convenience for Poll() with MakeDeadlinedIntervalTicker().
+func WithDeadline(
+	ctx context.Context,
+	interval time.Duration,
+	deadline time.Time,
+	condition Condition,
+) error {
+	return Poll(
+		ctx,
+		MakeDeadlinedIntervalTicker(interval, deadline),
+		condition,
+	)
+}
+
+// WithTimeout is convenience for Poll() with MakeExpiringIntervalTicker().
+func WithTimeout(
+	ctx context.Context,
+	interval, timeout time.Duration,
+	condition Condition,
+) error {
+	return Poll(
+		ctx,
+		MakeExpiringIntervalTicker(interval, timeout),
+		condition,
+	)
+}
+
+// WithChanges is convenience for Poll() with MakeChangingIntervalTicker().
+func WithChanges(
+	ctx context.Context,
+	interval time.Duration,
+	changer TickChanger,
+	condition Condition,
+) error {
+	return Poll(
+		ctx,
+		MakeChangingIntervalTicker(interval, changer),
+		condition,
+	)
+}
+
+// WithJitter is convenience for Poll() with MakeJitteringTicker().
+func WithJitter(
+	ctx context.Context,
+	interval time.Duration,
+	factor float64,
+	timeout time.Duration,
+	condition Condition,
+) error {
+	return Poll(
+		ctx,
+		MakeJitteringTicker(interval, factor, timeout),
+		condition,
+	)
+}
+
+//--------------------
+// PRIVATE HELPER
+//--------------------
+
+// check runs the condition by catches panics and returns them
+// as errors.
+func check(condition Condition) (ok bool, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			ok = false
+			err = errors.New(ErrConditionPanicked, msgConditionPanicked, r)
+		}
+	}()
+	ok, err = condition()
+	return
 }
 
 // EOF
