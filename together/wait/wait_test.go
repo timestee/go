@@ -24,6 +24,70 @@ import (
 // TESTS
 //--------------------
 
+// TestPollWithChangingInterval tests the polling of conditions with
+// changing interval durations.
+func TestPollWithChangingInterval(t *testing.T) {
+	// Init.
+	assert := asserts.NewTesting(t, true)
+	makeChanger := func(interval time.Duration) wait.TickChanger {
+		return func(in time.Duration) (out time.Duration, ok bool) {
+			if in == 0 {
+				return interval, true
+			}
+			out = in * 2
+			if out > time.Second {
+				return 0, false
+			}
+			return out, true
+		}
+	}
+
+	// Tests.
+	assert.Logf("end with positive condition")
+	count := 0
+	err := wait.Poll(
+		context.Background(),
+		wait.MakeGenericIntervalTicker(makeChanger(10*time.Millisecond)),
+		func() (bool, error) {
+			count++
+			if count == 5 {
+				return true, nil
+			}
+			return false, nil
+		},
+	)
+	assert.NoError(err)
+	assert.Equal(count, 5)
+
+	assert.Logf("end with exceeded ticker, 7 checks")
+	count = 0
+	err = wait.Poll(
+		context.Background(),
+		wait.MakeGenericIntervalTicker(makeChanger(10*time.Millisecond)),
+		func() (bool, error) {
+			count++
+			return false, nil
+		},
+	)
+	assert.True(wait.IsExceeded(err))
+	assert.Equal(count, 7, "exceeded with a count")
+
+	assert.Logf("end with cancelled context")
+	count = 0
+	ctx, cancel := context.WithTimeout(context.Background(), 350*time.Millisecond)
+	defer cancel()
+	err = wait.Poll(
+		ctx,
+		wait.MakeGenericIntervalTicker(makeChanger(10*time.Millisecond)),
+		func() (bool, error) {
+			count++
+			return false, nil
+		},
+	)
+	assert.True(wait.IsCancelled(err))
+	assert.Range(count, 4, 6, "test is race, depending on scheduling")
+}
+
 // TestPollWithInterval tests the polling of conditions in intervals.
 func TestPollWithInterval(t *testing.T) {
 	// Init.
@@ -71,7 +135,7 @@ func TestPollWithInterval(t *testing.T) {
 		},
 	)
 	assert.True(wait.IsCancelled(err))
-	assert.Equal(count, 5)
+	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
 // TestPollWithMaxIntervals tests the polling of conditions in a maximum
@@ -148,7 +212,7 @@ func TestPollWithMaxInterval(t *testing.T) {
 		},
 	)
 	assert.True(wait.IsCancelled(err))
-	assert.Equal(count, 5)
+	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
 // TestPollWithDeadline tests the polling of conditions with deadlines.
@@ -224,7 +288,7 @@ func TestPollWithDeadline(t *testing.T) {
 		},
 	)
 	assert.True(wait.IsCancelled(err))
-	assert.Equal(count, 5)
+	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
 // TestPollWithTimeout tests the polling of conditions with timeouts.
@@ -293,93 +357,14 @@ func TestPollWithTimeout(t *testing.T) {
 	defer cancel()
 	err = wait.Poll(
 		ctx,
-		wait.MakeExpiringIntervalTicker(20*time.Millisecond, 210*time.Millisecond),
+		wait.MakeExpiringIntervalTicker(20*time.Millisecond, 500*time.Millisecond),
 		func() (bool, error) {
 			count++
 			return false, nil
 		},
 	)
 	assert.True(wait.IsCancelled(err))
-	assert.Equal(count, 5)
-}
-
-// TestPollWithChangingInterval tests the polling of conditions with
-// changing interval durations.
-func TestPollWithChangingInterval(t *testing.T) {
-	// Init.
-	assert := asserts.NewTesting(t, true)
-	firstChange := true
-	changer := func(interval time.Duration) (time.Duration, bool) {
-		if firstChange {
-			firstChange = false
-			return interval, true
-		}
-		interval *= 2
-		if interval > time.Second {
-			return 0, false
-		}
-		return interval, true
-	}
-
-	// Tests.
-	assert.Logf("end with positive condition")
-	count := 0
-	err := wait.Poll(
-		context.Background(),
-		wait.MakeChangingIntervalTicker(10*time.Millisecond, changer),
-		func() (bool, error) {
-			count++
-			if count == 5 {
-				return true, nil
-			}
-			return false, nil
-		},
-	)
-	assert.NoError(err)
-	assert.Equal(count, 5)
-
-	assert.Logf("using With...()")
-	firstChange = true
-	count = 0
-	err = wait.WithChanges(context.Background(), 10*time.Millisecond, changer, func() (bool, error) {
-		count++
-		if count == 5 {
-			return true, nil
-		}
-		return false, nil
-	})
-	assert.NoError(err)
-	assert.Equal(count, 5)
-
-	assert.Logf("end with exceeded ticker, 7 checks")
-	firstChange = true
-	count = 0
-	err = wait.Poll(
-		context.Background(),
-		wait.MakeChangingIntervalTicker(10*time.Millisecond, changer),
-		func() (bool, error) {
-			count++
-			return false, nil
-		},
-	)
-	assert.True(wait.IsExceeded(err))
-	assert.Equal(count, 7, "exceeded with a count")
-
-	assert.Logf("end with cancelled context")
-	firstChange = true
-	count = 0
-	ctx, cancel := context.WithTimeout(context.Background(), 350*time.Millisecond)
-	defer cancel()
-	err = wait.Poll(
-		ctx,
-		wait.MakeChangingIntervalTicker(10*time.Millisecond, changer),
-		func() (bool, error) {
-			count++
-			return false, nil
-		},
-	)
-	assert.True(wait.IsCancelled(err))
-	assert.Equal(count, 5)
+	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
 // TestPollWithJitter tests the polling of conditions in a maximum
@@ -466,7 +451,7 @@ func TestPollWithJitter(t *testing.T) {
 		},
 	)
 	assert.True(wait.IsCancelled(err))
-	assert.Range(len(timestamps), 3, 7)
+	assert.Range(len(timestamps), 3, 7, "test is race, depending on scheduling")
 }
 
 // TestPoll tests the polling of conditions with a user-defined ticker.

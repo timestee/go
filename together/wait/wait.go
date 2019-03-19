@@ -30,7 +30,7 @@ type Condition func() (bool, error)
 
 // Poll checks the condition until it returns true or an error. The ticker
 // sends signals whenever the condition shall be checked. It closes the returned
-// channel when the polling shall stop with a timeout.
+// channel when the polling shall stop.
 func Poll(ctx context.Context, ticker Ticker, condition Condition) error {
 	tickCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -109,20 +109,6 @@ func WithTimeout(
 	return Poll(
 		ctx,
 		MakeExpiringIntervalTicker(interval, timeout),
-		condition,
-	)
-}
-
-// WithChanges is convenience for Poll() with MakeChangingIntervalTicker().
-func WithChanges(
-	ctx context.Context,
-	interval time.Duration,
-	changer TickChanger,
-	condition Condition,
-) error {
-	return Poll(
-		ctx,
-		MakeChangingIntervalTicker(interval, changer),
 		condition,
 	)
 }
