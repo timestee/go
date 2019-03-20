@@ -1,6 +1,6 @@
-// Tideland Go Library - Database - Redis Client
+// Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -78,13 +78,13 @@ func (rs *ResultSet) ValueAt(index int) (Value, error) {
 	}
 	value, ok := rs.items[index].(Value)
 	if !ok {
-		return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "value")
+		return nil, errors.New(ErrIllegalItemType, msgIllegalItemIndex, index, "value")
 	}
 	return value, nil
 }
 
-// BoolAt returns the value at index as bool. This is
-// a convenience method as the bool is needed pretty often.
+// BoolAt returns the value at index as bool. This is a convenience
+// method as the bool is needed very often.
 func (rs *ResultSet) BoolAt(index int) (bool, error) {
 	value, err := rs.ValueAt(index)
 	if err != nil {
@@ -93,8 +93,8 @@ func (rs *ResultSet) BoolAt(index int) (bool, error) {
 	return value.Bool()
 }
 
-// IntAt returns the value at index as int. This is a
-// convenience method as the integer is needed pretty often.
+// IntAt returns the value at index as int. This is a convenience
+// method as the integer is needed very often.
 func (rs *ResultSet) IntAt(index int) (int, error) {
 	value, err := rs.ValueAt(index)
 	if err != nil {
@@ -103,8 +103,8 @@ func (rs *ResultSet) IntAt(index int) (int, error) {
 	return value.Int()
 }
 
-// StringAt returns the value at index as string. This is
-// a convenience method as the string is needed pretty often.
+// StringAt returns the value at index as string. This is a convenience
+// method as the string is needed very often.
 func (rs *ResultSet) StringAt(index int) (string, error) {
 	value, err := rs.ValueAt(index)
 	if err != nil {
@@ -118,11 +118,11 @@ func (rs *ResultSet) ResultSetAt(index int) (*ResultSet, error) {
 	if len(rs.items) < index-1 {
 		return nil, errors.New(ErrIllegalItemIndex, msgIllegalItemIndex, index, len(rs.items))
 	}
-	rsAt, ok := rs.items[index].(*ResultSet)
+	resultSet, ok := rs.items[index].(*ResultSet)
 	if !ok {
-		return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "result set")
+		return nil, errors.New(ErrIllegalItemType, msgIllegalItemIndex, index, "result set")
 	}
-	return rsAt, nil
+	return resultSet, nil
 }
 
 // Values returnes a flattened list of all values.
@@ -157,10 +157,10 @@ func (rs *ResultSet) KeyValues() (KeyValues, error) {
 	return kvs, nil
 }
 
-// ScoredValues returns the alternating values as scored values
-// slice. If withscores is false the result set contains no scores
-// and so they are set to 0.0 in the returned scored values.
-func (rs *ResultSet) ScoredValues(withScores bool) (ScoredValues, error) {
+// ScoredValues returns the alternating values as scored values slice. If
+// withscores is false the result set contains no scores and so they are
+// set to 0.0 in the returned scored values.
+func (rs *ResultSet) ScoredValues(withscores bool) (ScoredValues, error) {
 	svs := ScoredValues{}
 	sv := ScoredValue{}
 	for index, item := range rs.items {
@@ -168,7 +168,7 @@ func (rs *ResultSet) ScoredValues(withScores bool) (ScoredValues, error) {
 		if !ok {
 			return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "value")
 		}
-		if withScores {
+		if withscores {
 			// With scores, so alternating values and scores.
 			if index%2 == 0 {
 				sv.Value = value
@@ -220,22 +220,21 @@ func (rs *ResultSet) Scanned() (int, *ResultSet, error) {
 	return cursor, result, err
 }
 
-// Strings returns all values/arrays of the array as a slice of
-// strings.
+// Strings returns all values/arrays of the array as a slice of strings.
 func (rs *ResultSet) Strings() []string {
 	ss := make([]string, len(rs.items))
 	for index, item := range rs.items {
 		s, ok := item.(fmt.Stringer)
 		if !ok {
 			// Must not happen!
-			panic("redis: illegal type in array")
+			panic("illegal type in array")
 		}
 		ss[index] = s.String()
 	}
 	return ss
 }
 
-// String implements the Stringer interface.
+// String returns the result set in a human readable form.
 func (rs *ResultSet) String() string {
 	out := "RESULT SET ("
 	ss := rs.Strings()

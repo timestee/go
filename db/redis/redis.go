@@ -1,6 +1,6 @@
-// Tideland Go Library - Database - Redis Client
+// Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -12,196 +12,103 @@ package redis
 //--------------------
 
 import (
+	"context"
 	"fmt"
-	"strconv"
-	"strings"
+	"sync"
 	"time"
-
-	"tideland.dev/go/text/etc"
-	"tideland.dev/go/trace/errors"
-	"tideland.dev/go/trace/logger"
 )
 
 //--------------------
-// CONSTANTS
+// DATABASE
 //--------------------
 
-const (
-	defaultAddress  = "127.0.0.1:6379"
-	defaultSocket   = "/tmp/redis.sock"
-	defaultNetwork  = "unix"
-	defaultTimeout  = 30 * time.Second
-	defaultIndex    = 0
-	defaultPassword = ""
-	defaultLogging  = true
-)
-
-//--------------------
-// CONFIGURATION
-//--------------------
-
-// Configuration controls which database will be connected
-// and how the client behaves.
-type Configuration struct {
-	Address  string
-	Network  string
-	Timeout  time.Duration
-	Index    int
-	Password string
+// Database provides access to a Redis database.
+type Database struct {
+	mu       sync.Mutex
+	ctx      context.Context
+	address  string
+	network  string
+	timeout  time.Duration
+	index    int
+	password string
+	poolsize int
+	logging  bool
+	pool     *pool
 }
 
-// NewConfiguration creates a configuration from a passed Etc instance
-// and sets a logger instance if wanted.
-func NewConfiguration(e etc.Etc) Configuration {
-	cfg := Configuration{
-		Address:  e.ValueAsString("address", defaultSocket),
-		Network:  e.ValueAsString("network", defaultNetwork),
-		Timeout:  e.ValueAsDuration("timeout", defaultTimeout),
-		Index:    e.ValueAsInt("index", defaultIndex),
-		Password: e.ValueAsString("password", defaultPassword),
+// Open opens the connection to a Redis database based on the
+// passed options.
+func Open(options ...Option) (*Database, error) {
+	db := &Database{
+		ctx:      context.Background(),
+		address:  defaultSocket,
+		network:  defaultNetwork,
+		timeout:  defaultTimeout,
+		index:    defaultIndex,
+		password: defaultPassword,
+		poolsize: defaultPoolSize,
+		logging:  defaultLogging,
 	}
-	return cfg
+	for _, option := range options {
+		if err := option(db); err != nil {
+			return nil, err
+		}
+	}
+	db.pool = newPool(db)
+	return db, nil
 }
 
-// validate checks the configuration and sets default values.
-func (cfg *Configuration) validate() error {
-	return nil
+// Options returns the configuration of the database.
+func (db *Database) Options() Options {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return Options{
+		Address:  db.address,
+		Network:  db.network,
+		Timeout:  db.timeout,
+		Index:    db.index,
+		Password: db.password,
+		PoolSize: db.poolsize,
+		Logging:  db.logging,
+	}
 }
 
-//--------------------
-// TOOLS
-//--------------------
-
-// valuer describes any type able to return a list of values.
-type valuer interface {
-	Len() int
-	Values() []Value
+// Connection returns one of the pooled connections to the Redis
+// server. It has to be returned with conn.Return() after usage.
+func (db *Database) Connection() (*Connection, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return newConnection(db)
 }
 
-// join builds a byte slice out of some parts.
-func join(parts ...interface{}) []byte {
-	tmp := []byte{}
-	for _, part := range parts {
-		switch typedPart := part.(type) {
-		case []byte:
-			tmp = append(tmp, typedPart...)
-		case string:
-			tmp = append(tmp, []byte(typedPart)...)
-		case int:
-			tmp = append(tmp, []byte(strconv.Itoa(typedPart))...)
-		default:
-			tmp = append(tmp, []byte(fmt.Sprintf("%v", typedPart))...)
-		}
-	}
-	return tmp
+// Pipeline returns one of the pooled connections to the Redis
+// server running in pipeline mode. Calling ppl.Collect()
+// collects all results and returns the connection.
+func (db *Database) Pipeline() (*Pipeline, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return newPipeline(db)
 }
 
-// valueToBytes converts a value into a byte slice.
-func valueToBytes(value interface{}) []byte {
-	switch typedValue := value.(type) {
-	case string:
-		return []byte(typedValue)
-	case []byte:
-		return typedValue
-	case []string:
-		return []byte(strings.Join(typedValue, "\r\n"))
-	case map[string]string:
-		tmp := make([]string, len(typedValue))
-		i := 0
-		for k, v := range typedValue {
-			tmp[i] = fmt.Sprintf("%v:%v", k, v)
-			i++
-		}
-		return []byte(strings.Join(tmp, "\r\n"))
-	case Hash:
-		tmp := []byte{}
-		for k, v := range typedValue {
-			kb := valueToBytes(k)
-			vb := valueToBytes(v)
-			tmp = append(tmp, kb...)
-			tmp = append(tmp, vb...)
-		}
-		return tmp
-	}
-	return []byte(fmt.Sprintf("%v", value))
+// Subscription returns a subscription with a connection to the
+// Redis server. It has to be closed with sub.Close() after usage.
+func (db *Database) Subscription() (*Subscription, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return newSubscription(db)
 }
 
-// keyValueArgsToKeys converts a mixed number of keys and values
-// into a slice containing the keys.
-func keyValueArgsToKeys(kvs ...interface{}) []string {
-	keys := []string{}
-	ok := true
-	for _, k := range kvs {
-		if ok {
-			key := string(valueToBytes(k))
-			keys = append(keys, key)
-		}
-		ok = !ok
-	}
-	return keys
+// Close closes the database client.
+func (db *Database) Close() error {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return db.pool.close()
 }
 
-// buildInterfaces creates a slice of interfaces out
-// of the passed arguments. Found string or interface
-// slices are flattened.
-func buildInterfaces(values ...interface{}) []interface{} {
-	ifcs := []interface{}{}
-	for _, value := range values {
-		switch v := value.(type) {
-		case []string:
-			for _, s := range v {
-				ifcs = append(ifcs, s)
-			}
-		case []interface{}:
-			for _, i := range v {
-				ifcs = append(ifcs, i)
-			}
-		default:
-			ifcs = append(ifcs, v)
-		}
-	}
-	return ifcs
-}
-
-// containsPatterns checks, if the channel contains a pattern
-// to subscribe to or unsubscribe from multiple channels.
-func containsPattern(channel interface{}) bool {
-	ch := channel.(string)
-	if strings.IndexAny(ch, "*?[") != -1 {
-		return true
-	}
-	return false
-}
-
-// logCommand logs a command and its execution status.
-func logCommand(cmd string, args []interface{}, err error, log bool) {
-	// Format the command for the log entry.
-	formatArgs := func() string {
-		if args == nil || len(args) == 0 {
-			return "(none)"
-		}
-		output := make([]string, len(args))
-		for i, arg := range args {
-			output[i] = string(valueToBytes(arg))
-		}
-		return strings.Join(output, " / ")
-	}
-	logOutput := func() string {
-		format := "CMD %s ARGS %s %s"
-		if err == nil {
-			return fmt.Sprintf(format, cmd, formatArgs(), "OK")
-		}
-		return fmt.Sprintf(format, cmd, formatArgs(), "ERROR "+err.Error())
-	}
-	// Log positive commands only if wanted, errors always.
-	if err != nil {
-		if errors.IsError(err, ErrServerResponse) || errors.IsError(err, ErrTimeout) {
-			return
-		}
-		logger.Errorf(logOutput())
-	} else if log {
-		logger.Infof(logOutput())
-	}
+// String implements the Stringer interface and returns address
+// plus index.
+func (db *Database) String() string {
+	return fmt.Sprintf("%s:%d", db.address, db.index)
 }
 
 // EOF

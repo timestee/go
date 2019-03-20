@@ -1,6 +1,6 @@
-// Tideland Go Library - Database - Redis Client
+// Tideland Go Library - DB - Redis Client - Unit Tests
 //
-// Copyright (C) 2009-2019 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -25,7 +25,7 @@ import (
 //--------------------
 
 func TestSimpleKeyOperations(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -82,7 +82,7 @@ func TestSimpleKeyOperations(t *testing.T) {
 }
 
 func TestScan(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -119,7 +119,7 @@ func TestScan(t *testing.T) {
 }
 
 func TestHash(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -156,7 +156,7 @@ func TestHash(t *testing.T) {
 }
 
 func TestHScan(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -195,7 +195,7 @@ func TestHScan(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -209,7 +209,7 @@ func TestList(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -230,7 +230,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestSScan(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -266,7 +266,7 @@ func TestSScan(t *testing.T) {
 }
 
 func TestSortedSet(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -288,7 +288,7 @@ func TestSortedSet(t *testing.T) {
 }
 
 func TestZScan(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -327,7 +327,7 @@ func TestZScan(t *testing.T) {
 }
 
 func TestTransactionConnection(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -382,7 +382,7 @@ func TestTransactionConnection(t *testing.T) {
 }
 
 func TestTransactionPipeline(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, connRestore := connectDatabase(assert)
 	defer connRestore()
 	ppl, pplRestore := pipelineDatabase(assert)
@@ -416,7 +416,7 @@ func TestTransactionPipeline(t *testing.T) {
 }
 
 func TestTransactionPipelineWatch(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	sigC := audit.MakeSigChan()
 	// Background tasks.
 	bgConn, bgConnRestore := connectDatabase(assert)
@@ -447,7 +447,7 @@ func TestTransactionPipelineWatch(t *testing.T) {
 }
 
 func TestScripting(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, restore := connectDatabase(assert)
 	defer restore()
 
@@ -484,7 +484,7 @@ func TestScripting(t *testing.T) {
 }
 
 func TestPubSub(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	conn, connRestore := connectDatabase(assert)
 	defer connRestore()
 	sub, subRestore := subscribeDatabase(assert)

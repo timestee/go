@@ -1,6 +1,6 @@
-// Tideland Go Library - Database - Redis Client
+// Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -31,7 +31,7 @@ func NewValue(value interface{}) Value {
 	return Value(valueToBytes(value))
 }
 
-// String implements the Stringer interface.
+// String returns the value as string (alternative to type conversion).
 func (v Value) String() string {
 	if v == nil {
 		return "(nil)"
@@ -99,12 +99,12 @@ func (v Value) Bytes() []byte {
 	return []byte(v)
 }
 
-// StringSlice returns the value as slice of strings when seperated by CRLF.
+// StringSlice returns the value as slice of strings when separated by CRLF.
 func (v Value) StringSlice() []string {
 	return strings.Split(v.String(), "\r\n")
 }
 
-// StringMap returns the value as a map of strings when seperated by CRLF
+// StringMap returns the value as a map of strings when separated by CRLF
 // and colons between key and value.
 func (v Value) StringMap() map[string]string {
 	tmp := v.StringSlice()
@@ -153,14 +153,14 @@ func (vs Values) Strings() []string {
 // KEY/VALUE
 //--------------------
 
-// KeyValue combines a pair of key and value
+// KeyValue combines a key and a value
 type KeyValue struct {
 	Key   string
 	Value Value
 }
 
-// String implements the Stringer interface.
-func (kv *KeyValue) String() string {
+// String returs the key/value pair as string.
+func (kv KeyValue) String() string {
 	return fmt.Sprintf("%s = %v", kv.Key, kv.Value)
 }
 
@@ -172,7 +172,7 @@ func (kvs KeyValues) Len() int {
 	return len(kvs)
 }
 
-// String implements the Stringer interface.
+// String returs the key/value pairs as string.
 func (kvs KeyValues) String() string {
 	kvss := []string{}
 	for _, kv := range kvs {
@@ -191,8 +191,8 @@ type ScoredValue struct {
 	Value Value
 }
 
-// String implements the Stringer interface.
-func (sv *ScoredValue) String() string {
+// String returs the scored value as string.
+func (sv ScoredValue) String() string {
 	return fmt.Sprintf("%v (%f)", sv.Value, sv.Score)
 }
 
@@ -204,7 +204,7 @@ func (svs ScoredValues) Len() int {
 	return len(svs)
 }
 
-// String implements the Stringer interface.
+// String returs the scored values as string.
 func (svs ScoredValues) String() string {
 	svss := []string{}
 	for _, sv := range svs {
@@ -221,9 +221,14 @@ func (svs ScoredValues) String() string {
 // according result values.
 type Hash map[string]Value
 
-// CreateHash creates a hash with the passed keys and values.
-func CreateHash(kvs map[string]interface{}) Hash {
-	h := make(Hash)
+// NewHash creates a new empty hash.
+func NewHash() Hash {
+	return make(Hash)
+}
+
+// NewFilledHash creates a hash with the passed keys and values.
+func NewFilledHash(kvs map[string]interface{}) Hash {
+	h := NewHash()
 	for k, v := range kvs {
 		h.Set(k, v)
 	}
@@ -241,7 +246,7 @@ func (h Hash) Set(key string, value interface{}) Hash {
 	return h
 }
 
-// String implements the Stringer interface.
+// String returns the value of a key as string.
 func (h Hash) String(key string) (string, error) {
 	if value, ok := h[key]; ok {
 		return value.String(), nil
@@ -315,14 +320,8 @@ func (h Hash) StringMap(key string) map[string]string {
 
 // Hashable represents types for Redis hashes.
 type Hashable interface {
-	// Len returns the number of elements of the hashable.
 	Len() int
-
-	// GetHash returns the hashable as hash.
 	GetHash() Hash
-
-	// SetHash sets the hashable state by the values
-	// of a hash.
 	SetHash(h Hash)
 }
 
@@ -332,49 +331,11 @@ type Hashable interface {
 
 // PublishedValue contains a published value and its channel
 // channel pattern.
-type PublishedValue interface {
-	// Kind tells if it is a message or a subscription
-	// value.
-	Kind() string
-
-	// Channel returns the channel where the value has
-	// been received.
-	Channel() string
-
-	// Count returns the number of currently subscribed
-	// channels when receiving this value.
-	Count() int
-
-	// Value returns the published value.
-	Value() Value
-}
-
-// publishedValue implements the PublishedValue interface.
-type publishedValue struct {
-	kind    string
-	channel string
-	count   int
-	value   Value
-}
-
-// Kind implements the PublishedValue interface.
-func (pv *publishedValue) Kind() string {
-	return pv.kind
-}
-
-// Channel implements the PublishedValue interface.
-func (pv *publishedValue) Channel() string {
-	return pv.channel
-}
-
-// Count implements the PublishedValue interface.
-func (pv *publishedValue) Count() int {
-	return pv.count
-}
-
-// Value implements the PublishedValue interface.
-func (pv *publishedValue) Value() Value {
-	return pv.value
+type PublishedValue struct {
+	Kind    string
+	Channel string
+	Count   int
+	Value   Value
 }
 
 // EOF

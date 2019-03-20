@@ -1,6 +1,6 @@
-// Tideland Go Library - Database - Redis Client
+// Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -12,189 +12,157 @@ package redis
 //--------------------
 
 import (
-	"sync"
+	"context"
 	"time"
 
-	"tideland.dev/go/text/etc"
+	"tideland.dev/go/together/actor"
 	"tideland.dev/go/together/wait"
-	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
-// CONSTANTS
+// CONNECTION POOL
 //--------------------
 
 const (
-	defaultPoolsize = 10
+	forcedPull   = true
+	unforcedPull = false
+
+	forcedPullRequest = iota
+	unforcedPullRequest
+	pushRequest
+	killRequest
+	closeRequest
 )
 
-//--------------------
-// POOL
-//--------------------
-
-// Pool manages a number of Redis connections.
-type Pool struct {
-	mu        sync.Mutex
-	closed    bool
-	cfg       etc.Etc
-	poolsize  int
-	available connSet
-	inUse     connSet
+// pool manages a number of Redis resp instances.
+type pool struct {
+	ctx       context.Context
+	database  *Database
+	available map[*resp]*resp
+	inUse     map[*resp]*resp
+	act       *actor.Actor
 }
 
-// NewPool creates a redis connection pool.
-func NewPool(cfg etc.Etc) *Pool {
-	poolsize := cfg.ValueAsInt("poolsize", defaultPoolsize)
-	p := &Pool{
-		cfg:       cfg,
-		closed:    false,
-		poolsize:  poolsize,
-		available: make(connSet),
-		inUse:     make(connSet),
+// newPool creates a connection pool with uninitialized
+// protocol instances.
+func newPool(db *Database) *pool {
+	p := &pool{
+		database:  db,
+		available: make(map[*resp]*resp),
+		inUse:     make(map[*resp]*resp),
+		act:       actor.New(actor.WithContext(db.ctx)).Go(),
 	}
 	return p
 }
 
-// Pull retrieves a connection our of the pool. If forced is true a
-// new one will created if the pool is empty.
-func (p *Pool) Pull(forced bool) (conn Connection, err error) {
-	// Forced mode.
-	if forced {
-		return p.pullForced()
+func (p *pool) stop() error {
+	return p.act.Stop(p.close())
+}
+
+// pullForced retrieves a new created protocol.
+func (p *pool) pullForced() (resp *resp, err error) {
+	if aerr := p.act.DoSync(func() error {
+		resp, err = newResp(p.database)
+		if err == nil {
+			p.inUse[resp] = resp
+		}
+		return nil
+	}); aerr != nil {
+		return nil, aerr
 	}
-	// Normal mode.
-	err = wait.WithTimeout(
-		context.Background(),
+	return
+}
+
+// pullRetry retrieves a protocol out of the pool. It tries to
+// do it multiple times.
+func (p *pool) pullRetry() (resp *resp, err error) {
+	if werr := wait.WithTimeout(
+		p.database.ctx,
 		10*time.Millisecond,
-		time.Second,
+		30*time.Second,
 		func() (bool, error) {
-			conn, err = p.pullRegular()
+			resp, err = p.pull()
 			if err != nil {
 				return false, err
 			}
-			if conn != nil {
+			if resp != nil {
 				return true, nil
 			}
 			return false, nil
 		},
-	)
-	return conn, err
+	); werr != nil {
+		return nil, werr
+	}
+	return
 }
 
-// pullForced allways opens a new connection and adds it
-// to the connections in use.
-func (p *Pool) pullForced() (Connection, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.closed {
-		return nil, errors.New(ErrPoolClosed, errorMessages)
-	}
-	conn, err := redis.Open(p.cfg)
-	if err != nil {
-		return nil, err
-	}
-	p.inUse.push(conn)
-	return conn, nil
-}
-
-// pullRegular tries to get an open connection from the available
-// ones. If none is available but there are less in use than allowed
-// a new one will be opened.
-func (p *Pool) pullRegular() (Connection, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.closed {
-		return nil, errors.New(ErrPoolClosed, errorMessages)
-	}
-	if len(p.available) == 0 {
-		if len(p.inUse) >= p.poolsize {
-			// All connections in use.
-			return nil, nil
+// pull retrieves a protocol out of the pool.
+func (p *pool) pull() (resp *resp, err error) {
+	if aerr := p.act.DoSync(func() error {
+		switch {
+		case len(p.available) > 0:
+		fetched:
+			for resp = range p.available {
+				delete(p.available, resp)
+				p.inUse[resp] = resp
+				break fetched
+			}
+		case len(p.inUse) < p.database.poolsize:
+			resp, err = newResp(p.database)
+			if err != nil {
+				p.inUse[resp] = resp
+			}
 		}
-		conn, err := redis.Open(p.cfg)
-		if err != nil {
-			return nil, err
+		return nil
+	}); aerr != nil {
+		return nil, aerr
+	}
+	return
+}
+
+// push returns a protocol back into the pool.
+func (p *pool) push(resp *resp) (err error) {
+	if aerr := p.act.DoSync(func() error {
+		delete(p.inUse, resp)
+		if len(p.available) < p.database.poolsize {
+			p.available[resp] = resp
+		} else {
+			err = resp.close()
 		}
-		p.inUse.push(conn)
-		return conn, nil
-	}
-	conn := p.available.popMove(p.inUse)
-	return conn, nil
-}
-
-// Push returns a connection back into the pool.
-func (p *Pool) Push(conn Connection) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.closed {
-		return errors.New(ErrPoolClosed, errorMessages)
-	}
-	if len(p.available)+len(p.inUse) < p.poolsize {
-		p.inUse.pushMove(conn, p.available)
 		return nil
+	}); aerr != nil {
+		return aerr
 	}
-	p.inUse.remove(conn)
-	return conn.Close()
+	return
 }
 
-// Close terminates the pool after closing all connections.
-func (p *Pool) Close() error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.closed {
+// kill closes the connection and removes it from the pool.
+func (p *pool) kill(resp *resp) (err error) {
+	if aerr := p.act.DoSync(func() error {
+		delete(p.inUse, resp)
+		err = resp.close()
 		return nil
+	}); aerr != nil {
+		return aerr
 	}
-	for conn := range p.available {
-		conn.Close()
-	}
-	for conn := range p.inUse {
-		conn.Close()
-	}
-	return nil
+	return
 }
 
-//--------------------
-// CONNECTION SET
-//--------------------
-
-// connSet manages Redis connections.
-type connSet map[Connection]struct{}
-
-// pop retrieves the first found connection out of
-// the set. If empty nil will be returned.
-func (cs connSet) pop() Connection {
-	for conn := range cs {
-		delete(cs, conn)
-		return conn
+// close closes all pooled protocol instances, first the available ones,
+// then the ones in use.
+func (p *pool) close() (err error) {
+	if aerr := p.act.DoSync(func() error {
+		for resp := range p.available {
+			resp.close()
+		}
+		for resp := range p.inUse {
+			resp.close()
+		}
+		return nil
+	}); aerr != nil {
+		return aerr
 	}
-	return nil
-}
-
-// remove removes a connection from the set.
-func (cs connSet) remove(conn Connection) {
-	delete(cs, conn)
-}
-
-// push adds a new connection to the set.
-func (cs connSet) push(conn Connection) {
-	cs[conn] = struct{}{}
-}
-
-// popMove pops a connection from the set and pushes
-// it into the target.
-func (cs connSet) popMove(target connSet) Connection {
-	conn := cs.pop()
-	if conn != nil {
-		target.push(conn)
-	}
-	return conn
-}
-
-// pushMove removes a connection from the set and pushes
-// it into the target.
-func (cs connSet) pushMove(conn Connection, target connSet) {
-	cs.remove(conn)
-	target.push(conn)
+	return
 }
 
 // EOF

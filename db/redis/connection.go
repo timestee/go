@@ -1,6 +1,6 @@
-// Tideland Go Library - Database - Redis Client
+// Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2009-2019 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -27,26 +27,24 @@ type Connection struct {
 	resp     *resp
 }
 
-// Open creates a new connection instance.
+// newConnection creates a new connection instance.
 func newConnection(db *Database) (*Connection, error) {
-	// Establish connection using the Redis protocol.
-	r, err := newResp(db)
-	if err != nil {
-		return nil, err
-	}
 	conn := &Connection{
 		database: db,
-		resp:     r,
+	}
+	err := conn.ensureProtocol()
+	if err != nil {
+		return nil, err
 	}
 	// Perform authentication and database selection.
 	err = conn.resp.authenticate()
 	if err != nil {
-		conn.Close()
+		conn.database.pool.kill(conn.resp)
 		return nil, err
 	}
 	err = conn.resp.selectDatabase()
 	if err != nil {
-		conn.Close()
+		conn.database.pool.kill(conn.resp)
 		return nil, err
 	}
 	return conn, nil
@@ -59,7 +57,11 @@ func (conn *Connection) Do(cmd string, args ...interface{}) (*ResultSet, error) 
 	if strings.Contains(cmd, "subscribe") {
 		return nil, errors.New(ErrUseSubscription, msgUseSubscription)
 	}
-	err := conn.resp.sendCommand(cmd, args...)
+	err := conn.ensureProtocol()
+	if err != nil {
+		return nil, err
+	}
+	err = conn.resp.sendCommand(cmd, args...)
 	logCommand(cmd, args, err, conn.database.logging)
 	if err != nil {
 		return nil, err
@@ -177,9 +179,23 @@ func (conn *Connection) DoScan(cmd string, args ...interface{}) (int, *ResultSet
 	return result.Scanned()
 }
 
-// Close closes the connection.
-func (conn *Connection) Close() error {
-	return conn.resp.close()
+// Return passes the connection back into the database pool.
+func (conn *Connection) Return() error {
+	err := conn.database.pool.push(conn.resp)
+	conn.resp = nil
+	return err
+}
+
+// ensureProtocol retrieves a protocol from the pool if needed.
+func (conn *Connection) ensureProtocol() error {
+	if conn.resp == nil {
+		p, err := conn.database.pool.pullRetry()
+		if err != nil {
+			return err
+		}
+		conn.resp = p
+	}
+	return nil
 }
 
 // EOF

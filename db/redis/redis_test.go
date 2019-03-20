@@ -1,6 +1,6 @@
-// Tideland Go Redis Client - Unit Tests
+// Tideland Go Library - DB - Redis Client - Unit Tests
 //
-// Copyright (C) 2009-2016 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -15,11 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"tideland.dev/go/text/etc"
-	"tideland.dev/go/trace/logger"
-	"tideland.one/golib/audit"
-
+	"tideland.dev/go/audit/asserts"
 	"tideland.dev/go/db/redis"
+	"tideland.dev/go/trace/logger"
 )
 
 //--------------------
@@ -27,8 +25,9 @@ import (
 //--------------------
 
 func TestUnixSocketConnection(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	conn := openConnection(assert, "{etc {address /tmp/redis.sock}}")
+	assert := asserts.NewTesting(t, true)
+	conn, restore := connectDatabase(assert, redis.UnixConnection("", 0))
+	defer restore()
 
 	result, err := conn.Do("echo", "Hello, World!")
 	assert.Nil(err)
@@ -39,8 +38,8 @@ func TestUnixSocketConnection(t *testing.T) {
 }
 
 func BenchmarkUnixConnection(b *testing.B) {
-	assert := audit.NewTestingAssertion(b, true)
-	conn, restore := openConnection(assert, redis.UnixConnection("", 0))
+	assert := asserts.NewTesting(b, true)
+	conn, restore := connectDatabase(assert, redis.UnixConnection("", 0))
 	defer restore()
 
 	for i := 0; i < b.N; i++ {
@@ -51,8 +50,8 @@ func BenchmarkUnixConnection(b *testing.B) {
 }
 
 func TestTcpConnection(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	conn, restore := openConnection(assert, redis.TcpConnection("", 0))
+	assert := asserts.NewTesting(t, true)
+	conn, restore := connectDatabase(assert, redis.TcpConnection("", 0))
 	defer restore()
 
 	result, err := conn.Do("echo", "Hello, World!")
@@ -64,8 +63,8 @@ func TestTcpConnection(t *testing.T) {
 }
 
 func BenchmarkTcpConnection(b *testing.B) {
-	assert := audit.NewTestingAssertion(b, true)
-	conn, restore := openConnection(assert, redis.TcpConnection("", 0))
+	assert := asserts.NewTesting(b, true)
+	conn, restore := connectDatabase(assert, redis.TcpConnection("", 0))
 	defer restore()
 
 	for i := 0; i < b.N; i++ {
@@ -76,8 +75,8 @@ func BenchmarkTcpConnection(b *testing.B) {
 }
 
 func TestPipelining(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	ppl, restore := openPipeline(assert)
+	assert := asserts.NewTesting(t, true)
+	ppl, restore := pipelineDatabase(assert)
 	defer restore()
 
 	for i := 0; i < 1000; i++ {
@@ -95,8 +94,8 @@ func TestPipelining(t *testing.T) {
 }
 
 func BenchmarkPipelining(b *testing.B) {
-	assert := audit.NewTestingAssertion(b, true)
-	ppl, restore := openPipeline(assert)
+	assert := asserts.NewTesting(b, true)
+	ppl, restore := pipelineDatabase(assert)
 	defer restore()
 
 	for i := 0; i < b.N; i++ {
@@ -113,7 +112,7 @@ func BenchmarkPipelining(b *testing.B) {
 }
 
 func TestOptions(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	db, err := redis.Open(redis.UnixConnection("", 0), redis.PoolSize(5))
 	assert.Nil(err)
 	defer db.Close()
@@ -130,7 +129,7 @@ func TestOptions(t *testing.T) {
 }
 
 func TestConcurrency(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 	db, err := redis.Open(redis.UnixConnection("", 0), redis.PoolSize(5))
 	assert.Nil(err)
 	defer db.Close()
@@ -158,60 +157,59 @@ func init() {
 
 // testDatabaseIndex defines the database index for the tests to not
 // get in conflict with existing databases.
-const testDatabaseIndex = "0"
+const testDatabaseIndex = 0
 
-// openConnection connects to a Redis database with the given configuration.
-func openConnection(assert audit.Assertion, cfgStr string) redis.Connection {
-	// Get configuration.
-	cfg, err := etc.ReadString(cfgStr)
+// connectDatabase connects to a Redis database with the given options
+// and returns a connection and a function for closing. This function
+// shall be called with defer.
+func connectDatabase(assert audit.Assertion, options ...redis.Option) (*redis.Connection, func()) {
+	// Open and connect database.
+	options = append(options, redis.Index(testDatabaseIndex, ""))
+	db, err := redis.Open(options...)
 	assert.Nil(err)
-	indexAppl := etc.Application{
-		"index": testDatabaseIndex,
-	}
-	cfg, err = cfg.Apply(indexAppl)
-	assert.Nil(err)
-	// Get connection.
-	conn, err := redis.Open(cfg)
+	conn, err := db.Connection()
 	assert.Nil(err)
 	// Flush all keys to get a clean testing environment.
 	_, err = conn.Do("flushdb")
 	assert.Nil(err)
-	// Return connection.
-	return conn
+	// Return connection and cleanup function.
+	return conn, func() {
+		conn.Return()
+		db.Close()
+	}
 }
 
-// openPipeline connects to a Redis database with the given configuration
-// and returns a pipeline.
-func openPipeline(assert audit.Assertion, cfgStr string) redis.Pipeline {
-	// Get configuration.
-	cfg, err := etc.ReadString(cfgStr)
+// pipelineDatabase connects to a Redis database with the given options
+// and returns a pipeling and a function for closing. This function
+// shall be called with a defer.
+func pipelineDatabase(assert audit.Assertion, options ...redis.Option) (*redis.Pipeline, func()) {
+	// Open and connect database.
+	options = append(options, redis.Index(testDatabaseIndex, ""))
+	db, err := redis.Open(options...)
 	assert.Nil(err)
-	indexAppl := etc.Application{
-		"index": testDatabaseIndex,
+	ppl, err := db.Pipeline()
+	assert.Nil(err)
+	// Return pipeline and cleanup function.
+	return ppl, func() {
+		db.Close()
 	}
-	cfg, err = cfg.Apply(indexAppl)
-	assert.Nil(err)
-	// Get pipeline.
-	ppl, err := redis.OpenPipeline(cfg)
-	assert.Nil(err)
-	return ppl
 }
 
-// openSubscription connects to a Redis database with the given configuration
-// and returns a subscription.
-func openSubscription(assert audit.Assertion, cfgStr string) redis.Subscription {
-	// Get configuration.
-	cfg, err := etc.ReadString(cfgStr)
+// subscribeDatabase connects to a Redis database with the given options
+// and returns a subscription and a function for closing. This function
+// shall be called with a defer.
+func subscribeDatabase(assert audit.Assertion, options ...redis.Option) (*redis.Subscription, func()) {
+	// Open and connect database.
+	options = append(options, redis.Index(testDatabaseIndex, ""))
+	db, err := redis.Open(options...)
 	assert.Nil(err)
-	indexAppl := etc.Application{
-		"index": testDatabaseIndex,
+	sub, err := db.Subscription()
+	assert.Nil(err)
+	// Return subscription and cleanup function.
+	return sub, func() {
+		sub.Close()
+		db.Close()
 	}
-	cfg, err = cfg.Apply(indexAppl)
-	assert.Nil(err)
-	// Get subscription.
-	sub, err := redis.OpenSubscription(cfg)
-	assert.Nil(err)
-	return sub
 }
 
 // assertEqualString checks if the result at index is value.
