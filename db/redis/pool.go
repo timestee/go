@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"tideland.dev/go/text/etc"
+	"tideland.dev/go/together/wait"
 	"tideland.dev/go/trace/errors"
 )
 
@@ -56,25 +57,28 @@ func NewPool(cfg etc.Etc) *Pool {
 
 // Pull retrieves a connection our of the pool. If forced is true a
 // new one will created if the pool is empty.
-func (p *Pool) Pull(forced bool) (Connection, error) {
+func (p *Pool) Pull(forced bool) (conn Connection, err error) {
 	// Forced mode.
 	if forced {
 		return p.pullForced()
 	}
 	// Normal mode.
-	wait := 5 * time.Millisecond
-	for i := 0; i < 5; i++ {
-		conn, err := p.pullRegular()
-		if err != nil {
-			return nil, err
-		}
-		if conn != nil {
-			return conn, nil
-		}
-		time.Sleep(wait)
-		wait = wait * 2
-	}
-	return nil, errors.New(ErrPoollimitReached, errorMessages, p.poolsize)
+	err = wait.WithTimeout(
+		context.Background(),
+		10*time.Millisecond,
+		time.Second,
+		func() (bool, error) {
+			conn, err = p.pullRegular()
+			if err != nil {
+				return false, err
+			}
+			if conn != nil {
+				return true, nil
+			}
+			return false, nil
+		},
+	)
+	return conn, err
 }
 
 // pullForced allways opens a new connection and adds it
