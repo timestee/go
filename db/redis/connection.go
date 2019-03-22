@@ -1,6 +1,6 @@
 // Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -189,7 +189,7 @@ func (conn *Connection) Return() error {
 // ensureProtocol retrieves a protocol from the pool if needed.
 func (conn *Connection) ensureProtocol() error {
 	if conn.resp == nil {
-		p, err := conn.database.pool.pullRetry()
+		p, err := conn.database.pool.pullForced()
 		if err != nil {
 			return err
 		}

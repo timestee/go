@@ -1,6 +1,6 @@
 // Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -37,7 +37,7 @@ const (
 	msgConnectionEstablishing = "cannot establish connection"
 	msgConnectionBroken       = "cannot %s, connection is broken"
 	msgInvalidResponse        = "invalid server response: %q"
-	msgServerResponse         = "server responded error: %v"
+	msgServerResponse         = "server responded error"
 	msgTimeout                = "timeout waiting for response"
 	msgAuthenticate           = "cannot authenticate"
 	msgSelectDatabase         = "cannot select database"

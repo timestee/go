@@ -1,6 +1,6 @@
 // Tideland Go Library - DB - Redis Client - Unit Tests
 //
-// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -12,6 +12,7 @@ package redis_test
 //--------------------
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -24,9 +25,9 @@ import (
 // TESTS
 //--------------------
 
-func TestUnixSocketConnection(t *testing.T) {
+func TestTCPConnection(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert, redis.UnixConnection("", 0))
+	conn, restore := connectDatabase(t, assert, redis.TCPConnection("", 0))
 	defer restore()
 
 	result, err := conn.Do("echo", "Hello, World!")
@@ -37,34 +38,9 @@ func TestUnixSocketConnection(t *testing.T) {
 	assertEqualString(assert, result, 0, "+PONG")
 }
 
-func BenchmarkUnixConnection(b *testing.B) {
+func BenchmarkTCPConnection(b *testing.B) {
 	assert := asserts.NewTesting(b, true)
-	conn, restore := connectDatabase(assert, redis.UnixConnection("", 0))
-	defer restore()
-
-	for i := 0; i < b.N; i++ {
-		result, err := conn.Do("ping")
-		assert.Nil(err)
-		assertEqualString(assert, result, 0, "+PONG")
-	}
-}
-
-func TestTcpConnection(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert, redis.TcpConnection("", 0))
-	defer restore()
-
-	result, err := conn.Do("echo", "Hello, World!")
-	assert.Nil(err)
-	assertEqualString(assert, result, 0, "Hello, World!")
-	result, err = conn.Do("ping")
-	assert.Nil(err)
-	assertEqualString(assert, result, 0, "+PONG")
-}
-
-func BenchmarkTcpConnection(b *testing.B) {
-	assert := asserts.NewTesting(b, true)
-	conn, restore := connectDatabase(assert, redis.TcpConnection("", 0))
+	conn, restore := connectDatabase(nil, assert, redis.TCPConnection("", 0))
 	defer restore()
 
 	for i := 0; i < b.N; i++ {
@@ -76,7 +52,7 @@ func BenchmarkTcpConnection(b *testing.B) {
 
 func TestPipelining(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	ppl, restore := pipelineDatabase(assert)
+	ppl, restore := pipelineDatabase(t, assert)
 	defer restore()
 
 	for i := 0; i < 1000; i++ {
@@ -95,7 +71,7 @@ func TestPipelining(t *testing.T) {
 
 func BenchmarkPipelining(b *testing.B) {
 	assert := asserts.NewTesting(b, true)
-	ppl, restore := pipelineDatabase(assert)
+	ppl, restore := pipelineDatabase(nil, assert)
 	defer restore()
 
 	for i := 0; i < b.N; i++ {
@@ -113,38 +89,42 @@ func BenchmarkPipelining(b *testing.B) {
 
 func TestOptions(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	db, err := redis.Open(redis.UnixConnection("", 0), redis.PoolSize(5))
+	db, err := redis.Open(redis.TCPConnection("", 0), redis.PoolSize(5))
 	assert.Nil(err)
 	defer db.Close()
 
 	options := db.Options()
-	assert.Equal(options.Address, "/tmp/redis.sock")
-	assert.Equal(options.Network, "unix")
+	assert.Equal(options.Address, "127.0.0.1:6379")
+	assert.Equal(options.Network, "tcp")
 	assert.Equal(options.Timeout, 30*time.Second)
 	assert.Equal(options.Index, 0)
 	assert.Equal(options.Password, "")
 	assert.Equal(options.PoolSize, 5)
 	assert.Equal(options.Logging, false)
-	assert.Equal(options.Monitoring, false)
 }
 
 func TestConcurrency(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	db, err := redis.Open(redis.UnixConnection("", 0), redis.PoolSize(5))
+	db, err := redis.Open(redis.TCPConnection("", 0), redis.PoolSize(5))
 	assert.Nil(err)
 	defer db.Close()
 
+	var wg sync.WaitGroup
 	for i := 0; i < 500; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			conn, err := db.Connection()
-			assert.Nil(err)
+			if !assert.Nil(err) {
+				t.FailNow()
+			}
 			defer conn.Return()
 			result, err := conn.Do("ping")
 			assert.Nil(err)
 			assertEqualString(assert, result, 0, "+PONG")
-			time.Sleep(10 * time.Millisecond)
 		}()
 	}
+	wg.Wait()
 }
 
 //--------------------
@@ -155,20 +135,29 @@ func init() {
 	logger.SetLevel(logger.LevelDebug)
 }
 
-// testDatabaseIndex defines the database index for the tests to not
-// get in conflict with existing databases.
-const testDatabaseIndex = 0
+const (
+	// testTimeout defines the time waited to establish a connection.
+	testTimeout = 100 * time.Millisecond
+
+	// testDatabaseIndex defines the database index for the tests to not
+	// get in conflict with existing databases.
+	testDatabaseIndex = 0
+)
 
 // connectDatabase connects to a Redis database with the given options
 // and returns a connection and a function for closing. This function
 // shall be called with defer.
-func connectDatabase(assert audit.Assertion, options ...redis.Option) (*redis.Connection, func()) {
+func connectDatabase(t *testing.T, assert *asserts.Asserts, options ...redis.Option) (*redis.Connection, func()) {
 	// Open and connect database.
-	options = append(options, redis.Index(testDatabaseIndex, ""))
+	options = append(options, redis.TCPConnection("", testTimeout), redis.Index(testDatabaseIndex, ""))
 	db, err := redis.Open(options...)
-	assert.Nil(err)
+	if !assert.Nil(err) {
+		t.FailNow()
+	}
 	conn, err := db.Connection()
-	assert.Nil(err)
+	if !assert.Nil(err) {
+		t.FailNow()
+	}
 	// Flush all keys to get a clean testing environment.
 	_, err = conn.Do("flushdb")
 	assert.Nil(err)
@@ -182,13 +171,17 @@ func connectDatabase(assert audit.Assertion, options ...redis.Option) (*redis.Co
 // pipelineDatabase connects to a Redis database with the given options
 // and returns a pipeling and a function for closing. This function
 // shall be called with a defer.
-func pipelineDatabase(assert audit.Assertion, options ...redis.Option) (*redis.Pipeline, func()) {
+func pipelineDatabase(t *testing.T, assert *asserts.Asserts, options ...redis.Option) (*redis.Pipeline, func()) {
 	// Open and connect database.
-	options = append(options, redis.Index(testDatabaseIndex, ""))
+	options = append(options, redis.TCPConnection("", testTimeout), redis.Index(testDatabaseIndex, ""))
 	db, err := redis.Open(options...)
-	assert.Nil(err)
+	if !assert.Nil(err) {
+		t.FailNow()
+	}
 	ppl, err := db.Pipeline()
-	assert.Nil(err)
+	if !assert.Nil(err) {
+		t.FailNow()
+	}
 	// Return pipeline and cleanup function.
 	return ppl, func() {
 		db.Close()
@@ -198,13 +191,17 @@ func pipelineDatabase(assert audit.Assertion, options ...redis.Option) (*redis.P
 // subscribeDatabase connects to a Redis database with the given options
 // and returns a subscription and a function for closing. This function
 // shall be called with a defer.
-func subscribeDatabase(assert audit.Assertion, options ...redis.Option) (*redis.Subscription, func()) {
+func subscribeDatabase(t *testing.T, assert *asserts.Asserts, options ...redis.Option) (*redis.Subscription, func()) {
 	// Open and connect database.
-	options = append(options, redis.Index(testDatabaseIndex, ""))
+	options = append(options, redis.TCPConnection("", testTimeout), redis.Index(testDatabaseIndex, ""))
 	db, err := redis.Open(options...)
-	assert.Nil(err)
+	if !assert.Nil(err) {
+		t.FailNow()
+	}
 	sub, err := db.Subscription()
-	assert.Nil(err)
+	if !assert.Nil(err) {
+		t.FailNow()
+	}
 	// Return subscription and cleanup function.
 	return sub, func() {
 		sub.Close()
@@ -213,31 +210,10 @@ func subscribeDatabase(assert audit.Assertion, options ...redis.Option) (*redis.
 }
 
 // assertEqualString checks if the result at index is value.
-func assertEqualString(assert audit.Assertion, result *redis.ResultSet, index int, value string) {
+func assertEqualString(assert *asserts.Asserts, result *redis.ResultSet, index int, value string) {
 	s, err := result.StringAt(index)
 	assert.Nil(err)
 	assert.Equal(s, value)
-}
-
-// assertEqualBool checks if the result at index is value.
-func assertEqualBool(assert audit.Assertion, result *redis.ResultSet, index int, value bool) {
-	b, err := result.BoolAt(index)
-	assert.Nil(err)
-	assert.Equal(b, value)
-}
-
-// assertEqualInt checks if the result at index is value.
-func assertEqualInt(assert audit.Assertion, result *redis.ResultSet, index, value int) {
-	i, err := result.IntAt(index)
-	assert.Nil(err)
-	assert.Equal(i, value)
-}
-
-// assertNil checks if the result at index is nil.
-func assertNil(assert audit.Assertion, result *redis.ResultSet, index int) {
-	v, err := result.ValueAt(index)
-	assert.Nil(err)
-	assert.Nil(v)
 }
 
 // EOF

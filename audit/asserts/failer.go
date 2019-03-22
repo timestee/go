@@ -364,7 +364,7 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 }
 
 // NewTesting creates a new Asserts instance for use with the testing
-// package. The *testing.T has to be passed as failable, the first argument.
+// package. The *testing.T has to be passed as failable, the argument.
 // shallFail controls if a failing assertion also lets fail the Go test.
 func NewTesting(f Failable, shallFail bool) *Asserts {
 	return New(&testingFailer{

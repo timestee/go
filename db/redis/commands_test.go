@@ -1,6 +1,6 @@
 // Tideland Go Library - DB - Redis Client - Unit Tests
 //
-// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -26,7 +26,7 @@ import (
 
 func TestSimpleKeyOperations(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	ok, err := conn.DoOK("set", "sko:a", 1)
@@ -83,7 +83,7 @@ func TestSimpleKeyOperations(t *testing.T) {
 
 func TestScan(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	for i := 97; i < 123; i++ {
@@ -106,7 +106,7 @@ func TestScan(t *testing.T) {
 		cursor, result, err := conn.DoScan("scan", loopCursor, "match", "scan:*", "count", 5)
 		assert.Nil(err)
 
-		loopCount += 1
+		loopCount++
 		valueCount += result.Len()
 
 		if cursor == 0 {
@@ -120,7 +120,7 @@ func TestScan(t *testing.T) {
 
 func TestHash(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	e := map[string]string{
@@ -157,7 +157,7 @@ func TestHash(t *testing.T) {
 
 func TestHScan(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	for i := 97; i < 123; i++ {
@@ -182,7 +182,7 @@ func TestHScan(t *testing.T) {
 		hash, err := result.Hash()
 		assert.Nil(err)
 
-		loopCount += 1
+		loopCount++
 		valueCount += hash.Len()
 
 		if cursor == 0 {
@@ -196,7 +196,7 @@ func TestHScan(t *testing.T) {
 
 func TestList(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	pushed, err := conn.DoInt("lpush", "list", 1, 2, 3, 4, 5)
@@ -210,7 +210,7 @@ func TestList(t *testing.T) {
 
 func TestSet(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	added, err := conn.DoInt("sadd", "set", 1, 2, 3, 4, 5)
@@ -231,7 +231,7 @@ func TestSet(t *testing.T) {
 
 func TestSScan(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	for i := 97; i < 123; i++ {
@@ -253,7 +253,7 @@ func TestSScan(t *testing.T) {
 		cursor, result, err := conn.DoScan("sscan", "scan-set", loopCursor, "match", "*", "count", 5)
 		assert.Nil(err)
 
-		loopCount += 1
+		loopCount++
 		valueCount += result.Len()
 
 		if cursor == 0 {
@@ -267,7 +267,7 @@ func TestSScan(t *testing.T) {
 
 func TestSortedSet(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	added, err := conn.DoInt("zadd", "sorted-set", 1, "a", 2, "b", 3, "c", 4, "d", 5, "e")
@@ -289,7 +289,7 @@ func TestSortedSet(t *testing.T) {
 
 func TestZScan(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	for i := 97; i < 123; i++ {
@@ -312,7 +312,7 @@ func TestZScan(t *testing.T) {
 		cursor, result, err := conn.DoScan("zscan", "scan-sorted-set", loopCursor, "match", "*", "count", 5)
 		assert.Nil(err)
 
-		loopCount += 1
+		loopCount++
 		scoredValues, err := result.ScoredValues(true)
 		assert.Nil(err)
 		valueCount += scoredValues.Len()
@@ -328,7 +328,7 @@ func TestZScan(t *testing.T) {
 
 func TestTransactionConnection(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	ok, err := conn.DoOK("multi")
@@ -359,7 +359,7 @@ func TestTransactionConnection(t *testing.T) {
 
 	sig := make(chan struct{})
 	go func() {
-		asyncConn, restore := connectDatabase(assert)
+		asyncConn, restore := connectDatabase(t, assert)
 		defer restore()
 		<-sig
 		asyncConn.Do("set", "tx:h", 99)
@@ -383,9 +383,9 @@ func TestTransactionConnection(t *testing.T) {
 
 func TestTransactionPipeline(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, connRestore := connectDatabase(assert)
+	conn, connRestore := connectDatabase(t, assert)
 	defer connRestore()
-	ppl, pplRestore := pipelineDatabase(assert)
+	ppl, pplRestore := pipelineDatabase(t, assert)
 	defer pplRestore()
 
 	err := ppl.Do("multi")
@@ -417,17 +417,17 @@ func TestTransactionPipeline(t *testing.T) {
 
 func TestTransactionPipelineWatch(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	sigC := audit.MakeSigChan()
+	waitc := asserts.MakeWaitChan()
 	// Background tasks.
-	bgConn, bgConnRestore := connectDatabase(assert)
+	bgConn, bgConnRestore := connectDatabase(t, assert)
 	defer bgConnRestore()
 	go func() {
-		<-sigC
+		<-waitc
 		bgConn.Do("set", "watch:b", 99)
-		sigC <- struct{}{}
+		waitc <- struct{}{}
 	}()
 	// Foreground tasks.
-	fgConn, fgConnRestore := pipelineDatabase(assert)
+	fgConn, fgConnRestore := pipelineDatabase(t, assert)
 	defer fgConnRestore()
 	fgConn.Do("set", "watch:b", 0)
 	fgConn.Do("watch", "watch:b")
@@ -435,9 +435,9 @@ func TestTransactionPipelineWatch(t *testing.T) {
 	assert.Nil(err)
 	fgConn.Do("set", "watch:a", 1)
 	fgConn.Do("set", "watch:b", 2)
-	sigC <- struct{}{}
+	waitc <- struct{}{}
 	fgConn.Do("set", "watch:c", 3)
-	<-sigC
+	<-waitc
 	fgConn.Do("exec")
 	_, err = fgConn.Collect()
 	assert.True(errors.IsError(err, redis.ErrTimeout))
@@ -448,7 +448,7 @@ func TestTransactionPipelineWatch(t *testing.T) {
 
 func TestScripting(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, restore := connectDatabase(assert)
+	conn, restore := connectDatabase(t, assert)
 	defer restore()
 
 	script := "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}"
@@ -485,9 +485,9 @@ func TestScripting(t *testing.T) {
 
 func TestPubSub(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	conn, connRestore := connectDatabase(assert)
+	conn, connRestore := connectDatabase(t, assert)
 	defer connRestore()
-	sub, subRestore := subscribeDatabase(assert)
+	sub, subRestore := subscribeDatabase(t, assert)
 	defer subRestore()
 
 	_, err := conn.Do("subscribe", "pubsub")

@@ -1,12 +1,12 @@
 // Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package redis of the Tideland Go Library provides a very powerful as well
-// as convenient client for the Redis database.
+// Package redis provides a very powerful as well as convenient client
+// for the Redis database.
 //
 // After opening the database with Open() a pooled connection can be
 // retrieved using db.Connection(). It has be returnded to the pool with

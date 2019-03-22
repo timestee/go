@@ -1,6 +1,6 @@
 // Tideland Go Library - DB - Redis Client
 //
-// Copyright (C) 2009-2019 Frank Mueller / Oldenburg / Germany
+// Copyright (C) 2017-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
@@ -78,7 +78,7 @@ func (rs *ResultSet) ValueAt(index int) (Value, error) {
 	}
 	value, ok := rs.items[index].(Value)
 	if !ok {
-		return nil, errors.New(ErrIllegalItemType, msgIllegalItemIndex, index, "value")
+		return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "value")
 	}
 	return value, nil
 }
@@ -120,7 +120,7 @@ func (rs *ResultSet) ResultSetAt(index int) (*ResultSet, error) {
 	}
 	resultSet, ok := rs.items[index].(*ResultSet)
 	if !ok {
-		return nil, errors.New(ErrIllegalItemType, msgIllegalItemIndex, index, "result set")
+		return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "result set")
 	}
 	return resultSet, nil
 }
