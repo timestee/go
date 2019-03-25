@@ -189,7 +189,7 @@ func (conn *Connection) Return() error {
 // ensureProtocol retrieves a protocol from the pool if needed.
 func (conn *Connection) ensureProtocol() error {
 	if conn.resp == nil {
-		p, err := conn.database.pool.pullForced()
+		p, err := conn.database.pool.pullRetry()
 		if err != nil {
 			return err
 		}
