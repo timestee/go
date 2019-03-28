@@ -1,27 +1,26 @@
-// Tideland Go Library - DB - CouchDB Client - Core
+// Tideland Go Library - DB - CouchDB Client
 //
 // Copyright (C) 2016-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package db_test
+package couchdb_test
 
 //--------------------
 // IMPORTS
 //--------------------
 
 import (
-	"strings"
 	"testing"
 
 	"tideland.dev/go/audit/asserts"
-	"tideland.dev/go/text/etc"
-	"tideland.dev/go/text/identifier"
+	"tideland.dev/go/audit/generators"
+	"tideland.dev/go/dsa/identifier"
 	"tideland.dev/go/trace/errors"
 	"tideland.dev/go/trace/logger"
 
-	"tideland.dev/go/db/couch/db"
+	"tideland.dev/go/db/couchdb"
 )
 
 //--------------------
@@ -29,172 +28,144 @@ import (
 //--------------------
 
 const (
-	EmptyCfg      = "{etc}"
-	TemplateDBcfg = "{etc {hostname localhost}{port 5984}{database tgocouch-testing-<<DATABASE>>}{debug-logging true}}"
+	// testDB is the name of the database used for testing.
+	testDB = "tmp-couchdb-testing"
 )
 
 //--------------------
 // TESTS
 //--------------------
 
-// TestNoConfig tests opening the database without a configuration.
-func TestNoConfig(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-
-	cdb, err := couchdb.Open(nil)
-	assert.ErrorMatch(err, ".* cannot open database without configuration")
-	assert.Nil(cdb)
-}
-
 // TestInvalidConfiguration tests opening the database with an invalid
 //  configuration.
 func TestInvalidConfiguration(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+	assert := asserts.NewTesting(t, true)
 
-	// Open with illegal configuration is okay as there's
-	// so far now access to the database.
-	cfg, err := couchdb.Configure("some-non-existing-host", 12345, "dont-care")
-	assert.Nil(err)
-	cdb, err := couchdb.Open(cfg)
+	// Open with illegal configuration is okay, only
+	// usage of this will fail.
+	cdb, err := couchdb.Open(couchdb.Host("some-non-existing-host", 12345))
 	assert.Nil(err)
 
 	// Deleting the database has to fail.
-	resp := cdb.DeleteDatabase()
+	resp := cdb.Manager().DeleteDatabase()
 	assert.Equal(resp.StatusCode(), couchdb.StatusBadRequest)
 }
 
 // TestVersion tests the retrieving of the DBMS version.
 func TestVersion(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-
-	cfg, err := couchdb.Configure("localhost", 5984, "tgocouch-testing-temporary")
-	assert.Nil(err)
+	assert := asserts.NewTesting(t, true)
 
 	// Open the database to retrieve the DBMS version.
-	cdb, err := couchdb.Open(cfg)
+	cdb, err := couchdb.Open(couchdb.Name(testDB))
 	assert.Nil(err)
-	vsn, err := cdb.Version()
+	vsn, err := cdb.Manager().Version()
 	assert.Nil(err)
 
 	assert.Logf("CouchDB version %v", vsn)
 }
 
-// TestAllDatabases tests the retrieving of all databases.
-func TestAllDatabases(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
+// TestAllDatabaseIDs tests the retrieving of all database IDs.
+func TestAllDatabaseIDs(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
 
-	cfg, err := couchdb.Configure("localhost", 5984, "tgocouch-testing-temporary")
+	// Open the database.
+	cdb, err := couchdb.Open(couchdb.Name(testDB))
 	assert.Nil(err)
-
-	// This time also use OpenPath() to check its behavior.
-	cdb, err := couchdb.OpenPath(cfg, "couchdb")
-	assert.Nil(err)
-	_, err = cdb.AllDatabases()
-	assert.Nil(err)
-
-	cfg, err = etc.ReadString(EmptyCfg)
-	assert.Nil(err)
-
-	cdb, err = couchdb.OpenPath(cfg, "")
-	assert.Nil(err)
-	_, err = cdb.AllDatabases()
+	_, err = cdb.Manager().AllDatabaseIDs()
 	assert.Nil(err)
 }
 
 // TestCreateDeleteDatabase tests the creation and deletion
 // of a database.
 func TestCreateDeleteDatabase(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-
-	cfg, err := couchdb.Configure("localhost", 5984, "tgocouch-testing-temporary")
-	assert.Nil(err)
+	assert := asserts.NewTesting(t, true)
 
 	// Open and check existence.
-	cdb, err := couchdb.Open(cfg)
+	cdb, err := couchdb.Open(couchdb.Name(testDB))
 	assert.Nil(err)
-	has, err := cdb.HasDatabase()
+	has, err := cdb.Manager().HasDatabase()
 	assert.Nil(err)
 	assert.False(has)
 
 	// Create and check existence,
-	resp := cdb.CreateDatabase()
+	resp := cdb.Manager().CreateDatabase()
 	assert.Nil(resp.Error())
 	assert.True(resp.IsOK())
-	has, err = cdb.HasDatabase()
+	has, err = cdb.Manager().HasDatabase()
 	assert.Nil(err)
 	assert.True(has)
 
 	// Delete and check existence.
-	resp = cdb.DeleteDatabase()
+	resp = cdb.Manager().DeleteDatabase()
 	assert.True(resp.IsOK())
-	has, err = cdb.HasDatabase()
+	has, err = cdb.Manager().HasDatabase()
 	assert.Nil(err)
 	assert.False(has)
 }
 
 // TestCreateDesignDocument tests creating new design documents.
 func TestCreateDesignDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareFilledDatabase("create-design", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareFilledDatabase(assert, "tmp-create-design")
 	defer cleanup()
 
 	// Create design document and check if it has been created.
-	allDesignA, err := cdb.AllDesigns()
+	designIDsA, err := cdb.Designs().IDs()
 	assert.Nil(err)
 
-	design, err := cdb.Design("testing-a")
+	design, err := cdb.Designs().Design("testing-a")
 	assert.Nil(err)
 	assert.Equal(design.ID(), "testing-a")
 	design.SetView("index-a", "function(doc){ if (doc._id.indexOf('a') !== -1) { emit(doc._id, doc._rev);  } }", "")
 	resp := design.Write()
 	assert.True(resp.IsOK())
 
-	design, err = cdb.Design("testing-b")
+	design, err = cdb.Designs().Design("testing-b")
 	assert.Nil(err)
 	assert.Equal(design.ID(), "testing-b")
 	design.SetView("index-b", "function(doc){ if (doc._id.indexOf('b') !== -1) { emit(doc._id, doc._rev);  } }", "")
 	resp = design.Write()
 	assert.True(resp.IsOK())
 
-	allDesignB, err := cdb.AllDesigns()
+	designIDsB, err := cdb.Designs().IDs()
 	assert.Nil(err)
-	assert.Equal(len(allDesignB), len(allDesignA)+2)
+	assert.Equal(len(designIDsB), len(designIDsA)+2)
 }
 
 // TestReadDesignDocument tests reading design documents.
 func TestReadDesignDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareFilledDatabase("read-design", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareFilledDatabase(assert, "tmp-read-design")
 	defer cleanup()
 
 	// Create design document and read it again.
-	designA, err := cdb.Design("testing-a")
+	designA, err := cdb.Designs().Design("testing-a")
 	assert.Nil(err)
 	assert.Equal(designA.ID(), "testing-a")
 	designA.SetView("index-a", "function(doc){ if (doc._id.indexOf('a') !== -1) { emit(doc._id, doc._rev);  } }", "")
 	resp := designA.Write()
 	assert.True(resp.IsOK())
 
-	designB, err := cdb.Design("testing-a")
+	designB, err := cdb.Designs().Design("testing-a")
 	assert.Nil(err)
 	assert.Equal(designB.ID(), "testing-a")
 }
 
 // TestUpdateDesignDocument tests updating design documents.
 func TestUpdateDesignDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareFilledDatabase("update-design", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareFilledDatabase(assert, "tmp-update-design")
 	defer cleanup()
 
 	// Create design document and read it again.
-	designA, err := cdb.Design("testing-a")
+	designA, err := cdb.Designs().Design("testing-a")
 	assert.Nil(err)
 	assert.Equal(designA.ID(), "testing-a")
 	designA.SetView("index-a", "function(doc){ if (doc._id.indexOf('a') !== -1) { emit(doc._id, doc._rev);  } }", "")
 	resp := designA.Write()
 	assert.True(resp.IsOK())
 
-	designB, err := cdb.Design("testing-a")
+	designB, err := cdb.Designs().Design("testing-a")
 	assert.Nil(err)
 	assert.Equal(designB.ID(), "testing-a")
 
@@ -203,7 +174,7 @@ func TestUpdateDesignDocument(t *testing.T) {
 	resp = designB.Write()
 	assert.True(resp.IsOK())
 
-	designC, err := cdb.Design("testing-a")
+	designC, err := cdb.Designs().Design("testing-a")
 	assert.Nil(err)
 	assert.Equal(designC.ID(), "testing-a")
 	_, _, ok := designC.View("index-a")
@@ -214,39 +185,39 @@ func TestUpdateDesignDocument(t *testing.T) {
 
 // TestDeleteDesignDocument tests deleting design documents.
 func TestDeleteDesignDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareFilledDatabase("delete-design", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareFilledDatabase(assert, "tmp-delete-design")
 	defer cleanup()
 
 	// Create design document and check if it has been created.
-	allDesignA, err := cdb.AllDesigns()
+	designIDsA, err := cdb.Designs().IDs()
 	assert.Nil(err)
 
-	designA, err := cdb.Design("testing")
+	designA, err := cdb.Designs().Design("testing")
 	assert.Nil(err)
 	designA.SetView("index-a", "function(doc){ if (doc._id.indexOf('a') !== -1) { emit(doc._id, doc._rev);  } }", "")
 	resp := designA.Write()
 	assert.True(resp.IsOK())
 
-	allDesignB, err := cdb.AllDesigns()
+	designIDsB, err := cdb.Designs().IDs()
 	assert.Nil(err)
-	assert.Equal(len(allDesignB), len(allDesignA)+1)
+	assert.Equal(len(designIDsB), len(designIDsA)+1)
 
 	// Read it and delete it.
-	designB, err := cdb.Design("testing")
+	designB, err := cdb.Designs().Design("testing")
 	assert.Nil(err)
 	resp = designB.Delete()
 	assert.True(resp.IsOK())
 
-	allDesignC, err := cdb.AllDesigns()
+	designIDsC, err := cdb.Designs().IDs()
 	assert.Nil(err)
-	assert.Equal(len(allDesignC), len(allDesignA))
+	assert.Equal(len(designIDsC), len(designIDsA))
 }
 
 // TestCreateDocument tests creating new documents.
 func TestCreateDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareDatabase("create-document", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareDatabase(assert, "tmp-create-document")
 	defer cleanup()
 
 	// Create document without ID.
@@ -274,8 +245,8 @@ func TestCreateDocument(t *testing.T) {
 
 // TestReadDocument tests reading a document.
 func TestReadDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareDatabase("read-document", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareDatabase(assert, "tmp-read-document")
 	defer cleanup()
 
 	// Create test document.
@@ -307,8 +278,8 @@ func TestReadDocument(t *testing.T) {
 
 // TestUpdateDocument tests updating documents.
 func TestUpdateDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareDatabase("update-document", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareDatabase(assert, "tmp-update-document")
 	defer cleanup()
 
 	// Create first revision.
@@ -365,8 +336,8 @@ func TestUpdateDocument(t *testing.T) {
 
 // TestDeleteDocument tests deleting a document.
 func TestDeleteDocument(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareDatabase("delete-document", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareDatabase(assert, "tmp-delete-document")
 	defer cleanup()
 
 	// Create test document.
@@ -405,8 +376,8 @@ func TestDeleteDocument(t *testing.T) {
 
 // TestDeleteDocumentByID tests deleting a document by identifier.
 func TestDeleteDocumentByID(t *testing.T) {
-	assert := audit.NewTestingAssertion(t, true)
-	cdb, cleanup := prepareDatabase("delete-document-by-id", assert)
+	assert := asserts.NewTesting(t, true)
+	cdb, cleanup := prepareDatabase(assert, "tmp-delete-document-by-id")
 	defer cleanup()
 
 	// Create test document.
@@ -454,35 +425,29 @@ type MyDocument struct {
 
 // prepareDatabase opens the database, deletes a possible test
 // database, and creates it newly.
-func prepareDatabase(database string, assert audit.Assertion) (couchdb.CouchDB, func()) {
+func prepareDatabase(assert *asserts.Asserts, name string) (*couchdb.Database, func()) {
 	logger.SetLevel(logger.LevelDebug)
-	cfgstr := strings.Replace(TemplateDBcfg, "<<DATABASE>>", database, 1)
-	cfg, err := etc.ReadString(cfgstr)
+	cdb, err := couchdb.Open(couchdb.Name(name))
 	assert.Nil(err)
-	cdb, err := couchdb.Open(cfg)
-	assert.Nil(err)
-	rs := cdb.DeleteDatabase()
-	rs = cdb.CreateDatabase()
+	rs := cdb.Manager().DeleteDatabase()
+	rs = cdb.Manager().CreateDatabase()
 	assert.Nil(rs.Error())
 	assert.True(rs.IsOK())
-	return cdb, func() { cdb.DeleteDatabase() }
+	return cdb, func() { cdb.Manager().DeleteDatabase() }
 }
 
 // prepareFilledDatabase opens the database, deletes a possible test
 // database, creates it newly and adds some data.
-func prepareFilledDatabase(database string, assert audit.Assertion) (couchdb.CouchDB, func()) {
+func prepareFilledDatabase(assert *asserts.Asserts, name string) (*couchdb.Database, func()) {
 	logger.SetLevel(logger.LevelDebug)
-	cfgstr := strings.Replace(TemplateDBcfg, "<<DATABASE>>", database, 1)
-	cfg, err := etc.ReadString(cfgstr)
+	cdb, err := couchdb.Open(couchdb.Name(name))
 	assert.Nil(err)
-	cdb, err := couchdb.Open(cfg)
-	assert.Nil(err)
-	rs := cdb.DeleteDatabase()
-	rs = cdb.CreateDatabase()
+	rs := cdb.Manager().DeleteDatabase()
+	rs = cdb.Manager().CreateDatabase()
 	assert.Nil(rs.Error())
 	assert.True(rs.IsOK())
 
-	gen := audit.NewGenerator(audit.FixedRand())
+	gen := generators.New(generators.FixedRand())
 	docs := []interface{}{}
 	for i := 0; i < 1000; i++ {
 		first, middle, last := gen.Name()
@@ -501,7 +466,7 @@ func prepareFilledDatabase(database string, assert audit.Assertion) (couchdb.Cou
 		assert.True(result.OK)
 	}
 
-	return cdb, func() { cdb.DeleteDatabase() }
+	return cdb, func() { cdb.Manager().DeleteDatabase() }
 }
 
 // EOF

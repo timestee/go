@@ -1,11 +1,11 @@
-// Tideland Go Library - DB - CouchDB Client - Core
+// Tideland Go Library - DB - CouchDB Client
 //
 // Copyright (C) 2016-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package db
+package couchdb
 
 //--------------------
 // PARAMETERIZABLE

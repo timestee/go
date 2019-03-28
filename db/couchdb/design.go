@@ -1,25 +1,33 @@
-// Tideland Go Library - DB - CouchDB Client - Core
+// Tideland Go Library - DB - CouchDB Client
 //
 // Copyright (C) 2016-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package db
+package couchdb
+
+//--------------------
+// IMPORTS
+//--------------------
+
+import (
+	"encoding/json"
+)
 
 //--------------------
 // DESIGN
 //--------------------
 
-// Design provides convenient access to a design document.
+// Design provides convenient access to one design document.
 type Design struct {
-	db       *DB
+	db       *Database
 	id       string
 	document *designDocument
 }
 
 // newDesign creates a design instance.
-func newDesign(db *DB, id string) (*Design, error) {
+func newDesign(db *Database, id string) (*Design, error) {
 	designID := "_design/" + id
 	ok, err := db.HasDocument(designID)
 	if err != nil {
@@ -123,6 +131,49 @@ func (d *Design) Write(params ...Parameter) *ResultSet {
 // Delete removes a design document.
 func (d *Design) Delete(params ...Parameter) *ResultSet {
 	return d.db.DeleteDocument(d.document, params...)
+}
+
+//--------------------
+// DESIGNS
+//--------------------
+
+// Designs manages access to all design documents.
+type Designs struct {
+	db *Database
+}
+
+// newDesigns creates a designs instance.
+func newDesigns(db *Database) *Designs {
+	return &Designs{
+		db: db,
+	}
+}
+
+// IDs returns the identifiers of all design documents.
+func (ds *Designs) IDs() ([]string, error) {
+	jstart, _ := json.Marshal("_design/")
+	jend, _ := json.Marshal("_design0/")
+	startEndKey := Query(KeyValue{"startkey", string(jstart)}, KeyValue{"endkey", string(jend)})
+	rs := ds.db.get(ds.db.databasePath("_all_docs"), nil, startEndKey)
+	if !rs.IsOK() {
+		return nil, rs.Error()
+	}
+	designRows := couchdbRows{}
+	err := rs.Document(&designRows)
+	if err != nil {
+		return nil, err
+	}
+	ids := []string{}
+	for _, row := range designRows.Rows {
+		ids = append(ids, row.ID)
+	}
+	return ids, nil
+
+}
+
+// Design returns one design document by identifier.
+func (ds *Designs) Design(id string) (*Design, error) {
+	return newDesign(ds.db, id)
 }
 
 //--------------------

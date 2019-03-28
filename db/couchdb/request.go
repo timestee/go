@@ -1,11 +1,11 @@
-// Tideland Go Library - DB - CouchDB Client - Core
+// Tideland Go Library - DB - CouchDB Client
 //
 // Copyright (C) 2016-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package db
+package couchdb
 
 //--------------------
 // IMPORTS
@@ -28,7 +28,7 @@ import (
 
 // request is responsible for an individual request to a CouchDB.
 type request struct {
-	db        *DB
+	db        *Database
 	path      string
 	doc       interface{}
 	docReader io.Reader
@@ -38,7 +38,7 @@ type request struct {
 
 // newRequest creates a new request for the given location, method, and path. If needed
 // query and header can be added like newRequest().setQuery().setHeader.do().
-func newRequest(db *DB, path string, doc interface{}) *request {
+func newRequest(db *Database, path string, doc interface{}) *request {
 	req := &request{
 		db:     db,
 		path:   path,
@@ -134,7 +134,7 @@ func (req *request) do(method string) *ResultSet {
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
 	// Log if wanted.
-	if req.db.debugLog {
+	if req.db.logging {
 		logger.Debugf("couchdb request '%s %s'", method, u)
 	}
 	// Perform HTTP request.
