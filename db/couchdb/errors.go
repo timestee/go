@@ -13,6 +13,7 @@ package couchdb
 
 // Error codes.
 const (
+	ErrStartupActionFailed = "E001"
 	ErrInvalidVersion      = "E002"
 	ErrInvalidDocument     = "E003"
 	ErrNoIdentifier        = "E004"
@@ -24,9 +25,11 @@ const (
 	ErrUnmarshallingDoc    = "E010"
 	ErrReadingResponseBody = "E012"
 	ErrNoSession           = "E101"
-	ErrUserExists          = "E102"
+	ErrUserNotFound        = "E102"
+	ErrUserExists          = "E103"
 
-	msgInvalidVersion      = "CouchDB returns no or invalid version: '%v'"
+	msgStartupActionFailed = "startup action failed for version '%v'"
+	msgInvalidVersion      = "CouchDB returns no or invalid version"
 	msgInvalidDocument     = "document needs _id and _rev"
 	msgNoIdentifier        = "document contains no identifier"
 	msgNotFound            = "document with identifier '%s' not found"
@@ -37,6 +40,7 @@ const (
 	msgUnmarshallingDoc    = "cannot unmarshal database document"
 	msgReadingResponseBody = "cannot read response body"
 	msgNoSession           = "command needs authenticated session"
+	msgUserNotFound        = "user not found"
 	msgUserExists          = "user already exists"
 )
 

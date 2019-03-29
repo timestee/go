@@ -17,6 +17,66 @@ import (
 )
 
 //--------------------
+// STEPS
+//--------------------
+
+// StepAction is the concrete action of a step.
+type StepAction func(db *Database) error
+
+// Step returns the version after a startup step and the action
+// that shall be performed on the database. The returned action
+// will only be performed, if the current if the new version is
+// than the current version.
+type Step func() (version.Version, StepAction)
+
+// execute performs one step.
+func (step Step) execute(db *Database) error {
+	// Retrieve current database version.
+	resp := db.ReadDocument(DatabaseVersionID)
+	if !resp.IsOK() {
+		return resp.Error()
+	}
+	dv := DatabaseVersion{}
+	err := resp.Document(&dv)
+	if err != nil {
+		return err
+	}
+	cv, err := version.Parse(dv.Version)
+	if err != nil {
+		return errors.Annotate(err, ErrInvalidVersion, msgInvalidVersion)
+	}
+	// Get new version of the step and action.
+	nv, action := step()
+	// Check the new version.
+	precedence, _ := nv.Compare(cv)
+	if precedence != version.Newer {
+		return nil
+	}
+	// Now perform the step action and update the
+	// version document.
+	err = action(db)
+	if err != nil {
+		return errors.Annotate(err, ErrStartupActionFailed, msgStartupActionFailed, nv)
+	}
+	dv.Version = nv.String()
+	resp = db.UpdateDocument(&dv)
+	return resp.Error()
+}
+
+// Steps is just an ordered number of steps.
+type Steps []Step
+
+// execute performs the steps.
+func (steps Steps) execute(db *Database) error {
+	for _, step := range steps {
+		if err := step.execute(db); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//--------------------
 // MANAGER
 //--------------------
 
@@ -33,7 +93,7 @@ func newManager(db *Database) *Manager {
 	}
 }
 
-// Version returns the version number of the database instance.
+// Version returns the version number of CouchDB.
 func (m *Manager) Version() (version.Version, error) {
 	rs := m.db.get("/", nil)
 	if !rs.IsOK() {
@@ -46,9 +106,50 @@ func (m *Manager) Version() (version.Version, error) {
 	}
 	vsn, ok := welcome["version"].(string)
 	if !ok {
-		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion, welcome["version"])
+		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
 	}
 	return version.Parse(vsn)
+}
+
+// DatabaseVersion returns the version number of the database.
+func (m *Manager) DatabaseVersion() (version.Version, error) {
+	resp := m.db.ReadDocument(DatabaseVersionID)
+	if !resp.IsOK() {
+		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
+	}
+	dv := DatabaseVersion{}
+	err := resp.Document(&dv)
+	if err != nil {
+		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
+	}
+	return version.Parse(dv.Version)
+}
+
+// Init checks and creates the database if needed and performs
+// the individual steps.
+func (m *Manager) Init(steps ...Step) error {
+	// Check database.
+	ok, err := m.HasDatabase()
+	if err != nil {
+		return err
+	}
+	// Create and initialize it.
+	if !ok {
+		resp := m.CreateDatabase()
+		if !resp.IsOK() {
+			return resp.Error()
+		}
+		dv := DatabaseVersion{
+			ID:      DatabaseVersionID,
+			Version: version.New(0, 0, 0).String(),
+		}
+		resp = m.db.CreateDocument(&dv)
+		if !resp.IsOK() {
+			return resp.Error()
+		}
+	}
+	// Execute the steps.
+	return Steps(steps).execute(m.db)
 }
 
 // AllDatabaseIDs returns a list of all database IDs
@@ -88,6 +189,11 @@ func (m *Manager) DeleteDatabase(params ...Parameter) *ResultSet {
 	return m.db.delete(m.db.databasePath(), nil, params...)
 }
 
+// DeleteNamedDatabase removes the given database.
+func (m *Manager) DeleteNamedDatabase(name string, params ...Parameter) *ResultSet {
+	return m.db.delete(m.db.path(name), nil, params...)
+}
+
 // HasAdministrator checks if a given administrator account exists.
 func (m *Manager) HasAdministrator(nodename, name string, params ...Parameter) (bool, error) {
 	path := m.db.path("_node", nodename, "_config", "admins", name)
@@ -121,23 +227,17 @@ func (m *Manager) DeleteAdministrator(nodename, name string, params ...Parameter
 	return nil
 }
 
-// CreateUser adds a new user to the system.
-func (m *Manager) CreateUser(user *User, params ...Parameter) error {
-	if err := ensureUsersDatabase(m.db); err != nil {
-		return err
-	}
-	user.DocumentID = userDocumentID(user.Name)
-	user.Type = "user"
-	path := m.db.path("_users", user.DocumentID)
-	rs := m.db.put(path, user, params...)
-	return rs.Error()
-}
-
 // ReadUser reads an existing user from the system.
 func (m *Manager) ReadUser(name string, params ...Parameter) (*User, error) {
+	if err := ensureUsersDatabase(m.db, params...); err != nil {
+		return nil, err
+	}
 	path := m.db.path("_users", userDocumentID(name))
 	rs := m.db.get(path, nil, params...)
 	if !rs.IsOK() {
+		if rs.StatusCode() == StatusNotFound {
+			return nil, errors.New(ErrUserNotFound, msgUserNotFound)
+		}
 		return nil, rs.Error()
 	}
 	var user User
@@ -148,25 +248,47 @@ func (m *Manager) ReadUser(name string, params ...Parameter) (*User, error) {
 	return &user, nil
 }
 
+// CreateUser adds a new user to the system.
+func (m *Manager) CreateUser(user *User, params ...Parameter) error {
+	if err := ensureUsersDatabase(m.db, params...); err != nil {
+		return err
+	}
+	if _, err := m.ReadUser(user.Name, params...); err == nil {
+		return errors.New(ErrUserExists, msgUserExists)
+	}
+	user.DocumentID = userDocumentID(user.Name)
+	user.Type = "user"
+	path := m.db.path("_users", user.DocumentID)
+	rs := m.db.put(path, user, params...)
+	return rs.Error()
+}
+
 // UpdateUser updates a user in the system.
 func (m *Manager) UpdateUser(user *User, params ...Parameter) error {
-	if err := ensureUsersDatabase(m.db); err != nil {
+	if err := ensureUsersDatabase(m.db, params...); err != nil {
 		return err
 	}
 	path := m.db.path("_users", user.DocumentID)
 	rs := m.db.put(path, user, params...)
-	if !rs.IsOK() {
-		return rs.Error()
-	}
-	return nil
+	return rs.Error()
 }
 
 // DeleteUser deletes a user from the system.
-func (m *Manager) DeleteUser(user *User, params ...Parameter) error {
-	params = append(params, Revision(user.DocumentRevision))
-	path := m.db.path("_users", user.DocumentID)
-	rs := m.db.delete(path, nil, params...)
-	if !rs.IsOK() {
+func (m *Manager) DeleteUser(name string, params ...Parameter) error {
+	if err := ensureUsersDatabase(m.db, params...); err != nil {
+		return err
+	}
+	path := m.db.path("_users", userDocumentID(name))
+	rs := m.db.get(path, nil, params...)
+	if rs.IsOK() {
+		var user User
+		err := rs.Document(&user)
+		if err != nil {
+			return err
+		}
+		params = append(params, Revision(user.DocumentRevision))
+		path = m.db.path("_users", user.DocumentID)
+		rs = m.db.delete(path, nil, params...)
 		return rs.Error()
 	}
 	return nil
@@ -204,12 +326,12 @@ func (m *Manager) WriteSecurity(security Security, params ...Parameter) error {
 
 // ensureUsersDatabase checks if the _users database exists and
 // creates it if needed.
-func ensureUsersDatabase(db *Database) error {
-	rs := db.get("_users", nil)
+func ensureUsersDatabase(db *Database, params ...Parameter) error {
+	rs := db.get("_users", nil, params...)
 	if rs.IsOK() {
 		return nil
 	}
-	return db.put("_users", nil).Error()
+	return db.put("_users", nil, params...).Error()
 }
 
 // userDocumentID builds the document ID based

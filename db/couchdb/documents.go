@@ -23,6 +23,17 @@ type Status struct {
 // Statuses is the list of status information after a bulk writing.
 type Statuses []Status
 
+// DatabaseVersionID is used for the database version document.
+const DatabaseVersionID = "database-version"
+
+// DatabaseVersion stores the current database version with
+// the document ID "database-version".
+type DatabaseVersion struct {
+	ID       string `json:"_id"`
+	Revision string `json:"_rev,omitempty"`
+	Version  string `json:"version"`
+}
+
 // User contains name and password for
 // user management and authentication.
 type User struct {

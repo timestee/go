@@ -392,7 +392,11 @@ func prepareDeletedDatabase(assert *asserts.Asserts, name string) (*couchdb.Data
 	cdb, err := couchdb.Open(couchdb.Name(name))
 	assert.Nil(err)
 	cdb.Manager().DeleteDatabase()
-	return cdb, func() { cdb.Manager().DeleteDatabase() }
+	cdb.Manager().DeleteNamedDatabase("_users")
+	return cdb, func() {
+		cdb.Manager().DeleteDatabase()
+		cdb.Manager().DeleteNamedDatabase("_users")
+	}
 }
 
 // prepareFilledDatabase opens the database, deletes a possible test

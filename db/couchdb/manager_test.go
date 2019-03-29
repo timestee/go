@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/dsa/version"
 
 	"tideland.dev/go/db/couchdb"
 )
@@ -34,6 +35,86 @@ func TestVersion(t *testing.T) {
 	assert.NoError(err)
 
 	assert.Logf("CouchDB version %v", vsn)
+}
+
+// TestNoSteps tests creating the database with no steps.
+func TestNoSteps(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+
+	cdb, err := couchdb.Open(couchdb.Name(testDB))
+	assert.Nil(err)
+	defer func() { cdb.Manager().DeleteDatabase() }()
+
+	err = cdb.Manager().Init()
+	assert.Nil(err)
+
+	ok, err := cdb.Manager().HasDatabase()
+	assert.Nil(err)
+	assert.True(ok)
+
+	vsn, err := cdb.Manager().DatabaseVersion()
+	assert.Nil(err)
+	assert.Equal(vsn.String(), "0.0.0")
+}
+
+// TestSomeSteps tests creating the database with some steps.
+func TestSomeSteps(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+
+	cdb, err := couchdb.Open(couchdb.Name(testDB))
+	assert.Nil(err)
+	defer func() { cdb.Manager().DeleteDatabase() }()
+
+	err = cdb.Manager().Init(StepA, StepB)
+	assert.Nil(err)
+
+	resp := cdb.ReadDocument(couchdb.DatabaseVersionID)
+	assert.True(resp.IsOK())
+
+	vsn, err := cdb.Manager().DatabaseVersion()
+	assert.Nil(err)
+	assert.Equal(vsn.String(), "0.2.0")
+
+	ids, err := cdb.AllDocumentIDs()
+	assert.Nil(err)
+	assert.Length(ids, 3)
+}
+
+// TestMultipleStartups tests calling startup multiple times.
+func TestMultipleStartups(t *testing.T) {
+	assert := asserts.NewTesting(t, true)
+
+	cdb, err := couchdb.Open(couchdb.Name(testDB))
+	assert.Nil(err)
+	defer func() { cdb.Manager().DeleteDatabase() }()
+
+	err = cdb.Manager().Init(StepA)
+	assert.Nil(err)
+
+	ids, err := cdb.AllDocumentIDs()
+	assert.Nil(err)
+	assert.Length(ids, 2)
+
+	resp := cdb.ReadDocument(couchdb.DatabaseVersionID)
+	assert.True(resp.IsOK())
+
+	vsn, err := cdb.Manager().DatabaseVersion()
+	assert.Nil(err)
+	assert.Equal(vsn.String(), "0.1.0")
+
+	err = cdb.Manager().Init(StepA, StepB, StepC)
+	assert.Nil(err)
+
+	resp = cdb.ReadDocument(couchdb.DatabaseVersionID)
+	assert.True(resp.IsOK())
+
+	vsn, err = cdb.Manager().DatabaseVersion()
+	assert.Nil(err)
+	assert.Equal(vsn.String(), "0.3.0")
+
+	ids, err = cdb.AllDocumentIDs()
+	assert.Nil(err)
+	assert.Length(ids, 4)
 }
 
 // TestAllDatabaseIDs tests the retrieving of all database IDs.
@@ -132,26 +213,31 @@ func TestAdministrator(t *testing.T) {
 // TestUser tests the user management related functions.
 func TestUser(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
-	cdb, cleanup := prepareDatabase(assert, "user")
+	cdb, cleanup := prepareDeletedDatabase(assert, "user")
 	defer cleanup()
 
-	userA, err := cdb.Manager().ReadUser("user1")
-	assert.Nil(userA)
-	assert.ErrorMatch(err, ".*status code 404.*")
-
-	userB := &couchdb.User{
-		Name:     "user1",
-		Password: "user1",
+	userA := &couchdb.User{
+		Name:     "userA",
+		Password: "userA",
 		Roles:    []string{"developer"},
 	}
+	cdb.Manager().DeleteUser("userA")
+
+	userB, err := cdb.Manager().ReadUser("userA")
+	assert.Nil(userB)
+	assert.ErrorMatch(err, ".*user not found.*")
+
+	err = cdb.Manager().CreateUser(userA)
+	assert.NoError(err)
+
+	userB, err = cdb.Manager().ReadUser("userA")
+	assert.NoError(err)
+	assert.Equal(userA.Name, "userA")
+
 	err = cdb.Manager().CreateUser(userB)
-	assert.NoError(err)
+	assert.ErrorMatch(err, ".*user already exists.*")
 
-	userA, err = cdb.Manager().ReadUser("user1")
-	assert.NoError(err)
-	assert.Equal(userA.Name, "user1")
-
-	err = cdb.Manager().DeleteUser(userA)
+	err = cdb.Manager().DeleteUser("userA")
 	assert.NoError(err)
 }
 
@@ -243,11 +329,11 @@ func TestScenario(t *testing.T) {
 	defer func() {
 		user, err := cdb.Manager().ReadUser("user", session.Cookie())
 		assert.NoError(err)
-		err = cdb.Manager().DeleteUser(user, session.Cookie())
+		err = cdb.Manager().DeleteUser(user.Name, session.Cookie())
 		assert.NoError(err)
 		user, err = cdb.Manager().ReadUser("somebody", session.Cookie())
 		assert.NoError(err)
-		err = cdb.Manager().DeleteUser(user, session.Cookie())
+		err = cdb.Manager().DeleteUser(user.Name, session.Cookie())
 		assert.NoError(err)
 	}()
 
@@ -283,6 +369,49 @@ func TestScenario(t *testing.T) {
 	assert.False(rs.IsOK())
 	rs = cdb.CreateDocument(doc, couchdb.BasicAuthentication("user", "user"))
 	assert.True(rs.IsOK())
+}
+
+//--------------------
+// STEPS
+//--------------------
+
+func StepA() (version.Version, couchdb.StepAction) {
+	v := version.New(0, 1, 0)
+	return v, func(db *couchdb.Database) error {
+		md := MyDocument{
+			DocumentID: "my-document-a",
+			Name:       "Joe Black",
+			Age:        25,
+		}
+		resp := db.CreateDocument(&md)
+		return resp.Error()
+	}
+}
+
+func StepB() (version.Version, couchdb.StepAction) {
+	v := version.New(0, 2, 0)
+	return v, func(db *couchdb.Database) error {
+		md := MyDocument{
+			DocumentID: "my-document-b",
+			Name:       "John Doe",
+			Age:        51,
+		}
+		resp := db.CreateDocument(&md)
+		return resp.Error()
+	}
+}
+
+func StepC() (version.Version, couchdb.StepAction) {
+	v := version.New(0, 3, 0)
+	return v, func(db *couchdb.Database) error {
+		md := MyDocument{
+			DocumentID: "my-document-c",
+			Name:       "Donald Duck",
+			Age:        85,
+		}
+		resp := db.CreateDocument(&md)
+		return resp.Error()
+	}
 }
 
 // EOF

@@ -8,6 +8,14 @@
 package couchdb
 
 //--------------------
+// IMPORTS
+//--------------------
+
+import (
+	"fmt"
+)
+
+//--------------------
 // SESSION
 //--------------------
 
@@ -27,8 +35,8 @@ func (s *Session) Name() string {
 // to be used in the individual database requests.
 func (s *Session) Cookie() Parameter {
 	return func(pa Parameterizable) {
-		pa.SetHeader("Cookie", s.authSession)
 		pa.SetHeader("X-CouchDB-WWW-Authenticate", "Cookie")
+		pa.SetHeader("Cookie", s.authSession)
 	}
 }
 
@@ -39,6 +47,11 @@ func (s *Session) Stop() error {
 		return rs.Error()
 	}
 	return nil
+}
+
+// String returns a string representation of the session.
+func (s *Session) String() string {
+	return fmt.Sprintf("[DB: %q USER: %q SESSION: %q]", s.db.name, s.name, s.authSession)
 }
 
 // EOF
