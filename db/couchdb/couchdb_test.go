@@ -51,58 +51,6 @@ func TestInvalidConfiguration(t *testing.T) {
 	assert.Equal(resp.StatusCode(), couchdb.StatusBadRequest)
 }
 
-// TestVersion tests the retrieving of the DBMS version.
-func TestVersion(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
-
-	// Open the database to retrieve the DBMS version.
-	cdb, err := couchdb.Open(couchdb.Name(testDB))
-	assert.Nil(err)
-	vsn, err := cdb.Manager().Version()
-	assert.Nil(err)
-
-	assert.Logf("CouchDB version %v", vsn)
-}
-
-// TestAllDatabaseIDs tests the retrieving of all database IDs.
-func TestAllDatabaseIDs(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
-
-	// Open the database.
-	cdb, err := couchdb.Open(couchdb.Name(testDB))
-	assert.Nil(err)
-	_, err = cdb.Manager().AllDatabaseIDs()
-	assert.Nil(err)
-}
-
-// TestCreateDeleteDatabase tests the creation and deletion
-// of a database.
-func TestCreateDeleteDatabase(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
-
-	// Open and check existence.
-	cdb, err := couchdb.Open(couchdb.Name(testDB))
-	assert.Nil(err)
-	has, err := cdb.Manager().HasDatabase()
-	assert.Nil(err)
-	assert.False(has)
-
-	// Create and check existence,
-	resp := cdb.Manager().CreateDatabase()
-	assert.Nil(resp.Error())
-	assert.True(resp.IsOK())
-	has, err = cdb.Manager().HasDatabase()
-	assert.Nil(err)
-	assert.True(has)
-
-	// Delete and check existence.
-	resp = cdb.Manager().DeleteDatabase()
-	assert.True(resp.IsOK())
-	has, err = cdb.Manager().HasDatabase()
-	assert.Nil(err)
-	assert.False(has)
-}
-
 // TestCreateDesignDocument tests creating new design documents.
 func TestCreateDesignDocument(t *testing.T) {
 	assert := asserts.NewTesting(t, true)
@@ -433,6 +381,17 @@ func prepareDatabase(assert *asserts.Asserts, name string) (*couchdb.Database, f
 	rs = cdb.Manager().CreateDatabase()
 	assert.Nil(rs.Error())
 	assert.True(rs.IsOK())
+	return cdb, func() { cdb.Manager().DeleteDatabase() }
+}
+
+// prepareDeletedDatabase opens the database, checks result,
+// and deletes it. Ensures a good environment including
+// cleanup func.
+func prepareDeletedDatabase(assert *asserts.Asserts, name string) (*couchdb.Database, func()) {
+	logger.SetLevel(logger.LevelDebug)
+	cdb, err := couchdb.Open(couchdb.Name(name))
+	assert.Nil(err)
+	cdb.Manager().DeleteDatabase()
 	return cdb, func() { cdb.Manager().DeleteDatabase() }
 }
 

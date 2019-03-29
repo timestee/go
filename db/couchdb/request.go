@@ -46,7 +46,6 @@ func newRequest(db *Database, path string, doc interface{}) *request {
 		query:  url.Values{},
 		header: http.Header{},
 	}
-	req.apply(db.parameters...)
 	return req
 }
 

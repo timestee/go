@@ -8,6 +8,14 @@
 package couchdb
 
 //--------------------
+// IMPORTS
+//--------------------
+
+import (
+	"encoding/base64"
+)
+
+//--------------------
 // PARAMETERIZABLE
 //--------------------
 
@@ -61,6 +69,17 @@ func Header(kvs ...KeyValue) Parameter {
 func Revision(revision string) Parameter {
 	return func(pa Parameterizable) {
 		pa.SetQuery("rev", revision)
+	}
+}
+
+// BasicAuthentication is intended for basic authentication
+// against the database.
+func BasicAuthentication(name, password string) Parameter {
+	return func(pa Parameterizable) {
+		np := []byte(name + ":" + password)
+		auth := "Basic " + base64.StdEncoding.EncodeToString(np)
+
+		pa.SetHeader("Authorization", auth)
 	}
 }
 

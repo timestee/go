@@ -26,11 +26,10 @@ import (
 
 // Database provides the access to a database.
 type Database struct {
-	mu         sync.Mutex
-	host       string
-	name       string
-	logging    bool
-	parameters []Parameter
+	mu      sync.Mutex
+	host    string
+	name    string
+	logging bool
 }
 
 // Open returns a configured connection to a CouchDB server.
@@ -63,10 +62,41 @@ func (db *Database) Designs() *Designs {
 	return newDesigns(db)
 }
 
+// StartSession starts a cookie based session for the given user.
+func (db *Database) StartSession(name, password string) (*Session, error) {
+	user := User{
+		Name:     name,
+		Password: password,
+	}
+	rs := db.post("_session", user)
+	if !rs.IsOK() {
+		return nil, rs.Error()
+	}
+	roles := couchdbRoles{}
+	err := rs.Document(&roles)
+	if err != nil {
+		return nil, err
+	}
+	setCookie := rs.Header("Set-Cookie")
+	authSession := ""
+	for _, part := range strings.Split(setCookie, ";") {
+		if strings.HasPrefix(part, "AuthSession=") {
+			authSession = part
+			break
+		}
+	}
+	s := &Session{
+		db:          db,
+		name:        roles.Name,
+		authSession: authSession,
+	}
+	return s, nil
+}
+
 // AllDocumentIDs returns a list of all document IDs
 // of the configured database.
-func (db *Database) AllDocumentIDs() ([]string, error) {
-	rs := db.get(db.databasePath("_all_docs"), nil)
+func (db *Database) AllDocumentIDs(params ...Parameter) ([]string, error) {
+	rs := db.get(db.databasePath("_all_docs"), nil, params...)
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}
@@ -83,8 +113,8 @@ func (db *Database) AllDocumentIDs() ([]string, error) {
 }
 
 // HasDocument checks if the document with the ID exists.
-func (db *Database) HasDocument(id string) (bool, error) {
-	rs := db.head(db.databasePath(id), nil)
+func (db *Database) HasDocument(id string, params ...Parameter) (bool, error) {
+	rs := db.head(db.databasePath(id), nil, params...)
 	if rs.IsOK() {
 		return true, nil
 	}
