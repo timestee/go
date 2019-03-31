@@ -95,7 +95,7 @@ func newManager(db *Database) *Manager {
 
 // Version returns the version number of CouchDB.
 func (m *Manager) Version() (version.Version, error) {
-	rs := m.db.get("/", nil)
+	rs := m.db.Request().Get()
 	if !rs.IsOK() {
 		return version.New(0, 0, 0), rs.Error()
 	}
@@ -113,12 +113,12 @@ func (m *Manager) Version() (version.Version, error) {
 
 // DatabaseVersion returns the version number of the database.
 func (m *Manager) DatabaseVersion() (version.Version, error) {
-	resp := m.db.ReadDocument(DatabaseVersionID)
-	if !resp.IsOK() {
+	rs := m.db.ReadDocument(DatabaseVersionID)
+	if !rs.IsOK() {
 		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
 	}
 	dv := DatabaseVersion{}
-	err := resp.Document(&dv)
+	err := rs.Document(&dv)
 	if err != nil {
 		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
 	}
@@ -155,7 +155,7 @@ func (m *Manager) Init(steps ...Step) error {
 // AllDatabaseIDs returns a list of all database IDs
 // of the connected server.
 func (m *Manager) AllDatabaseIDs() ([]string, error) {
-	rs := m.db.get("/_all_dbs", nil)
+	rs := m.db.Request().SetPath("_all_dbs").Get()
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}
@@ -169,7 +169,7 @@ func (m *Manager) AllDatabaseIDs() ([]string, error) {
 
 // HasDatabase checks if the configured database exists.
 func (m *Manager) HasDatabase() (bool, error) {
-	rs := m.db.head(m.db.databasePath(), nil)
+	rs := m.db.Request().SetPath(m.db.name).Head()
 	if rs.IsOK() {
 		return true, nil
 	}
@@ -181,23 +181,22 @@ func (m *Manager) HasDatabase() (bool, error) {
 
 // CreateDatabase creates the configured database.
 func (m *Manager) CreateDatabase(params ...Parameter) *ResultSet {
-	return m.db.put(m.db.databasePath(), nil, params...)
+	return m.db.Request().SetPath(m.db.name).ApplyParameters(params...).Put()
 }
 
 // DeleteDatabase removes the configured database.
 func (m *Manager) DeleteDatabase(params ...Parameter) *ResultSet {
-	return m.db.delete(m.db.databasePath(), nil, params...)
+	return m.db.Request().SetPath(m.db.name).ApplyParameters(params...).Delete()
 }
 
 // DeleteNamedDatabase removes the given database.
 func (m *Manager) DeleteNamedDatabase(name string, params ...Parameter) *ResultSet {
-	return m.db.delete(m.db.path(name), nil, params...)
+	return m.db.Request().SetPath(name).ApplyParameters(params...).Delete()
 }
 
 // HasAdministrator checks if a given administrator account exists.
 func (m *Manager) HasAdministrator(nodename, name string, params ...Parameter) (bool, error) {
-	path := m.db.path("_node", nodename, "_config", "admins", name)
-	rs := m.db.get(path, nil, params...)
+	rs := m.db.Request().SetPath("_node", nodename, "_config", "admins", name).ApplyParameters(params...).Get()
 	if !rs.IsOK() {
 		if rs.StatusCode() == StatusNotFound {
 			return false, nil
@@ -209,8 +208,7 @@ func (m *Manager) HasAdministrator(nodename, name string, params ...Parameter) (
 
 // WriteAdministrator adds or updates an administrator to the given database.
 func (m *Manager) WriteAdministrator(nodename, name, password string, params ...Parameter) error {
-	path := m.db.path("_node", nodename, "_config", "admins", name)
-	rs := m.db.put(path, password, params...)
+	rs := m.db.Request().SetPath("_node", nodename, "_config", "admins", name).SetDocument(password).ApplyParameters(params...).Put()
 	if !rs.IsOK() {
 		return rs.Error()
 	}
@@ -219,8 +217,7 @@ func (m *Manager) WriteAdministrator(nodename, name, password string, params ...
 
 // DeleteAdministrator deletes an administrator from the given database.
 func (m *Manager) DeleteAdministrator(nodename, name string, params ...Parameter) error {
-	path := m.db.path("_node", nodename, "_config", "admins", name)
-	rs := m.db.delete(path, nil, params...)
+	rs := m.db.Request().SetPath("_node", nodename, "_config", "admins", name).ApplyParameters(params...).Delete()
 	if !rs.IsOK() {
 		return rs.Error()
 	}
@@ -232,8 +229,7 @@ func (m *Manager) ReadUser(name string, params ...Parameter) (*User, error) {
 	if err := ensureUsersDatabase(m.db, params...); err != nil {
 		return nil, err
 	}
-	path := m.db.path("_users", userDocumentID(name))
-	rs := m.db.get(path, nil, params...)
+	rs := m.db.Request().SetPath("_users", userDocumentID(name)).ApplyParameters(params...).Get()
 	if !rs.IsOK() {
 		if rs.StatusCode() == StatusNotFound {
 			return nil, errors.New(ErrUserNotFound, msgUserNotFound)
@@ -258,8 +254,7 @@ func (m *Manager) CreateUser(user *User, params ...Parameter) error {
 	}
 	user.DocumentID = userDocumentID(user.Name)
 	user.Type = "user"
-	path := m.db.path("_users", user.DocumentID)
-	rs := m.db.put(path, user, params...)
+	rs := m.db.Request().SetPath("_users", user.DocumentID).SetDocument(user).ApplyParameters(params...).Put()
 	return rs.Error()
 }
 
@@ -268,8 +263,7 @@ func (m *Manager) UpdateUser(user *User, params ...Parameter) error {
 	if err := ensureUsersDatabase(m.db, params...); err != nil {
 		return err
 	}
-	path := m.db.path("_users", user.DocumentID)
-	rs := m.db.put(path, user, params...)
+	rs := m.db.Request().SetPath("_users", user.DocumentID).SetDocument(user).ApplyParameters(params...).Put()
 	return rs.Error()
 }
 
@@ -278,8 +272,7 @@ func (m *Manager) DeleteUser(name string, params ...Parameter) error {
 	if err := ensureUsersDatabase(m.db, params...); err != nil {
 		return err
 	}
-	path := m.db.path("_users", userDocumentID(name))
-	rs := m.db.get(path, nil, params...)
+	rs := m.db.Request().SetPath("_users", userDocumentID(name)).ApplyParameters(params...).Get()
 	if rs.IsOK() {
 		var user User
 		err := rs.Document(&user)
@@ -287,8 +280,7 @@ func (m *Manager) DeleteUser(name string, params ...Parameter) error {
 			return err
 		}
 		params = append(params, Revision(user.DocumentRevision))
-		path = m.db.path("_users", user.DocumentID)
-		rs = m.db.delete(path, nil, params...)
+		rs = m.db.Request().SetPath("_users", user.DocumentID).ApplyParameters(params...).Delete()
 		return rs.Error()
 	}
 	return nil
@@ -296,8 +288,7 @@ func (m *Manager) DeleteUser(name string, params ...Parameter) error {
 
 // ReadSecurity returns the security for the given database.
 func (m *Manager) ReadSecurity(params ...Parameter) (*Security, error) {
-	path := m.db.databasePath("_security")
-	rs := m.db.get(path, nil, params...)
+	rs := m.db.Request().SetPath(m.db.name, "_security").ApplyParameters(params...).Get()
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}
@@ -312,8 +303,7 @@ func (m *Manager) ReadSecurity(params ...Parameter) (*Security, error) {
 // WriteSecurity writes new or changed security data to
 // the given database.
 func (m *Manager) WriteSecurity(security Security, params ...Parameter) error {
-	path := m.db.databasePath("_security")
-	rs := m.db.put(path, security, params...)
+	rs := m.db.Request().SetPath(m.db.name, "_security").SetDocument(security).ApplyParameters(params...).Put()
 	if !rs.IsOK() {
 		return rs.Error()
 	}
@@ -327,11 +317,11 @@ func (m *Manager) WriteSecurity(security Security, params ...Parameter) error {
 // ensureUsersDatabase checks if the _users database exists and
 // creates it if needed.
 func ensureUsersDatabase(db *Database, params ...Parameter) error {
-	rs := db.get("_users", nil, params...)
+	rs := db.Request().SetPath("_users").ApplyParameters(params...).Get()
 	if rs.IsOK() {
 		return nil
 	}
-	return db.put("_users", nil, params...).Error()
+	return db.Request().SetPath("_users").ApplyParameters(params...).Put().Error()
 }
 
 // userDocumentID builds the document ID based

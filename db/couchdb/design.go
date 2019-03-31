@@ -154,7 +154,7 @@ func (ds *Designs) IDs() ([]string, error) {
 	jstart, _ := json.Marshal("_design/")
 	jend, _ := json.Marshal("_design0/")
 	startEndKey := Query(KeyValue{"startkey", string(jstart)}, KeyValue{"endkey", string(jend)})
-	rs := ds.db.get(ds.db.databasePath("_all_docs"), nil, startEndKey)
+	rs := ds.db.Request().SetPath(ds.db.name, "_all_docs").ApplyParameters(startEndKey).Get()
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}

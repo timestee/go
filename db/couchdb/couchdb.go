@@ -14,7 +14,6 @@ package couchdb
 import (
 	"reflect"
 	"strings"
-	"sync"
 
 	"tideland.dev/go/dsa/identifier"
 	"tideland.dev/go/trace/errors"
@@ -26,7 +25,6 @@ import (
 
 // Database provides the access to a database.
 type Database struct {
-	mu      sync.Mutex
 	host    string
 	name    string
 	logging bool
@@ -48,17 +46,18 @@ func Open(options ...Option) (*Database, error) {
 	return db, nil
 }
 
+// Name returns the name of the configured database.
+func (db *Database) Name() string {
+	return db.name
+}
+
 // Manager returns the database system manager.
 func (db *Database) Manager() *Manager {
-	db.mu.Lock()
-	defer db.mu.Unlock()
 	return newManager(db)
 }
 
 // Designs returns the design document manager.
 func (db *Database) Designs() *Designs {
-	db.mu.Lock()
-	defer db.mu.Unlock()
 	return newDesigns(db)
 }
 
@@ -68,7 +67,7 @@ func (db *Database) StartSession(name, password string) (*Session, error) {
 		Name:     name,
 		Password: password,
 	}
-	rs := db.post("_session", user)
+	rs := db.Request().SetPath("_session").SetDocument(user).Post()
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}
@@ -96,7 +95,7 @@ func (db *Database) StartSession(name, password string) (*Session, error) {
 // AllDocumentIDs returns a list of all document IDs
 // of the configured database.
 func (db *Database) AllDocumentIDs(params ...Parameter) ([]string, error) {
-	rs := db.get(db.databasePath("_all_docs"), nil, params...)
+	rs := db.Request().SetPath(db.name, "_all_docs").ApplyParameters(params...).Get()
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}
@@ -114,7 +113,7 @@ func (db *Database) AllDocumentIDs(params ...Parameter) ([]string, error) {
 
 // HasDocument checks if the document with the ID exists.
 func (db *Database) HasDocument(id string, params ...Parameter) (bool, error) {
-	rs := db.head(db.databasePath(id), nil, params...)
+	rs := db.Request().SetPath(db.name, id).ApplyParameters(params...).Head()
 	if rs.IsOK() {
 		return true, nil
 	}
@@ -133,12 +132,12 @@ func (db *Database) CreateDocument(doc interface{}, params ...Parameter) *Result
 	if id == "" {
 		id = identifier.NewUUID().ShortString()
 	}
-	return db.put(db.databasePath(id), doc, params...)
+	return db.Request().SetPath(db.name, id).SetDocument(doc).ApplyParameters(params...).Put()
 }
 
 // ReadDocument reads the a document by ID.
 func (db *Database) ReadDocument(id string, params ...Parameter) *ResultSet {
-	return db.get(db.databasePath(id), nil, params...)
+	return db.Request().SetPath(db.name, id).ApplyParameters(params...).Get()
 }
 
 // UpdateDocument update a document if exists.
@@ -157,7 +156,7 @@ func (db *Database) UpdateDocument(doc interface{}, params ...Parameter) *Result
 	if !hasDoc {
 		return newResultSet(nil, errors.New(ErrNotFound, msgNotFound, id))
 	}
-	return db.put(db.databasePath(id), doc, params...)
+	return db.Request().SetPath(db.name, id).SetDocument(doc).ApplyParameters(params...).Put()
 }
 
 // DeleteDocument deletes a existing document.
@@ -174,7 +173,7 @@ func (db *Database) DeleteDocument(doc interface{}, params ...Parameter) *Result
 		return newResultSet(nil, errors.New(ErrNotFound, msgNotFound, id))
 	}
 	params = append(params, Revision(revision))
-	return db.delete(db.databasePath(id), nil, params...)
+	return db.Request().SetPath(db.name, id).ApplyParameters(params...).Delete()
 }
 
 // DeleteDocumentByID deletes an existing document simply by
@@ -188,7 +187,7 @@ func (db *Database) DeleteDocumentByID(id, revision string, params ...Parameter)
 		return newResultSet(nil, errors.New(ErrNotFound, msgNotFound, id))
 	}
 	params = append(params, Revision(revision))
-	return db.delete(db.databasePath(id), nil, params...)
+	return db.Request().SetPath(db.name, id).ApplyParameters(params...).Delete()
 }
 
 // BulkWriteDocuments allows to create or update many
@@ -197,7 +196,7 @@ func (db *Database) BulkWriteDocuments(docs []interface{}, params ...Parameter) 
 	bulk := &couchdbBulkDocuments{
 		Docs: docs,
 	}
-	rs := db.post(db.databasePath("_bulk_docs"), bulk, params...)
+	rs := db.Request().SetPath(db.name, "_bulk_docs").SetDocument(bulk).ApplyParameters(params...).Post()
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}
@@ -209,59 +208,10 @@ func (db *Database) BulkWriteDocuments(docs []interface{}, params ...Parameter) 
 	return statuses, nil
 }
 
-// path creates a document path starting at root.
-func (db *Database) path(parts ...string) string {
-	return strings.Join(append([]string{""}, parts...), "/")
-}
-
-// databasePath creates a document path for the database.
-func (db *Database) databasePath(parts ...string) string {
-	return db.path(append([]string{db.name}, parts...)...)
-}
-
-// head performs a HEAD request against the database.
-func (db *Database) head(path string, doc interface{}, params ...Parameter) *ResultSet {
-	req := newRequest(db, path, doc)
-	return req.apply(params...).head()
-}
-
-// get performs a GET request against the database.
-func (db *Database) get(path string, doc interface{}, params ...Parameter) *ResultSet {
-	req := newRequest(db, path, doc)
-	return req.apply(params...).get()
-}
-
-// put performs a PUT request against the database.
-func (db *Database) put(path string, doc interface{}, params ...Parameter) *ResultSet {
-	req := newRequest(db, path, doc)
-	return req.apply(params...).put()
-}
-
-// Post performs a POST request against the database.
-func (db *Database) post(path string, doc interface{}, params ...Parameter) *ResultSet {
-	req := newRequest(db, path, doc)
-	return req.apply(params...).post()
-}
-
-// delete performs a DELETE request against the database.
-func (db *Database) delete(path string, doc interface{}, params ...Parameter) *ResultSet {
-	req := newRequest(db, path, doc)
-	return req.apply(params...).delete()
-}
-
-// getOrPost decides based on the document if it will perform
-// a GET request or a POST request. The document can be set directly
-// or by one of the parameters. Several of the CouchDB commands
-// work this way.
-func (db *Database) getOrPost(path string, doc interface{}, params ...Parameter) *ResultSet {
-	var rs *ResultSet
-	req := newRequest(db, path, doc).apply(params...)
-	if req.doc != nil {
-		rs = req.post()
-	} else {
-		rs = req.get()
-	}
-	return rs
+// Request returns a raw database request for this database. Can
+// be used for not covered low-level commands.
+func (db *Database) Request() *Request {
+	return newRequest(db)
 }
 
 // idAndRevision retrieves the ID and the revision of the

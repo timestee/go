@@ -34,19 +34,16 @@ func (s *Session) Name() string {
 // Cookie returns the session cookie as parameter
 // to be used in the individual database requests.
 func (s *Session) Cookie() Parameter {
-	return func(pa Parameterizable) {
-		pa.SetHeader("X-CouchDB-WWW-Authenticate", "Cookie")
-		pa.SetHeader("Cookie", s.authSession)
+	return func(req *Request) {
+		req.SetHeader("X-CouchDB-WWW-Authenticate", "Cookie")
+		req.SetHeader("Cookie", s.authSession)
 	}
 }
 
 // Stop ends the session.
 func (s *Session) Stop() error {
-	rs := s.db.delete("/_session", nil, s.Cookie())
-	if !rs.IsOK() {
-		return rs.Error()
-	}
-	return nil
+	rs := s.db.Request().SetPath(s.db.name).ApplyParameters(s.Cookie()).Delete()
+	return rs.Error()
 }
 
 // String returns a string representation of the session.

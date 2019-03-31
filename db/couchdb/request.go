@@ -17,6 +17,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"tideland.dev/go/trace/errors"
 	"tideland.dev/go/trace/logger"
@@ -26,8 +27,11 @@ import (
 // REQUEST
 //--------------------
 
-// request is responsible for an individual request to a CouchDB.
-type request struct {
+// Request is responsible for an individual request to a CouchDB. It has to be
+// created by the dabase and can be used queued.
+//
+// cdb.Request().SetPath(...).SetDocument(...).Put()
+type Request struct {
 	db        *Database
 	path      string
 	doc       interface{}
@@ -38,72 +42,94 @@ type request struct {
 
 // newRequest creates a new request for the given location, method, and path. If needed
 // query and header can be added like newRequest().setQuery().setHeader.do().
-func newRequest(db *Database, path string, doc interface{}) *request {
-	req := &request{
+func newRequest(db *Database) *Request {
+	req := &Request{
 		db:     db,
-		path:   path,
-		doc:    doc,
+		path:   "/",
 		query:  url.Values{},
 		header: http.Header{},
 	}
 	return req
 }
 
-// SetQuery implements the Parameterizable interface.
-func (req *request) SetQuery(key, value string) {
+// SetPath sets the absolute path of the request.
+func (req *Request) SetPath(parts ...string) *Request {
+	req.path = "/" + strings.Join(parts, "/")
+	return req
+}
+
+// SetDocument sets the document of the request.
+func (req *Request) SetDocument(doc interface{}) *Request {
+	req.doc = doc
+	return req
+}
+
+// SetQuery sets a query parameter.
+func (req *Request) SetQuery(key, value string) {
 	req.query.Set(key, value)
 }
 
-// AddQuery implements the Parameterizable interface.
-func (req *request) AddQuery(key, value string) {
+// AddQuery adds a query parameter to an existing one.
+func (req *Request) AddQuery(key, value string) {
 	req.query.Add(key, value)
 }
 
-// SetHeader implements the Parameterizable interface.
-func (req *request) SetHeader(key, value string) {
+// SetHeader sets a header parameter.
+func (req *Request) SetHeader(key, value string) {
 	req.header.Set(key, value)
 }
 
-// UpdateDocument implements the Parameterizable interface.
-func (req *request) UpdateDocument(update func(interface{}) interface{}) {
+// UpdateDocument allows to modify or exchange the request document.
+func (req *Request) UpdateDocument(update func(interface{}) interface{}) {
 	req.doc = update(req.doc)
 }
 
-// apply applies a list of parameters to the request.
-func (req *request) apply(params ...Parameter) *request {
+// ApplyParameters applies a list of parameters to the request.
+func (req *Request) ApplyParameters(params ...Parameter) *Request {
 	for _, param := range params {
 		param(req)
 	}
 	return req
 }
 
-// head performs a HEAD request.
-func (req *request) head() *ResultSet {
+// Head performs a HEAD request.
+func (req *Request) Head() *ResultSet {
 	return req.do(http.MethodHead)
 }
 
-// get performs a GET request.
-func (req *request) get() *ResultSet {
+// Get performs a GET request.
+func (req *Request) Get() *ResultSet {
 	return req.do(http.MethodGet)
 }
 
-// put performs a PUT request.
-func (req *request) put() *ResultSet {
+// Put performs a PUT request.
+func (req *Request) Put() *ResultSet {
 	return req.do(http.MethodPut)
 }
 
-// post performs a POST request.
-func (req *request) post() *ResultSet {
+// Post performs a POST request.
+func (req *Request) Post() *ResultSet {
 	return req.do(http.MethodPost)
 }
 
-// delete performs a DELETE request.
-func (req *request) delete() *ResultSet {
+// GetOrPost decides based on the document if it will perform
+// a GET request or a POST request. The document can be set directly
+// or by one of the parameters. Several of the CouchDB commands
+// work this way.
+func (req *Request) GetOrPost() *ResultSet {
+	if req.doc != nil {
+		return req.Post()
+	}
+	return req.Get()
+}
+
+// Delete performs a DELETE request.
+func (req *Request) Delete() *ResultSet {
 	return req.do(http.MethodDelete)
 }
 
 // do performs a request.
-func (req *request) do(method string) *ResultSet {
+func (req *Request) do(method string) *ResultSet {
 	// Prepare URL.
 	u := &url.URL{
 		Scheme: "http",
