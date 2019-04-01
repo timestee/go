@@ -402,6 +402,12 @@ func prepareDeletedDatabase(assert *asserts.Asserts, name string) (*couchdb.Data
 // prepareFilledDatabase opens the database, deletes a possible test
 // database, creates it newly and adds some data.
 func prepareFilledDatabase(assert *asserts.Asserts, name string) (*couchdb.Database, func()) {
+	return prepareSizedFilledDatabase(assert, name, 1000)
+}
+
+// prepareSizedFilledDatabase opens the database, deletes a possible test
+// database, creates it newly and adds a given number of data.
+func prepareSizedFilledDatabase(assert *asserts.Asserts, name string, count int) (*couchdb.Database, func()) {
 	logger.SetLevel(logger.LevelDebug)
 	cdb, err := couchdb.Open(couchdb.Name(name))
 	assert.Nil(err)
@@ -410,9 +416,21 @@ func prepareFilledDatabase(assert *asserts.Asserts, name string) (*couchdb.Datab
 	assert.Nil(rs.Error())
 	assert.True(rs.IsOK())
 
-	gen := generators.New(generators.FixedRand())
+	docs := generateDocuments(count)
+	results, err := cdb.BulkWriteDocuments(docs)
+	assert.Nil(err)
+	for _, result := range results {
+		assert.True(result.OK)
+	}
+
+	return cdb, func() { cdb.Manager().DeleteDatabase() }
+}
+
+// generateDocuments creates a number of documents.
+func generateDocuments(count int) []interface{} {
+	gen := generators.New(generators.SimpleRand())
 	docs := []interface{}{}
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < count; i++ {
 		first, middle, last := gen.Name()
 		doc := MyDocument{
 			DocumentID:  identifier.Identifier(last, first, i),
@@ -423,13 +441,7 @@ func prepareFilledDatabase(assert *asserts.Asserts, name string) (*couchdb.Datab
 		}
 		docs = append(docs, doc)
 	}
-	results, err := cdb.BulkWriteDocuments(docs)
-	assert.Nil(err)
-	for _, result := range results {
-		assert.True(result.OK)
-	}
-
-	return cdb, func() { cdb.Manager().DeleteDatabase() }
+	return docs
 }
 
 // EOF

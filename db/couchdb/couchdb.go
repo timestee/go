@@ -208,6 +208,11 @@ func (db *Database) BulkWriteDocuments(docs []interface{}, params ...Parameter) 
 	return statuses, nil
 }
 
+// Changes returns access to the changes of the configured database.
+func (db *Database) Changes(params ...Parameter) (*Changes, error) {
+	return newChanges(db, params...)
+}
+
 // Request returns a raw database request for this database. Can
 // be used for not covered low-level commands.
 func (db *Database) Request() *Request {

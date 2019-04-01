@@ -8,6 +8,14 @@
 package couchdb
 
 //--------------------
+// IMPORTS
+//--------------------
+
+import (
+	"encoding/json"
+)
+
+//--------------------
 // EXTERNAL DOCUMENT TYPES
 //--------------------
 
@@ -84,6 +92,34 @@ type couchdbRows struct {
 	Rows []struct {
 		ID string `json:"id"`
 	}
+}
+
+// couchdbDocumentIDs contains document identifiers as body
+// for the according changes filter.
+type couchdbDocumentIDs struct {
+	DocumentIDs []string `json:"doc_ids"`
+}
+
+// couchdbChangesResultChange contains the revision number of one
+// change of one document.
+type couchdbChangesResultChange struct {
+	Revision string `json:"rev"`
+}
+
+// couchdbChangesResult contains one result of a changes feed.
+type couchdbChangesResult struct {
+	ID       string                       `json:"id"`
+	Sequence interface{}                  `json:"seq"`
+	Changes  []couchdbChangesResultChange `json:"changes"`
+	Document json.RawMessage              `json:"doc,omitempty"`
+	Deleted  bool                         `json:"deleted,omitempty"`
+}
+
+// couchdbChanges is a generic result of a CouchDB changes feed.
+type couchdbChanges struct {
+	LastSequence interface{}            `json:"last_seq"`
+	Pending      int                    `json:"pending"`
+	Results      []couchdbChangesResult `json:"results"`
 }
 
 // couchdRoles contains the roles of a user if the
