@@ -74,6 +74,28 @@ func Limit(limit int) Parameter {
 	}
 }
 
+// Skip sets the number to skip for view requests.
+func Skip(skip int) Parameter {
+	return func(req *Request) {
+		if skip > 0 {
+			req.SetQuery("skip", strconv.Itoa(skip))
+		}
+	}
+}
+
+// SkipLimit sets the number to skip and the limit for
+// view requests.
+func SkipLimit(skip, limit int) Parameter {
+	return func(req *Request) {
+		if skip > 0 {
+			req.SetQuery("skip", strconv.Itoa(skip))
+		}
+		if limit > 0 {
+			req.SetQuery("limit", strconv.Itoa(limit))
+		}
+	}
+}
+
 // Since sets the start of the changes gathering, can also be "now".
 func Since(sequence string) Parameter {
 	return func(req *Request) {
@@ -147,6 +169,92 @@ func BasicAuthentication(name, password string) Parameter {
 		auth := "Basic " + base64.StdEncoding.EncodeToString(np)
 
 		req.SetHeader("Authorization", auth)
+	}
+}
+
+// Keys sets a number of keys wanted for a view request.
+func Keys(keys ...interface{}) Parameter {
+	update := func(doc interface{}) interface{} {
+		if doc == nil {
+			doc = &couchdbKeys{}
+		}
+		kdoc, ok := doc.(*couchdbKeys)
+		if ok {
+			kdoc.Keys = append(kdoc.Keys, keys...)
+			return kdoc
+		}
+		return doc
+	}
+	return func(req *Request) {
+		req.UpdateDocument(update)
+	}
+}
+
+// StringKeys sets a number of keys of type string wanted for a view request.
+func StringKeys(keys ...string) Parameter {
+	var ikeys []interface{}
+	for _, key := range keys {
+		ikeys = append(ikeys, key)
+	}
+	return Keys(ikeys...)
+}
+
+// StartKey sets the startkey for a view request.
+func StartKey(start interface{}) Parameter {
+	jstart, _ := json.Marshal(start)
+	return func(req *Request) {
+		req.SetQuery("startkey", string(jstart))
+	}
+}
+
+// EndKey sets the endkey for a view request.
+func EndKey(end interface{}) Parameter {
+	jend, _ := json.Marshal(end)
+	return func(req *Request) {
+		req.SetQuery("endkey", string(jend))
+	}
+}
+
+// StartEndKey sets the startkey and endkey for a view request.
+func StartEndKey(start, end interface{}) Parameter {
+	jstart, _ := json.Marshal(start)
+	jend, _ := json.Marshal(end)
+	return func(req *Request) {
+		req.SetQuery("startkey", string(jstart))
+		req.SetQuery("endkey", string(jend))
+	}
+}
+
+// OneKey reduces a view result to only one emitted key.
+func OneKey(key interface{}) Parameter {
+	jkey, _ := json.Marshal(key)
+	return func(req *Request) {
+		req.SetQuery("key", string(jkey))
+	}
+}
+
+// NoReduce sets the flag for usage of a reduce function to false.
+func NoReduce() Parameter {
+	return func(req *Request) {
+		req.SetQuery("reduce", "false")
+	}
+}
+
+// Group sets the flag for grouping including the level for the
+// reduce function.
+func Group(level int) Parameter {
+	return func(req *Request) {
+		req.SetQuery("group", "true")
+		if level > 0 {
+			req.SetQuery("group_level", strconv.Itoa(level))
+		}
+	}
+}
+
+// IncludeDocuments sets the flag for the including of found view documents.
+func IncludeDocuments() Parameter {
+	return func(req *Request) {
+		req.SetQuery("include_docs", "true")
 	}
 }
 

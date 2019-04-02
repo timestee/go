@@ -122,6 +122,28 @@ type couchdbChanges struct {
 	Results      []couchdbChangesResult `json:"results"`
 }
 
+// couchdbKeys sets key constraints for view requests.
+type couchdbKeys struct {
+	Keys []interface{} `json:"keys"`
+}
+
+// couchdbViewRow contains one row of a view result.
+type couchdbViewRow struct {
+	ID       string          `json:"id"`
+	Key      json.RawMessage `json:"key"`
+	Value    json.RawMessage `json:"value"`
+	Document json.RawMessage `json:"doc"`
+}
+
+type couchdbViewRows []couchdbViewRow
+
+// couchdbView is a generic result of a CouchDB view.
+type couchdbView struct {
+	TotalRows int             `json:"total_rows"`
+	Offset    int             `json:"offset"`
+	Rows      couchdbViewRows `json:"rows"`
+}
+
 // couchdRoles contains the roles of a user if the
 // authentication succeeded.
 type couchdbRoles struct {

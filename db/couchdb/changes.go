@@ -19,8 +19,8 @@ import (
 // CHANGES
 //--------------------
 
-// Processor is a function processing the content of a changed document.
-type Processor func(id, sequence string, deleted bool, revisions []string, document *Unmarshable) error
+// ChangeProcessor is a function processing the content of a changed document.
+type ChangeProcessor func(id, sequence string, deleted bool, revisions []string, document *Unmarshable) error
 
 // Changes provides access to the responded changes.
 type Changes struct {
@@ -63,7 +63,7 @@ func (c *Changes) Len() int {
 
 // Process iterates over the results of a ResultSet and
 // processes the content.
-func (c *Changes) Process(process Processor) error {
+func (c *Changes) Process(process ChangeProcessor) error {
 	for _, result := range c.changes.Results {
 		revisions := []string{}
 		for _, change := range result.Changes {

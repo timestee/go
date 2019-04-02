@@ -213,6 +213,11 @@ func (db *Database) Changes(params ...Parameter) (*Changes, error) {
 	return newChanges(db, params...)
 }
 
+// View returns access to a view of the configured database.
+func (db *Database) View(designID, viewID string, params ...Parameter) (*View, error) {
+	return newView(db, designID, viewID, params...)
+}
+
 // Request returns a raw database request for this database. Can
 // be used for not covered low-level commands.
 func (db *Database) Request() *Request {
