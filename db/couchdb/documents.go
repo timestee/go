@@ -137,11 +137,17 @@ type couchdbViewRow struct {
 
 type couchdbViewRows []couchdbViewRow
 
-// couchdbView is a generic result of a CouchDB view.
+// couchdbView is a generic result of a view.
 type couchdbView struct {
 	TotalRows int             `json:"total_rows"`
 	Offset    int             `json:"offset"`
 	Rows      couchdbViewRows `json:"rows"`
+}
+
+// couchdbFind is the result of a find command.
+type couchdbFind struct {
+	Warning   string            `json:"warning"`
+	Documents []json.RawMessage `json:"docs"`
 }
 
 // couchdRoles contains the roles of a user if the

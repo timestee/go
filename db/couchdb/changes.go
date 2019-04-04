@@ -61,8 +61,7 @@ func (c *Changes) Len() int {
 	return len(c.changes.Results)
 }
 
-// Process iterates over the results of a ResultSet and
-// processes the content.
+// Process iterates over the found changes and processes them.
 func (c *Changes) Process(process ChangeProcessor) error {
 	for _, result := range c.changes.Results {
 		revisions := []string{}

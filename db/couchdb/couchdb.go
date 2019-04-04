@@ -218,6 +218,11 @@ func (db *Database) View(designID, viewID string, params ...Parameter) (*View, e
 	return newView(db, designID, viewID, params...)
 }
 
+// Find runs a selection and returns access to the found results.
+func (db *Database) Find(selector *Selector, params ...Parameter) (*Find, error) {
+	return newFind(db, selector, params...)
+}
+
 // Request returns a raw database request for this database. Can
 // be used for not covered low-level commands.
 func (db *Database) Request() *Request {

@@ -52,7 +52,7 @@ func (v *View) Offset() int {
 	return v.view.Offset
 }
 
-// Process iterates over the rows of the result and processes the content.
+// Process iterates over the found view documents and processes them.
 func (v *View) Process(process ViewProcessor) error {
 	for _, row := range v.view.Rows {
 		key := NewUnmarshableJSON(row.Key)
