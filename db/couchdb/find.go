@@ -11,26 +11,111 @@ package couchdb
 // IMPORTS
 //--------------------
 
+import (
+	"encoding/json"
+	"strings"
+)
+
 //--------------------
-// SELECTOR
+// SEARCH
 //--------------------
 
-// Selector allows to formulate what documents shall be selected.
-type Selector struct {
+// Search allows to formulate what documents shall be selected and the
+// additional parameters.
+type Search struct {
 	parameters map[string]interface{}
 }
 
-// NewSelector creates a selector for the search of documents.
-func NewSelector() *Selector {
-	s := &Selector{
+// NewSearch creates a query for the search of documents.
+func NewSearch() *Search {
+	s := &Search{
 		parameters: make(map[string]interface{}),
 	}
 	return s
 }
 
+// Selector sets the search selector.
+func (s *Search) Selector(selector string) *Search {
+	s.parameters["selector"] = json.RawMessage(selector)
+	return s
+}
+
+// Fields sets the fields to return.
+func (s *Search) Fields(fields ...string) *Search {
+	s.parameters["fields"] = fields
+	return s
+}
+
+// Sort sets the sorting of the result by pairs "<fieldname>/asc"
+// and/or "<fieldname>/desc".
+func (s *Search) Sort(fieldsDirs ...string) *Search {
+	sort := map[string]string{}
+	for _, fieldDir := range fieldsDirs {
+		parts := strings.SplitN(fieldDir, "/", 2)
+		if len(parts) != 2 || (parts[1] != "asc" && parts[1] != "desc") {
+			continue
+		}
+		sort[parts[0]] = parts[1]
+	}
+	s.parameters["sort"] = sort
+	return s
+}
+
+// Limit sets the maximum number of results returned.
+func (s *Search) Limit(limit int) *Search {
+	s.parameters["limit"] = limit
+	return s
+}
+
+// Skip sets a number of results to skip.
+func (s *Search) Skip(skip int) *Search {
+	s.parameters["skip"] = skip
+	return s
+}
+
+// UseIndex instructs the search to use a specific index. Name
+// is allowed be empty.
+func (s *Search) UseIndex(designDocument, name string) *Search {
+	if name == "" {
+		s.parameters["use_index"] = designDocument
+	} else {
+		s.parameters["use_index"] = []string{designDocument, name}
+	}
+	return s
+}
+
+// ReadQuorum sets the needed read quorum for the result. The default is 1,
+// so that the document found un the index is returned. Higher quorums forces
+// to read from more replicas. This case needs more time.
+func (s *Search) ReadQuorum(quorum int) *Search {
+	s.parameters["r"] = quorum
+	return s
+}
+
+// Bookmark enables to specify which page of results is required. Every
+// search returns an opaque string under the bookmark key that can be passed
+// this way. Only works for indexes of type "text".
+func (s *Search) Bookmark(bookmark string) *Search {
+	s.parameters["bookmark"] = bookmark
+	return s
+}
+
+// Update sets whether to update the index prior to returning the result.
+// Default is true.
+func (s *Search) Update(update bool) *Search {
+	s.parameters["update"] = update
+	return s
+}
+
+// Stable sets whether to view results from a "stable" set of shards.
+func (s *Search) Stable(stable bool) *Search {
+	s.parameters["stable"] = stable
+	return s
+}
+
 // MarshalJSON implements json.Marshaler.
-func (s *Selector) MarshalJSON() ([]byte, error) {
-	return nil, nil
+func (s *Search) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.parameters)
 }
 
 //--------------------
@@ -47,8 +132,8 @@ type Find struct {
 }
 
 // newFind returns a new finds instance.
-func newFind(db *Database, selector *Selector, params ...Parameter) (*Find, error) {
-	rs := db.Request().SetPath(db.name, "_find").SetDocument(selector).ApplyParameters(params...).Post()
+func newFind(db *Database, search *Search, params ...Parameter) (*Find, error) {
+	rs := db.Request().SetPath(db.name, "_find").SetDocument(search).ApplyParameters(params...).Post()
 	if !rs.IsOK() {
 		return nil, rs.Error()
 	}

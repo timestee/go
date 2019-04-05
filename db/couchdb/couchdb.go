@@ -219,8 +219,8 @@ func (db *Database) View(designID, viewID string, params ...Parameter) (*View, e
 }
 
 // Find runs a selection and returns access to the found results.
-func (db *Database) Find(selector *Selector, params ...Parameter) (*Find, error) {
-	return newFind(db, selector, params...)
+func (db *Database) Find(search *Search, params ...Parameter) (*Find, error) {
+	return newFind(db, search, params...)
 }
 
 // Request returns a raw database request for this database. Can
