@@ -45,7 +45,7 @@ func TestView(t *testing.T) {
 	assert.True(trOld > 0)
 
 	// Add a matching document and view again.
-	docA := MyDocument{
+	docA := Worker{
 		DocumentID: "black-jack-4711",
 		Name:       "Jack Black",
 	}
@@ -56,7 +56,7 @@ func TestView(t *testing.T) {
 	trNew := v.TotalRows()
 	assert.Equal(trNew, trOld+1)
 	err = v.Process(func(id string, key, value, document *couchdb.Unmarshable) error {
-		valueA := MyDocument{}
+		valueA := Worker{}
 		err := value.Unmarshal(&valueA)
 		assert.Nil(err)
 		assert.True(strings.Contains(valueA.DocumentID, "a"))
@@ -65,7 +65,7 @@ func TestView(t *testing.T) {
 	assert.Nil(err)
 
 	// Add a non-matching document and view again.
-	docB := MyDocument{
+	docB := Worker{
 		DocumentID: "doe-john-999",
 		Name:       "John Doe",
 	}
@@ -104,7 +104,6 @@ func TestView(t *testing.T) {
 		assert.True(age <= 50)
 		err = value.Unmarshal(&name)
 		assert.Nil(err)
-		assert.Logf("Tester %s has age %d", name, age)
 		return err
 	})
 	assert.Nil(err)
@@ -121,7 +120,6 @@ func TestView(t *testing.T) {
 		assert.True(age <= 54)
 		err = value.Unmarshal(&name)
 		assert.Nil(err)
-		assert.Logf("Tester %s has age %d", name, age)
 		return err
 	})
 	assert.Nil(err)

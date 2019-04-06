@@ -30,10 +30,10 @@ func TestChanges(t *testing.T) {
 	cdb, cleanup := prepareSizedFilledDatabase(assert, "changes", count)
 	defer cleanup()
 
-	// Simple changes access.
+	// Simple changes access, length is plus one due to index document.
 	chgs, err := cdb.Changes()
 	assert.NoError(err)
-	assert.Equal(chgs.Len(), count)
+	assert.Equal(chgs.Len(), count+1)
 
 	chgs.Process(func(id, sequence string, deleted bool, revisions []string, document *couchdb.Unmarshable) error {
 		assert.Length(revisions, 1)
@@ -59,7 +59,7 @@ func TestChanges(t *testing.T) {
 
 	chgs, err = cdb.Changes()
 	assert.NoError(err)
-	assert.Equal(chgs.Len(), 2*count)
+	assert.Equal(chgs.Len(), 2*count+1)
 
 	chgs, err = cdb.Changes(couchdb.Since(lseq))
 	assert.NoError(err)

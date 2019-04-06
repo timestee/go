@@ -359,7 +359,7 @@ func TestScenario(t *testing.T) {
 	assert.NoError(err)
 
 	// Add document.
-	doc := MyDocument{
+	doc := Worker{
 		DocumentID: "foo",
 		Name:       "foo",
 	}
@@ -378,7 +378,7 @@ func TestScenario(t *testing.T) {
 func StepA() (version.Version, couchdb.StepAction) {
 	v := version.New(0, 1, 0)
 	return v, func(db *couchdb.Database) error {
-		md := MyDocument{
+		md := Worker{
 			DocumentID: "my-document-a",
 			Name:       "Joe Black",
 			Age:        25,
@@ -391,7 +391,7 @@ func StepA() (version.Version, couchdb.StepAction) {
 func StepB() (version.Version, couchdb.StepAction) {
 	v := version.New(0, 2, 0)
 	return v, func(db *couchdb.Database) error {
-		md := MyDocument{
+		md := Worker{
 			DocumentID: "my-document-b",
 			Name:       "John Doe",
 			Age:        51,
@@ -404,7 +404,7 @@ func StepB() (version.Version, couchdb.StepAction) {
 func StepC() (version.Version, couchdb.StepAction) {
 	v := version.New(0, 3, 0)
 	return v, func(db *couchdb.Database) error {
-		md := MyDocument{
+		md := Worker{
 			DocumentID: "my-document-c",
 			Name:       "Donald Duck",
 			Age:        85,

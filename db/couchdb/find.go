@@ -13,7 +13,6 @@ package couchdb
 
 import (
 	"encoding/json"
-	"strings"
 )
 
 //--------------------
@@ -27,15 +26,10 @@ type Search struct {
 }
 
 // NewSearch creates a query for the search of documents.
-func NewSearch() *Search {
+func NewSearch(selector string) *Search {
 	s := &Search{
 		parameters: make(map[string]interface{}),
 	}
-	return s
-}
-
-// Selector sets the search selector.
-func (s *Search) Selector(selector string) *Search {
 	s.parameters["selector"] = json.RawMessage(selector)
 	return s
 }
@@ -46,16 +40,21 @@ func (s *Search) Fields(fields ...string) *Search {
 	return s
 }
 
-// Sort sets the sorting of the result by pairs "<fieldname>/asc"
-// and/or "<fieldname>/desc".
-func (s *Search) Sort(fieldsDirs ...string) *Search {
-	sort := map[string]string{}
-	for _, fieldDir := range fieldsDirs {
-		parts := strings.SplitN(fieldDir, "/", 2)
-		if len(parts) != 2 || (parts[1] != "asc" && parts[1] != "desc") {
+// Sort sets the sorting of the result by alternates of field names
+// and directions like "asc" or "desc". For examle ("name", "asc",
+// "age", "desc").
+func (s *Search) Sort(fieldsOrDirs ...string) *Search {
+	sort := []map[string]string{}
+	field := ""
+	for _, fieldOrDir := range fieldsOrDirs {
+		if field == "" {
+			field = fieldOrDir
 			continue
 		}
-		sort[parts[0]] = parts[1]
+		sort = append(sort, map[string]string{
+			field: fieldOrDir,
+		})
+		field = ""
 	}
 	s.parameters["sort"] = sort
 	return s

@@ -12,6 +12,8 @@ package couchdb
 //--------------------
 
 import (
+	"encoding/json"
+
 	"tideland.dev/go/dsa/version"
 	"tideland.dev/go/trace/errors"
 )
@@ -74,6 +76,74 @@ func (steps Steps) execute(db *Database) error {
 		}
 	}
 	return nil
+}
+
+//--------------------
+// INDEX
+//--------------------
+
+// Index allows to generate an index for faster find operations.
+type Index struct {
+	name       string
+	parameters map[string]interface{}
+}
+
+// NewIndex creates an index.
+func NewIndex(name string, fields ...string) *Index {
+	idx := &Index{
+		name:       name,
+		parameters: make(map[string]interface{}),
+	}
+	idx.parameters["fields"] = fields
+	return idx
+}
+
+// Selector adds a selector to the index.
+func (idx *Index) Selector(selector string) *Index {
+	idx.parameters["selector"] = json.RawMessage(selector)
+	return idx
+}
+
+// Sort sets the sorting of the index by alternates of field names
+// and directions like "asc" or "desc". For examle ("name", "asc",
+// "age", "desc").
+func (idx *Index) Sort(fieldsOrDirs ...string) *Index {
+	sort := []map[string]string{}
+	field := ""
+	for _, fieldOrDir := range fieldsOrDirs {
+		if field == "" {
+			field = fieldOrDir
+			continue
+		}
+		sort = append(sort, map[string]string{
+			field: fieldOrDir,
+		})
+		field = ""
+	}
+	idx.parameters["sort"] = sort
+	return idx
+}
+
+// Limit sets the maximum number of index documents.
+func (idx *Index) Limit(limit int) *Index {
+	idx.parameters["limit"] = limit
+	return idx
+}
+
+// Skip sets a number of documents to skip.
+func (idx *Index) Skip(skip int) *Index {
+	idx.parameters["skip"] = skip
+	return idx
+}
+
+// MarshalJSON implements json.Marshaler.
+func (idx *Index) MarshalJSON() ([]byte, error) {
+	doc := map[string]interface{}{
+		"name":  idx.name,
+		"index": idx.parameters,
+		"type":  "json",
+	}
+	return json.Marshal(doc)
 }
 
 //--------------------
@@ -192,6 +262,11 @@ func (m *Manager) DeleteDatabase(params ...Parameter) *ResultSet {
 // DeleteNamedDatabase removes the given database.
 func (m *Manager) DeleteNamedDatabase(name string, params ...Parameter) *ResultSet {
 	return m.db.Request().SetPath(name).ApplyParameters(params...).Delete()
+}
+
+// CreateIndex creates a new index for finds.
+func (m *Manager) CreateIndex(index *Index, params ...Parameter) *ResultSet {
+	return m.db.Request().SetPath(m.db.name, "_index").SetDocument(index).ApplyParameters(params...).Post()
 }
 
 // HasAdministrator checks if a given administrator account exists.
