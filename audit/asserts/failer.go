@@ -356,9 +356,9 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 
 	if f.shallFail {
 		f.printer.Errorf(buffer.String())
-		f.failable.Fail()
+		f.failable.FailNow()
 	} else {
-		f.printer.Logf(buffer.String())
+		f.printer.Errorf(buffer.String())
 	}
 	return false
 }
