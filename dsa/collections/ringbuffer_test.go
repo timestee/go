@@ -24,7 +24,7 @@ import (
 
 // TestRingBufferPush tests the pushing of values.
 func TestRingBufferPush(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	rb := collections.NewRingBuffer(0)
 	assert.Equal(rb.Cap(), 2)
@@ -41,7 +41,7 @@ func TestRingBufferPush(t *testing.T) {
 
 // TestRingBufferPeekPop tests the peeking and popping of values.
 func TestRingBufferPop(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	rb := collections.NewRingBuffer(10)
 	assert.Equal(rb.Cap(), 10)
@@ -84,7 +84,7 @@ func TestRingBufferPop(t *testing.T) {
 
 // TestRingBufferGrow tests the growing of the ring buffer.
 func TestRingBufferGrow(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	rb := collections.NewRingBuffer(4)
 	assert.Equal(rb.Cap(), 4)

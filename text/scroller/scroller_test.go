@@ -166,7 +166,7 @@ var tests = []struct {
 
 // TestScroller runs the different scroller test.
 func TestScroller(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	input, output := generateTestData()
 
 	for i, test := range tests {

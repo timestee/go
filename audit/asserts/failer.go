@@ -277,14 +277,24 @@ type Failable interface {
 	FailNow()
 }
 
+// FailMode defines how to react on failing test asserts.
+type FailMode int
+
+// Fail modes for test failer.
+const (
+	NoFailing    FailMode = 0 // NoFailing simply logs a failing.
+	FailContinue FailMode = 1 // FailContinue logs a failing and calls Failable.Fail().
+	FailStop     FailMode = 2 // FailStop logs a failing and calls Failable.FailNow().
+)
+
 // testingFailer works together with the testing package of Go and
 // may signal the fail to it.
 type testingFailer struct {
-	mu        sync.Mutex
-	printer   Printer
-	failable  Failable
-	offset    int
-	shallFail bool
+	mu       sync.Mutex
+	printer  Printer
+	failable Failable
+	offset   int
+	mode     FailMode
 }
 
 // SetPrinter implements Failer.
@@ -354,11 +364,15 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 	}
 	fmt.Fprintf(buffer, "}\n")
 
-	if f.shallFail {
+	switch f.mode {
+	case NoFailing:
+		f.printer.Logf(buffer.String())
+	case FailContinue:
+		f.printer.Errorf(buffer.String())
+		f.failable.Fail()
+	case FailStop:
 		f.printer.Errorf(buffer.String())
 		f.failable.FailNow()
-	} else {
-		f.printer.Errorf(buffer.String())
 	}
 	return false
 }
@@ -366,12 +380,12 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 // NewTesting creates a new Asserts instance for use with the testing
 // package. The *testing.T has to be passed as failable, the argument.
 // shallFail controls if a failing assertion also lets fail the Go test.
-func NewTesting(f Failable, shallFail bool) *Asserts {
+func NewTesting(f Failable, mode FailMode) *Asserts {
 	return New(&testingFailer{
-		printer:   NewStandardPrinter(),
-		failable:  f,
-		offset:    4,
-		shallFail: shallFail,
+		printer:  NewStandardPrinter(),
+		failable: f,
+		offset:   4,
+		mode:     mode,
 	})
 }
 

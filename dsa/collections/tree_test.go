@@ -27,7 +27,7 @@ import (
 
 // TestTreeCreate tests the correct creation of a tree.
 func TestTreeCreate(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Tree with duplicates, no errors.
 	tree := collections.NewTree("root", true)
@@ -65,7 +65,7 @@ func TestTreeCreate(t *testing.T) {
 
 // TestTreeRemove tests the correct removal of tree nodes.
 func TestTreeRemove(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createTree(assert)
 
 	err := tree.At("root", "alpha").Remove()
@@ -79,7 +79,7 @@ func TestTreeRemove(t *testing.T) {
 
 // TestTreeSetValue tests the setting of a tree nodes value.
 func TestTreeSetValue(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createTree(assert)
 
 	// Tree with duplicates.
@@ -106,7 +106,7 @@ func TestTreeSetValue(t *testing.T) {
 
 // TestTreeFind tests the correct finding in tree nodes.
 func TestTreeFind(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createTree(assert)
 
 	// Test finding the first matching.
@@ -158,7 +158,7 @@ func TestTreeFind(t *testing.T) {
 
 // TestTreeDo tests the iteration over the tree nodes.
 func TestTreeDo(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	tree := collections.NewTree("root", true)
 	err := tree.At("root").Add("alpha")
@@ -207,7 +207,7 @@ func TestTreeDo(t *testing.T) {
 
 // TestTreeCopy tests the copy of a tree.
 func TestTreeCopy(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	tree := collections.NewTree("root", true)
 	err := tree.Create("root", "alpha").Add("a")
@@ -235,7 +235,7 @@ func TestTreeCopy(t *testing.T) {
 
 // TestStringTreeCreate tests the correct creation of a string tree.
 func TestStringTreeCreate(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// String tree with duplicates, no errors.
 	tree := collections.NewStringTree("root", true)
@@ -273,7 +273,7 @@ func TestStringTreeCreate(t *testing.T) {
 
 // TestStringTreeRemove tests the correct removal of string tree nodes.
 func TestStringTreeRemove(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createStringTree(assert)
 
 	err := tree.At("root", "alpha").Remove()
@@ -287,7 +287,7 @@ func TestStringTreeRemove(t *testing.T) {
 
 // TestStringTreeSetValue tests the setting of a string tree nodes value.
 func TestStringTreeSetValue(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createStringTree(assert)
 
 	// Tree with duplicates.
@@ -311,7 +311,7 @@ func TestStringTreeSetValue(t *testing.T) {
 
 // TestStringTreeFind tests the correct finding in string tree nodes.
 func TestStringTreeFind(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createStringTree(assert)
 
 	// Test finding the first matching.
@@ -353,7 +353,7 @@ func TestStringTreeFind(t *testing.T) {
 
 // TestStringTreeDo tests the iteration over the string tree nodes.
 func TestStringTreeDo(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createStringTree(assert)
 
 	// Test iteration.
@@ -385,7 +385,7 @@ func TestStringTreeDo(t *testing.T) {
 
 // TestStringTreeCopy tests the copy of a string tree.
 func TestStringTreeCopy(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	tree := collections.NewStringTree("root", true)
 	err := tree.Create("root", "alpha").Add("a")
@@ -413,7 +413,7 @@ func TestStringTreeCopy(t *testing.T) {
 
 // TestKeyValueTreeCreate tests the correct creation of a key/value tree.
 func TestKeyValueTreeCreate(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Key/value tree with duplicates, no errors.
 	tree := collections.NewKeyValueTree("root", 1, true)
@@ -451,7 +451,7 @@ func TestKeyValueTreeCreate(t *testing.T) {
 
 // TestKeyValueTreeRemove tests the correct removal of key/value tree nodes.
 func TestKeyValueTreeRemove(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyValueTree(assert)
 
 	err := tree.At("root", "alpha").Remove()
@@ -465,7 +465,7 @@ func TestKeyValueTreeRemove(t *testing.T) {
 
 // TestKeyValueTreeSetKey tests the setting of a key/value tree nodes key.
 func TestKeyValueTreeSetKey(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyValueTree(assert)
 
 	// Tree with duplicates.
@@ -494,7 +494,7 @@ func TestKeyValueTreeSetKey(t *testing.T) {
 
 // TestKeyValueTreeSetValue tests the setting of a key/value tree nodes value.
 func TestKeyValueTreeSetValue(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyValueTree(assert)
 
 	// Tree with duplicates.
@@ -518,7 +518,7 @@ func TestKeyValueTreeSetValue(t *testing.T) {
 
 // TestKeyValueTreeFind tests the correct finding in key/value tree nodes.
 func TestKeyValueTreeFind(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyValueTree(assert)
 
 	// Test finding the first matching.
@@ -560,7 +560,7 @@ func TestKeyValueTreeFind(t *testing.T) {
 
 // TestKeyValueTreeDo tests the iteration over the key/value tree nodes.
 func TestKeyValueTreeDo(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyValueTree(assert)
 
 	// Test iteration.
@@ -596,7 +596,7 @@ func TestKeyValueTreeDo(t *testing.T) {
 
 // TestKeyValueTreeCopy tests the copy of a key/value tree.
 func TestKeyValueTreeCopy(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	tree := collections.NewKeyValueTree("root", "0", true)
 	err := tree.Create("root", "alpha").Add("a", "1")
@@ -631,7 +631,7 @@ func TestKeyValueTreeCopy(t *testing.T) {
 // TestKeyStringValueTreeCreate tests the correct creation of a
 // key/string value tree.
 func TestKeyStringValueTreeCreate(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Key/string value tree with duplicates, no errors.
 	tree := collections.NewKeyStringValueTree("root", "one", true)
@@ -670,7 +670,7 @@ func TestKeyStringValueTreeCreate(t *testing.T) {
 // TestKeyStringValueTreeRemove tests the correct removal of
 // key/string value tree nodes.
 func TestKeyStringValueTreeRemove(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyStringValueTree(assert)
 
 	err := tree.At("root", "alpha").Remove()
@@ -685,7 +685,7 @@ func TestKeyStringValueTreeRemove(t *testing.T) {
 // TestKeyStringValueTreeSetKey tests the setting of a
 // key/string value tree nodes key.
 func TestKeyStringValueTreeSetKey(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyStringValueTree(assert)
 
 	// Tree with duplicates.
@@ -715,7 +715,7 @@ func TestKeyStringValueTreeSetKey(t *testing.T) {
 // TestKeyStringValueTreeSetValue tests the setting of a
 // key/string value tree nodes value.
 func TestKeyStringValueTreeSetValue(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyStringValueTree(assert)
 
 	// Tree with duplicates.
@@ -740,7 +740,7 @@ func TestKeyStringValueTreeSetValue(t *testing.T) {
 // TestKeyStringValueTreeFind tests the correct finding in
 // key/string value tree nodes.
 func TestKeyStringValueTreeFind(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyStringValueTree(assert)
 
 	// Test finding the first matching.
@@ -783,7 +783,7 @@ func TestKeyStringValueTreeFind(t *testing.T) {
 // TestKeyStringValueTreeDo tests the iteration over the
 // key/string value tree nodes.
 func TestKeyStringValueTreeDo(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tree := createKeyStringValueTree(assert)
 
 	// Test iterations.
@@ -819,7 +819,7 @@ func TestKeyStringValueTreeDo(t *testing.T) {
 
 // TestKeyStringValueTreeCopy tests the copy of a key/string value tree.
 func TestKeyStringValueTreeCopy(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	tree := collections.NewKeyStringValueTree("root", "0", true)
 	err := tree.Create("root", "alpha").Add("a", "1")

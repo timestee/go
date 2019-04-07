@@ -24,7 +24,7 @@ import (
 
 // TestStandardUUID tests the standard UUID.
 func TestStandardUUID(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	// Asserts.
 	uuid := identifier.NewUUID()
 	assert.Equal(uuid.Version(), identifier.UUIDv4)
@@ -44,7 +44,7 @@ func TestStandardUUID(t *testing.T) {
 
 // TestUUIDVersions tests the creation of different UUID versions.
 func TestUUIDVersions(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ns := identifier.UUIDNamespaceOID()
 	// Asserts.
 	uuidV1, err := identifier.NewUUIDv1()
@@ -71,7 +71,7 @@ func TestUUIDVersions(t *testing.T) {
 
 // TestUUIDByHex tests creating UUIDs from hex strings.
 func TestUUIDByHex(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	// Asserts.
 	_, err := identifier.NewUUIDByHex("ffff")
 	assert.ErrorMatch(err, `.* source length is not 32`)

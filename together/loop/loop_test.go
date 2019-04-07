@@ -29,7 +29,7 @@ import (
 // TestPure tests a loop without any options, stopping without an error.
 func TestPure(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	waitC := make(chan struct{})
 	beenThereDoneThat := false
 	worker := func(c *notifier.Closer) error {
@@ -57,7 +57,7 @@ func TestPure(t *testing.T) {
 // TestPureError tests a loop without any options, stopping with an error.
 func TestPureError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	waitC := make(chan struct{})
 	worker := func(c *notifier.Closer) error {
 		close(waitC)
@@ -80,7 +80,7 @@ func TestPureError(t *testing.T) {
 // to an internal error.
 func TestPureInternalError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	waitC := make(chan struct{})
 	worker := func(c *notifier.Closer) (err error) {
 		defer func() {
@@ -105,7 +105,7 @@ func TestPureInternalError(t *testing.T) {
 // TestContextCancelOK tests the stopping after a context cancel w/o error.
 func TestContextCancelOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ctx, cancel := context.WithCancel(context.Background())
 	worker := func(c *notifier.Closer) error {
 		for {
@@ -132,7 +132,7 @@ func TestContextCancelOK(t *testing.T) {
 // TestContextCancelError tests the stopping after a context cancel w/ error.
 func TestContextCancelError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ctx, cancel := context.WithCancel(context.Background())
 	worker := func(c *notifier.Closer) error {
 		for {
@@ -159,7 +159,7 @@ func TestContextCancelError(t *testing.T) {
 // TestMultipleNotifier tests the usage of multiple notifiers.
 func TestMultipleNotifier(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	worker := func(c *notifier.Closer) error {
 		for {
 			select {
@@ -202,7 +202,7 @@ func TestMultipleNotifier(t *testing.T) {
 // TestFinalizerOK tests the stopping with an error, but cleared by a finalizer.
 func TestFinalizerOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	finalized := false
 	worker := func(c *notifier.Closer) error {
 		for {
@@ -233,7 +233,7 @@ func TestFinalizerOK(t *testing.T) {
 // TestFinalizerError tests the stopping with an error, but changed by a finalizer.
 func TestContextCancelFinalizerError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	worker := func(c *notifier.Closer) error {
 		for {
 			select {
@@ -261,7 +261,7 @@ func TestContextCancelFinalizerError(t *testing.T) {
 // TestInternalOK tests the stopping w/o an error.
 func TestInternalOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	worker := func(c *notifier.Closer) error {
 		for {
 			select {
@@ -284,7 +284,7 @@ func TestInternalOK(t *testing.T) {
 // TestInternalError tests the stopping after an internal error.
 func TestInternalError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	worker := func(c *notifier.Closer) error {
 		for {
 			select {
@@ -309,7 +309,7 @@ func TestInternalError(t *testing.T) {
 // Recoverer must never been called.
 func TestRecoveredOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	beenThereDoneThat := false
 	worker := func(c *notifier.Closer) error {
 		for {
@@ -340,7 +340,7 @@ func TestRecoveredOK(t *testing.T) {
 // Recoverer must never been called.
 func TestRecovererError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	beenThereDoneThat := false
 	worker := func(c *notifier.Closer) error {
 		for {
@@ -370,7 +370,7 @@ func TestRecovererError(t *testing.T) {
 // TestRecoverPanicsOK tests the stopping w/o an error.
 func TestRecoverPanicsOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	panics := 0
 	doneC := make(chan struct{})
 	worker := func(c *notifier.Closer) error {
@@ -405,7 +405,7 @@ func TestRecoverPanicsOK(t *testing.T) {
 // TestRecoverPanicsError tests the stopping w/o an error.
 func TestRecoverPanicsError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	panics := 0
 	worker := func(c *notifier.Closer) error {
 		for {
@@ -437,7 +437,7 @@ func TestRecoverPanicsError(t *testing.T) {
 // TestReasons tests collecting and analysing loop recovery reasons.
 func TestReasons(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	rins := []error{
 		errors.New("error a"),
 		errors.New("error b"),

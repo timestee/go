@@ -29,7 +29,7 @@ import (
 // TestAcceptsContentType tests if the checking for accepted content
 // types works correctly.
 func TestAcceptsContentType(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	r, err := http.NewRequest(http.MethodGet, "http://localhost/", nil)
 	assert.NoError(err)
@@ -43,7 +43,7 @@ func TestAcceptsContentType(t *testing.T) {
 // TestHasContentType tests if the checking for contained content
 // types works correctly.
 func TestHasContentType(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	r, err := http.NewRequest(http.MethodGet, "http://localhost/", nil)
 	assert.NoError(err)
@@ -56,7 +56,7 @@ func TestHasContentType(t *testing.T) {
 // TestUnmarshalRequestBody tests the retrieval of encoded data
 // out of a request body.
 func TestUnmarshalRequestBody(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	dIn := data{
 		Number: 1234,
 		Name:   "Test",

@@ -26,7 +26,7 @@ import (
 
 // TestVersion tests the retrieving of the DBMS version.
 func TestVersion(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Open the database to retrieve the DBMS version.
 	cdb, err := couchdb.Open(couchdb.Name(testDB))
@@ -39,7 +39,7 @@ func TestVersion(t *testing.T) {
 
 // TestNoSteps tests creating the database with no steps.
 func TestNoSteps(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	cdb, err := couchdb.Open(couchdb.Name(testDB))
 	assert.Nil(err)
@@ -59,7 +59,7 @@ func TestNoSteps(t *testing.T) {
 
 // TestSomeSteps tests creating the database with some steps.
 func TestSomeSteps(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	cdb, err := couchdb.Open(couchdb.Name(testDB))
 	assert.Nil(err)
@@ -82,7 +82,7 @@ func TestSomeSteps(t *testing.T) {
 
 // TestMultipleStartups tests calling startup multiple times.
 func TestMultipleStartups(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	cdb, err := couchdb.Open(couchdb.Name(testDB))
 	assert.Nil(err)
@@ -119,7 +119,7 @@ func TestMultipleStartups(t *testing.T) {
 
 // TestAllDatabaseIDs tests the retrieving of all database IDs.
 func TestAllDatabaseIDs(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Open the database.
 	cdb, err := couchdb.Open(couchdb.Name(testDB))
@@ -131,7 +131,7 @@ func TestAllDatabaseIDs(t *testing.T) {
 // TestCreateDeleteDatabase tests the creation and deletion
 // of a database.
 func TestCreateDeleteDatabase(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Open and check existence.
 	cdb, err := couchdb.Open(couchdb.Name(testDB))
@@ -158,7 +158,7 @@ func TestCreateDeleteDatabase(t *testing.T) {
 
 // TestAdministraotor tests the administrator related functions.
 func TestAdministrator(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDatabase(assert, "administrator")
 	defer cleanup()
 
@@ -212,7 +212,7 @@ func TestAdministrator(t *testing.T) {
 
 // TestUser tests the user management related functions.
 func TestUser(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDeletedDatabase(assert, "user")
 	defer cleanup()
 
@@ -243,7 +243,7 @@ func TestUser(t *testing.T) {
 
 // TestSecurity tests the cdb.Manager() related functions.
 func TestSecurity(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDeletedDatabase(assert, "security")
 	defer cleanup()
 
@@ -296,7 +296,7 @@ func TestSecurity(t *testing.T) {
 // TestScenario tests a scenario with administrator, user,
 // amd unauthorized access to the database.
 func TestScenario(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDeletedDatabase(assert, "scenario")
 	defer cleanup()
 

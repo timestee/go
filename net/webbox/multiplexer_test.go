@@ -26,7 +26,7 @@ import (
 // TestInvalidMethodMultiplexer tests the panics for invalid values
 // passed to a MethodMux.
 func TestInvalidMethodMultiplexer(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	mmux := webbox.NewMethodMux()
 
 	assert.Panics(func() {
@@ -50,7 +50,7 @@ func TestInvalidMethodMultiplexer(t *testing.T) {
 
 // TestMethodMultiplexer tests the multiplexing of methods to different handler.
 func TestMethodMultiplexer(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := startWebAsserter(assert)
 	defer wa.Close()
 

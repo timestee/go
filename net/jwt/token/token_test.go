@@ -35,7 +35,7 @@ const (
 
 // TestDecode tests the decoding without verifying the signature.
 func TestDecode(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	// Decode.
 	jwt, err := token.Decode(rawToken)
 	assert.Nil(err)
@@ -64,7 +64,7 @@ func TestDecode(t *testing.T) {
 
 // TestIsValid checks the time validation of a token.
 func TestIsValid(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing time validation")
 	now := time.Now()
 	leeway := time.Minute

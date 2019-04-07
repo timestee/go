@@ -25,7 +25,7 @@ import (
 
 // TestChanges tests retrieving changes.
 func TestChanges(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	count := 1000
 	cdb, cleanup := prepareSizedFilledDatabase(assert, "changes", count)
 	defer cleanup()

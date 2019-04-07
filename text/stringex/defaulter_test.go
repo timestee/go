@@ -40,7 +40,7 @@ const (
 
 // TestAsString checks the access of string values.
 func TestAsString(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("AsString", true)
 	tests := []struct {
@@ -60,7 +60,7 @@ func TestAsString(t *testing.T) {
 
 // TestAsStringSlice checks the access of string slice values.
 func TestAsStringSlice(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("AsStringSlice", true)
 	tests := []struct {
@@ -86,7 +86,7 @@ func TestAsStringSlice(t *testing.T) {
 
 // TestAsStringMap checks the access of string map values.
 func TestAsStringMap(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("AsStringMap", true)
 	tests := []struct {
@@ -113,7 +113,7 @@ func TestAsStringMap(t *testing.T) {
 
 // TestAsBool checks the access of bool values.
 func TestAsBool(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("AsBool", true)
 	tests := []struct {
@@ -147,7 +147,7 @@ func TestAsBool(t *testing.T) {
 
 // TestAsInt checks the access of int values.
 func TestAsInt(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	maxIntS := strconv.FormatInt(int64(maxInt), 10)
 	minIntS := strconv.FormatInt(int64(minInt), 10)
@@ -177,7 +177,7 @@ func TestAsInt(t *testing.T) {
 
 // TestAsInt64 checks the access of int64 values.
 func TestAsInt64(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	maxInt64S := strconv.FormatInt(math.MaxInt64, 10)
 	minInt64S := strconv.FormatInt(math.MinInt64, 10)
@@ -207,7 +207,7 @@ func TestAsInt64(t *testing.T) {
 
 // TestAsUint checks the access of uint values.
 func TestAsUint(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	maxUintS := strconv.FormatUint(uint64(maxUint), 10)
 	d := stringex.NewDefaulter("AsUint", true)
@@ -232,7 +232,7 @@ func TestAsUint(t *testing.T) {
 
 // TestAsUInt64 checks the access of uint64 values.
 func TestAsUInt64(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	maxUInt64S := strconv.FormatUint(math.MaxUint64, 10)
 	d := stringex.NewDefaulter("AsUInt64", true)
@@ -257,7 +257,7 @@ func TestAsUInt64(t *testing.T) {
 
 // TestAsFloat64 checks the access of float64 values.
 func TestAsFloat64(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	maxFloat64S := strconv.FormatFloat(math.MaxFloat64, 'e', -1, 64)
 	minFloat64S := strconv.FormatFloat(-1*math.MaxFloat64, 'e', -1, 64)
@@ -287,7 +287,7 @@ func TestAsFloat64(t *testing.T) {
 
 // TestAsTime checks the access of time values.
 func TestAsTime(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	y2k := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
 	nowStr, now := generators.BuildTime(time.RFC3339Nano, 0)
@@ -313,7 +313,7 @@ func TestAsTime(t *testing.T) {
 
 // TestAsDuration checks the access of duration values.
 func TestAsDuration(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("AsDuration", true)
 	tests := []struct {
@@ -336,7 +336,7 @@ func TestAsDuration(t *testing.T) {
 
 // TestDefaulterString checks the output of the defaulter as string.
 func TestDefaulterString(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("my-id", true)
 	s := d.String()
@@ -346,7 +346,7 @@ func TestDefaulterString(t *testing.T) {
 
 // TestStringValuer checks the simple valuer for plain strings.
 func StringValuer(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("StringValuer", false)
 	sv := stringex.StringValuer("4711")

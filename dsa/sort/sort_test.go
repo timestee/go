@@ -27,7 +27,7 @@ import (
 
 // Test pivot.
 func TestPivot(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	// Make some test data.
 	td := ByteSlice{17, 20, 13, 15, 51, 6, 21, 11, 23, 47, 59, 88, 78, 67, 94}
 	plh, puh := sort.Partition(td, 0, len(td)-1)

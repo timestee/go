@@ -27,7 +27,7 @@ import (
 
 // TestPathFields tests the splitting of request paths into fields.
 func TestPathFields(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	r, err := http.NewRequest(http.MethodGet, "http://localhost/", nil)
 	assert.NoError(err)
@@ -53,7 +53,7 @@ func TestPathFields(t *testing.T) {
 // TestPathField tests the checking and extrecting of a field out of
 // a request path.
 func TestPathField(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	r, err := http.NewRequest(http.MethodGet, "http://localhost/foo", nil)
 	assert.NoError(err)

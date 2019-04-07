@@ -24,7 +24,7 @@ import (
 
 // TestTypeAsIdentifierPart tests the creation of identifiers based on types.
 func TestTypeAsIdentifierPart(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Type as identifier.
 	var tai TypeToSplitForIdentifier
@@ -38,7 +38,7 @@ func TestTypeAsIdentifierPart(t *testing.T) {
 
 // TestIdentifier tests the creation of identifiers based on parts.
 func TestIdentifier(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Identifier.
 	id := identifier.Identifier("One", 2, "three four")
@@ -51,7 +51,7 @@ func TestIdentifier(t *testing.T) {
 // TestSepIdentifier tests the creation of identifiers based on parts
 // with defined seperators.
 func TestSepIdentifier(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	id := identifier.SepIdentifier("+", 1, "oNe", 2, "TWO", "3", "ÄÖÜ")
 	assert.Equal(id, "1+one+2+two+3")

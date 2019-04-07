@@ -27,7 +27,7 @@ import (
 // TempDir represents a temporary directory and possible subdirectories
 // for testing purposes. It simply is created with
 //
-//     assert := asserts.NewTesting(t, false)
+//     assert := asserts.NewTesting(t, asserts.FailContinue)
 //     td := environments.NewTempDir(assert)
 //     defer td.Restore()
 //
@@ -98,7 +98,7 @@ func (td *TempDir) String() string {
 // Variables allows to change and restore environment variables. The
 // same variable can be set multiple times. Simply do
 //
-//     assert := asserts.NewTesting(t, false)
+//     assert := asserts.NewTesting(t, asserts.FailContinue)
 //     ev := environments.NewVariables(assert)
 //     defer ev.Restore()
 //

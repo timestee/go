@@ -29,7 +29,7 @@ import (
 // and revoking.
 func TestSubmitStatusRevoke(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	at := time.Now().Add(250 * time.Millisecond)
 	beenThereDoneThat := false
 
@@ -59,7 +59,7 @@ func TestSubmitStatusRevoke(t *testing.T) {
 // TestList tests the listing of submitted jobs.
 func TestList(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	at := time.Now().Add(time.Second)
 
 	// Test.
@@ -110,7 +110,7 @@ func TestList(t *testing.T) {
 // TestSubmitAt tests if a job is executed only once.
 func TestSubmitAt(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	atOne := time.Now().Add(100 * time.Millisecond)
 	oneDiffC := make(chan time.Duration, 1)
 	oneDiffExtend := float64(10 * time.Millisecond)
@@ -159,7 +159,7 @@ waiting:
 // TestSubmitEvery tests if a job is executed every given interval.
 func TestSubmitEvery(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	every := 200 * time.Millisecond
 	syncC := make(chan struct{}, 1)
 
@@ -190,7 +190,7 @@ func TestSubmitEvery(t *testing.T) {
 // after a given time.
 func TestSubmitAtEvery(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	at := time.Now().Add(500 * time.Millisecond)
 	every := 100 * time.Millisecond
 	syncC := make(chan struct{}, 1)
@@ -222,7 +222,7 @@ func TestSubmitAtEvery(t *testing.T) {
 // after a given pause.
 func TestSubmitAfterEvery(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	pause := 500 * time.Millisecond
 	every := 100 * time.Millisecond
 	syncC := make(chan struct{}, 1)
@@ -253,7 +253,7 @@ func TestSubmitAfterEvery(t *testing.T) {
 // TestIllegal tests double id submit and illegal id revoke.
 func TestIllegal(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	at := time.Now().Add(time.Second)
 	job := func() error {
 		return nil

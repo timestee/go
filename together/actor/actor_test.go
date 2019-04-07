@@ -29,7 +29,7 @@ import (
 // TestPureGoOK is simply starting and stopping an Actor
 // with Go().
 func TestPureGoOK(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	notifier := notifier.New()
 	act := actor.New(
 		actor.WithNotifier(notifier)).Go()
@@ -43,7 +43,7 @@ func TestPureGoOK(t *testing.T) {
 // TestPureGoError is simply starting and stopping an Actor
 // with Go(). Returning the stop error.
 func TestPureGo(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	notifier := notifier.New()
 	act := actor.New(
 		actor.WithNotifier(notifier)).Go()
@@ -57,7 +57,7 @@ func TestPureGo(t *testing.T) {
 // TestWithContextGo is simply starting and stopping an Actor
 // with a context and Go().
 func TestNewActorGo(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ctx, cancel := context.WithCancel(context.Background())
 	act := actor.New(
 		actor.WithContext(ctx)).Go()
@@ -70,7 +70,7 @@ func TestNewActorGo(t *testing.T) {
 // TestWithContextWork is simply starting an Actor with Work()
 // and terminate externally.
 func TestNewActorWork(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ctx, cancel := context.WithCancel(context.Background())
 	act := actor.New(
 		actor.WithContext(ctx))
@@ -86,7 +86,7 @@ func TestNewActorWork(t *testing.T) {
 
 // TestSync tests synchronous calls.
 func TestSync(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	act := actor.New().Go()
 	defer act.Stop(nil)
 
@@ -105,7 +105,7 @@ func TestSync(t *testing.T) {
 
 // TestTimeout tests timout error of a synchronous Action.
 func TestTimeout(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	act := actor.New().Go()
 	defer act.Stop(nil)
 
@@ -121,7 +121,7 @@ func TestTimeout(t *testing.T) {
 
 // TestAsyncWithQueueLen tests running multiple calls asynchronously.
 func TestAsyncWithQueueLen(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	act := actor.New(
 		actor.WithQueueLen(100)).Go()
 	defer act.Stop(nil)
@@ -162,7 +162,7 @@ func TestAsyncWithQueueLen(t *testing.T) {
 
 // TestRecovery tests handling panics.
 func TestRecovery(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	counter := 0
 	recovered := false
 	doneC := make(chan struct{})

@@ -26,7 +26,7 @@ import (
 
 // TestClaimsMarshalling tests the marshalling of Claims to JSON and back.
 func TestClaimsMarshalling(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims marshalling")
 	// First with uninitialised or empty token.
 	var c token.Claims
@@ -58,7 +58,7 @@ func TestClaimsMarshalling(t *testing.T) {
 
 // TestClaimsBasic tests the low level operations on token.
 func TestClaimsBasic(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims basic functions handling")
 	// First with uninitialised token.
 	var c token.Claims
@@ -98,7 +98,7 @@ func TestClaimsBasic(t *testing.T) {
 
 // TestClaimsString tests the string operations on token.
 func TestClaimsString(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims string handling")
 	c := token.NewClaims()
 	nothing := c.Set("foo", "bar")
@@ -115,7 +115,7 @@ func TestClaimsString(t *testing.T) {
 
 // TestClaimsBool tests the bool operations on token.
 func TestClaimsBool(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims bool handling")
 	c := token.NewClaims()
 	c.Set("foo", true)
@@ -142,7 +142,7 @@ func TestClaimsBool(t *testing.T) {
 
 // TestClaimsInt tests the int operations on token.
 func TestClaimsInt(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims int handling")
 	c := token.NewClaims()
 	c.Set("foo", 4711)
@@ -165,7 +165,7 @@ func TestClaimsInt(t *testing.T) {
 
 // TestClaimsFloat64 tests the float64 operations on token.
 func TestClaimsFloat64(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims float64 handling")
 	c := token.NewClaims()
 	c.Set("foo", 4711)
@@ -188,7 +188,7 @@ func TestClaimsFloat64(t *testing.T) {
 
 // TestClaimsTime tests the time operations on token.
 func TestClaimsTime(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims time handling")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 	c := token.NewClaims()
@@ -219,7 +219,7 @@ type nestedValue struct {
 // TestClaimsMarshalledValue tests the marshalling and
 // unmarshalling of structures as values.
 func TestClaimsMarshalledValue(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims deep value unmarshalling")
 	baz := []*nestedValue{
 		{"one", 1},
@@ -252,7 +252,7 @@ func TestClaimsMarshalledValue(t *testing.T) {
 // TestClaimsAudience checks the setting, getting, and
 // deleting of the audience claim.
 func TestClaimsAudience(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claim \"aud\"")
 	audience := []string{"foo", "bar", "baz"}
 	c := token.NewClaims()
@@ -272,7 +272,7 @@ func TestClaimsAudience(t *testing.T) {
 // TestClaimsExpiration checks the setting, getting, and
 // deleting of the expiration claim.
 func TestClaimsExpiration(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claim \"exp\"")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 	c := token.NewClaims()
@@ -292,7 +292,7 @@ func TestClaimsExpiration(t *testing.T) {
 // TestClaimsIdentifier checks the setting, getting, and
 // deleting of the identifier claim.
 func TestClaimsIdentifier(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claim \"jti\"")
 	identifier := "foo"
 	c := token.NewClaims()
@@ -312,7 +312,7 @@ func TestClaimsIdentifier(t *testing.T) {
 // TestClaimsIssuedAt checks the setting, getting, and
 // deleting of the issued at claim.
 func TestClaimsIssuedAt(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claim \"iat\"")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 	c := token.NewClaims()
@@ -332,7 +332,7 @@ func TestClaimsIssuedAt(t *testing.T) {
 // TestClaimsIssuer checks the setting, getting, and
 // deleting of the issuer claim.
 func TestClaimsIssuer(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claim \"iss\"")
 	issuer := "foo"
 	c := token.NewClaims()
@@ -352,7 +352,7 @@ func TestClaimsIssuer(t *testing.T) {
 // TestClaimsNotBefore checks the setting, getting, and
 // deleting of the not before claim.
 func TestClaimsNotBefore(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claim \"nbf\"")
 	goLaunch := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 	c := token.NewClaims()
@@ -372,7 +372,7 @@ func TestClaimsNotBefore(t *testing.T) {
 // TestClaimsSubject checks the setting, getting, and
 // deleting of the subject claim.
 func TestClaimsSubject(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claim \"sub\"")
 	subject := "foo"
 	c := token.NewClaims()
@@ -392,7 +392,7 @@ func TestClaimsSubject(t *testing.T) {
 // TestClaimsValidity checks the validation of the not before
 // and the expiring time.
 func TestClaimsValidity(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing claims validity")
 	// Fresh token.
 	now := time.Now()

@@ -29,7 +29,7 @@ import (
 // TestMapReduce runs a scenario, where orders are analyzed
 // and a list of the analyzed articles will be returned
 func TestMapReduce(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	// Create MapReducer and let the show begin.
 	mr := &OrderMapReducer{200000, make(map[int][]*OrderItem), make(map[string]*OrderItemAnalysis), assert}
 	err := mapreduce.MapReduce(mr)

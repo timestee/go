@@ -25,7 +25,7 @@ import (
 
 // TestIsError tests the creation and checking of errors.
 func TestIsError(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	ec := "E001"
 	emsg := "test error %d"
@@ -50,7 +50,7 @@ func TestIsError(t *testing.T) {
 // TestValidation checks the validation of errors and
 // the retrieval of details.
 func TestValidation(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// First a valid error.
 	ec := "E001"
@@ -73,7 +73,7 @@ func TestValidation(t *testing.T) {
 
 // TestAnnotation the annotation of errors with new errors.
 func TestAnnotation(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	err1 := testError("wrapped")
 	err2 := errors.Annotate(err1, "E123", "1st annotated")
@@ -89,7 +89,7 @@ func TestAnnotation(t *testing.T) {
 
 // TestCollection tests the collection of multiple errors to one.
 func TestCollection(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	errA := testError("E001")
 	errB := testError("E002")
@@ -102,7 +102,7 @@ func TestCollection(t *testing.T) {
 
 // TestDoAll tests the iteration over errors.
 func TestDoAll(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	msgs := []string{}
 	f := func(err error) {
 		msgs = append(msgs, err.Error())

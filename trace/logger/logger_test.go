@@ -24,7 +24,7 @@ import (
 
 // TestGetSetLevel tests the setting of the logging level.
 func TestGetSetLevel(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tw := logger.NewTestWriter()
 	cw := logger.SetWriter(tw)
 	defer logger.SetWriter(cw)
@@ -54,7 +54,7 @@ func TestGetSetLevel(t *testing.T) {
 
 // TestFiltering tests the filtering of the logging.
 func TestFiltering(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tw := logger.NewTestWriter()
 	cw := logger.SetWriter(tw)
 	defer logger.SetWriter(cw)
@@ -99,7 +99,7 @@ func TestGoLogger(t *testing.T) {
 
 // TestSysLogger tests logging with the syslogger.
 func TestSysLogger(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	sw, err := logger.NewSysWriter("GOTRACELOGGER")
 	assert.Nil(err)
 	cw := logger.SetWriter(sw)
@@ -117,7 +117,7 @@ func TestSysLogger(t *testing.T) {
 // TestFatalExit tests the call of the fatal exiter after a
 // fatal error log.
 func TestFatalExit(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tw := logger.NewTestWriter()
 	cw := logger.SetWriter(tw)
 	defer logger.SetWriter(cw)

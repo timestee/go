@@ -27,7 +27,7 @@ import (
 
 // TestBuildDate tests the generation of dates.
 func TestBuildDate(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	layouts := []string{
 		time.ANSIC,
 		time.UnixDate,
@@ -66,7 +66,7 @@ func TestBuildDate(t *testing.T) {
 
 // TestBytes tests the generation of bytes.
 func TestBytes(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	// Test individual bytes.
@@ -96,7 +96,7 @@ func TestBytes(t *testing.T) {
 
 // TestInts tests the generation of ints.
 func TestInts(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	// Test individual ints.
@@ -139,7 +139,7 @@ func TestInts(t *testing.T) {
 
 // TestOneOf tests the generation of selections.
 func TestOneOf(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 10000; i++ {
@@ -162,7 +162,7 @@ func TestOneOf(t *testing.T) {
 
 // TestWords tests the generation of words.
 func TestWords(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	// Test single words.
@@ -188,7 +188,7 @@ func TestWords(t *testing.T) {
 
 // TestPattern tests the generation based on patterns.
 func TestPattern(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	assertPattern := func(pattern, runes string) {
 		set := make(map[rune]bool)
@@ -222,7 +222,7 @@ func TestPattern(t *testing.T) {
 
 // TestText tests the generation of text.
 func TestText(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	names := gen.NameSet(4)
 
@@ -260,7 +260,7 @@ func TestText(t *testing.T) {
 
 // TestName tests the generation of names.
 func TestName(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	assert.Equal(generators.ToUpperFirst("yadda"), "Yadda")
@@ -296,7 +296,7 @@ func TestName(t *testing.T) {
 
 // TestDomain tests the generation of domains.
 func TestDomain(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 00100; i++ {
@@ -308,7 +308,7 @@ func TestDomain(t *testing.T) {
 
 // TestURL tests the generation of URLs.
 func TestURL(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 10000; i++ {
@@ -320,7 +320,7 @@ func TestURL(t *testing.T) {
 
 // TestEMail tests the generation of e-mail addresses.
 func TestEMail(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 10000; i++ {
@@ -332,7 +332,7 @@ func TestEMail(t *testing.T) {
 
 // TestTimes tests the generation of durations and times.
 func TestTimes(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 10000; i++ {

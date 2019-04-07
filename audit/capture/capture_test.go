@@ -26,7 +26,7 @@ import (
 
 // TestStdout tests the capturing of writings to stdout.
 func TestStdout(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	hello := "Hello, World!"
 	cptrd := capture.Stdout(func() {
 		fmt.Print(hello)
@@ -37,7 +37,7 @@ func TestStdout(t *testing.T) {
 
 // TestStderr tests the capturing of writings to stderr.
 func TestStderr(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ouch := "ouch"
 	cptrd := capture.Stderr(func() {
 		fmt.Fprint(os.Stderr, ouch)
@@ -49,7 +49,7 @@ func TestStderr(t *testing.T) {
 // TestBoth tests the capturing of writings to stdout
 // and stderr.
 func TestBoth(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	hello := "Hello, World!"
 	ouch := "ouch"
 	cout, cerr := capture.Both(func() {
@@ -64,7 +64,7 @@ func TestBoth(t *testing.T) {
 
 // TestBytes tests the retrieving of captures as bytes.
 func TestBytes(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	foo := "foo"
 	boo := []byte(foo)
 	cout, cerr := capture.Both(func() {
@@ -78,7 +78,7 @@ func TestBytes(t *testing.T) {
 // TestRestore tests the restoring of os.Stdout
 // and os.Stderr after capturing.
 func TestRestore(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	foo := "foo"
 	oldOut := os.Stdout
 	oldErr := os.Stderr

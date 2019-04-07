@@ -25,7 +25,7 @@ import (
 
 // TestTempDirCreate tests the creation of temporary directories.
 func TestTempDirCreate(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	testDir := func(dir string) {
 		fi, err := os.Stat(dir)
 		assert.Nil(err)
@@ -52,7 +52,7 @@ func TestTempDirCreate(t *testing.T) {
 // TestTempDirRestore tests the restoring of temporary created
 // directories.
 func TestTempDirRestore(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	td := environments.NewTempDir(assert)
 	assert.NotNil(td)
@@ -68,7 +68,7 @@ func TestTempDirRestore(t *testing.T) {
 
 // TestEnvVarsSet tests the setting of temporary environment variables.
 func TestEnvVarsSet(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	testEnv := func(key, value string) {
 		v := os.Getenv(key)
 		assert.Equal(v, value)
@@ -90,7 +90,7 @@ func TestEnvVarsSet(t *testing.T) {
 // TestEnvVarsREstore tests the restoring of temporary set environment
 // variables.
 func TestEnvVarsRestore(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	testEnv := func(key, value string) {
 		v := os.Getenv(key)
 		assert.Equal(v, value)

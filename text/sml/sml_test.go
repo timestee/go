@@ -27,7 +27,7 @@ import (
 
 // TestTagValidation checks if only correct tags are accepted.
 func TestTagValidation(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		in  string
 		out []string
@@ -65,7 +65,7 @@ func TestTagValidation(t *testing.T) {
 
 // TestCreating checks the manual tree creation.
 func TestCreating(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	root := createNodeStructure(assert)
 	assert.Equal(root.Tag(), []string{"root"}, "Root tag has to be 'root'.")
 	assert.NotEmpty(root, "Root tag is not empty.")
@@ -73,7 +73,7 @@ func TestCreating(t *testing.T) {
 
 // TestWriterProcessing checks the writing of SML.
 func TestWriterProcessing(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	root := createNodeStructure(assert)
 	bufA := bytes.NewBufferString("")
 	bufB := bytes.NewBufferString("")
@@ -95,7 +95,7 @@ func TestWriterProcessing(t *testing.T) {
 
 // TestPositiveNodeReading checks the successful reading of nodes.
 func TestPositiveNodeReading(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	text := "Before!   {foo:main {bar:1:first Yadda ^{Test^} 1} {! Raw: }} { ! ^^^ !}  {between}  {bar:2:last Yadda {Test ^^} 2}}   After!"
 	builder := sml.NewNodeBuilder()
 	err := sml.ReadSML(strings.NewReader(text), builder)
@@ -116,7 +116,7 @@ func TestPositiveNodeReading(t *testing.T) {
 
 // TestNegativeNodeReading checks the failing reading of nodes.
 func TestNegativeNodeReading(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	text := "{Foo {bar:1 Yadda {test} {} 1} {bar:2 Yadda 2}}"
 	builder := sml.NewNodeBuilder()
 	err := sml.ReadSML(strings.NewReader(text), builder)
@@ -125,7 +125,7 @@ func TestNegativeNodeReading(t *testing.T) {
 
 // TestPositiveTreeReading checks the successful reading of trees.
 func TestPositiveTreeReading(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	text := "{config {foo 1}{bar 2}{yadda {up down}{down up}}}"
 	builder := sml.NewKeyStringValueTreeBuilder()
 	err := sml.ReadSML(strings.NewReader(text), builder)
@@ -137,7 +137,7 @@ func TestPositiveTreeReading(t *testing.T) {
 
 // TestNegativeTreeReading checks the failing reading of trees.
 func TestNegativeTreeReading(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	text := "{foo {bar 1}{bar 2}}"
 	builder := sml.NewKeyStringValueTreeBuilder()
 	err := sml.ReadSML(strings.NewReader(text), builder)
@@ -146,7 +146,7 @@ func TestNegativeTreeReading(t *testing.T) {
 
 // TestSML2XML checks the conversion from SML to XML.
 func TestSML2XML(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	in := `{html
 {head {title A test document}}
 {body

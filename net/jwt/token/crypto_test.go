@@ -39,7 +39,7 @@ var (
 
 // TestESAlgorithms tests the ECDSA algorithms.
 func TestESAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	assert.Nil(err)
 	for _, algo := range esTests {
@@ -56,7 +56,7 @@ func TestESAlgorithms(t *testing.T) {
 
 // TestHSAlgorithms tests the HMAC algorithms.
 func TestHSAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	key := []byte("secret")
 	for _, algo := range hsTests {
 		assert.Logf("testing algorithm %q", algo)
@@ -72,7 +72,7 @@ func TestHSAlgorithms(t *testing.T) {
 
 // TestPSAlgorithms tests the RSAPSS algorithms.
 func TestPSAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.Nil(err)
 	for _, algo := range psTests {
@@ -89,7 +89,7 @@ func TestPSAlgorithms(t *testing.T) {
 
 // TestRSAlgorithms tests the RSA algorithms.
 func TestRSAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.Nil(err)
 	for _, algo := range rsTests {
@@ -106,7 +106,7 @@ func TestRSAlgorithms(t *testing.T) {
 
 // TestNoneAlgorithm tests the none algorithm.
 func TestNoneAlgorithm(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing algorithm \"none\"")
 	// Sign.
 	signature, err := token.NONE.Sign(data, "")
@@ -120,7 +120,7 @@ func TestNoneAlgorithm(t *testing.T) {
 // TestNotMatchingAlgorithm checks when algorithms of
 // signing and verifying don't match.'
 func TestNotMatchingAlgorithm(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	esPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	esPublicKey := esPrivateKey.Public()
 	assert.Nil(err)
@@ -167,7 +167,7 @@ func TestNotMatchingAlgorithm(t *testing.T) {
 // TestESTools tests the tools for the reading of PEM encoded
 // ECDSA keys.
 func TestESTools(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing \"ECDSA\" tools")
 	// Generate keys and PEMs.
 	privateKeyIn, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -204,7 +204,7 @@ func TestESTools(t *testing.T) {
 // TestRSTools tests the tools for the reading of PEM encoded
 // RSA keys.
 func TestRSTools(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing \"RSA\" tools")
 	// Generate keys and PEMs.
 	privateKeyIn, err := rsa.GenerateKey(rand.Reader, 2048)

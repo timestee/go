@@ -25,7 +25,7 @@ import (
 
 // TestSetsAddRemove tests the core set methods.
 func TestSetsAddRemove(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	set := collections.NewSet("foo", 42, true)
 	assert.Length(set, 3)
@@ -45,7 +45,7 @@ func TestSetsAddRemove(t *testing.T) {
 
 // TestSetsFindAll tests the finding of set values.
 func TestSetsFindAll(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	set := collections.NewSet("foo", "bar", 42, true, "yadda", 12345)
 	vs, err := set.FindAll(func(v interface{}) (bool, error) {
@@ -68,7 +68,7 @@ func TestSetsFindAll(t *testing.T) {
 
 // TestSetsDoAll tests the iteration over set values.
 func TestSetsDoAll(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	set := collections.NewSet("foo", "bar", 42, true, "yadda", 12345)
 	sl := 0
@@ -89,7 +89,7 @@ func TestSetsDoAll(t *testing.T) {
 
 // TestStringSetsAddRemove tests the core set methods.
 func TestStringSetsAddRemove(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	set := collections.NewStringSet("foo", "42", "true")
 	assert.Length(set, 3)
@@ -109,7 +109,7 @@ func TestStringSetsAddRemove(t *testing.T) {
 
 // TestStringSetsFindAll tests the finding of set values.
 func TestStringSetsFindAll(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	set := collections.NewStringSet("foo", "bar", "42", "true", "yadda", "12345")
 	vs, err := set.FindAll(func(v string) (bool, error) {
@@ -127,7 +127,7 @@ func TestStringSetsFindAll(t *testing.T) {
 
 // TestStringSetsDoAll tests the iteration over set values.
 func TestStringSetsDoAll(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	set := collections.NewStringSet("foo", "bar", "42", "true", "yadda", "12345")
 	sl := 0

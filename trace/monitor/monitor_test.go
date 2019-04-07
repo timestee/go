@@ -26,7 +26,7 @@ import (
 
 // TestSimpleMonitor test creating and stopping a monitor.
 func TestSimpleMonitor(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	m := monitor.New()
 	defer m.Stop()
 
@@ -39,7 +39,7 @@ func TestSimpleMonitor(t *testing.T) {
 
 // TestStopWatch tests the stop watch.
 func TestStopWatch(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	m := monitor.New()
 	defer m.Stop()
@@ -84,7 +84,7 @@ func TestStopWatch(t *testing.T) {
 
 // Test of the stay-set indicators  of the monitor.
 func TestStaySetIndicators(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	m := monitor.New()
 	defer m.Stop()
