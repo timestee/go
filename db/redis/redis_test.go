@@ -26,7 +26,7 @@ import (
 //--------------------
 
 func TestTCPConnection(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	conn, restore := connectDatabase(t, assert, redis.TCPConnection("", 0))
 	defer restore()
 
@@ -39,7 +39,7 @@ func TestTCPConnection(t *testing.T) {
 }
 
 func BenchmarkTCPConnection(b *testing.B) {
-	assert := asserts.NewTesting(b, true)
+	assert := asserts.NewTesting(b, asserts.FailStop)
 	conn, restore := connectDatabase(nil, assert, redis.TCPConnection("", 0))
 	defer restore()
 
@@ -51,7 +51,7 @@ func BenchmarkTCPConnection(b *testing.B) {
 }
 
 func TestPipelining(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ppl, restore := pipelineDatabase(t, assert)
 	defer restore()
 
@@ -70,7 +70,7 @@ func TestPipelining(t *testing.T) {
 }
 
 func BenchmarkPipelining(b *testing.B) {
-	assert := asserts.NewTesting(b, true)
+	assert := asserts.NewTesting(b, asserts.FailStop)
 	ppl, restore := pipelineDatabase(nil, assert)
 	defer restore()
 
@@ -88,7 +88,7 @@ func BenchmarkPipelining(b *testing.B) {
 }
 
 func TestOptions(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	db, err := redis.Open(redis.TCPConnection("", 0), redis.PoolSize(5))
 	assert.Nil(err)
 	defer db.Close()
@@ -104,7 +104,7 @@ func TestOptions(t *testing.T) {
 }
 
 func TestConcurrency(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	db, err := redis.Open(redis.TCPConnection("", 0), redis.PoolSize(5))
 	assert.Nil(err)
 	defer db.Close()

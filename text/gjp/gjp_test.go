@@ -28,7 +28,7 @@ import (
 // TestParseError tests the returned error in case of
 // an invalid document.
 func TestParseError(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs := []byte(`abc{def`)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -38,7 +38,7 @@ func TestParseError(t *testing.T) {
 
 // TestClear tests to clear a document.
 func TestClear(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -51,7 +51,7 @@ func TestClear(t *testing.T) {
 
 // TestLength tests retrieving values as strings.
 func TestLength(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -74,7 +74,7 @@ func TestLength(t *testing.T) {
 
 // TestProcessing tests the processing of adocument.
 func TestProcessing(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 	count := 0
 	processor := func(path string, value *gjp.Value) error {
@@ -98,7 +98,7 @@ func TestProcessing(t *testing.T) {
 
 // TestSeparator tests using different separators.
 func TestSeparator(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, lo := createDocument(assert)
 
 	// Slash as separator, once even starting with it.
@@ -130,7 +130,7 @@ func TestSeparator(t *testing.T) {
 
 // TestCompare tests comparing two documents.
 func TestCompare(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	first, _ := createDocument(assert)
 	second := createCompareDocument(assert)
 	firstDoc, err := gjp.Parse(first, "/")
@@ -196,7 +196,7 @@ func TestCompare(t *testing.T) {
 
 // TestString tests retrieving values as strings.
 func TestString(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -213,7 +213,7 @@ func TestString(t *testing.T) {
 
 // TestInt tests retrieving values as ints.
 func TestInt(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -232,7 +232,7 @@ func TestInt(t *testing.T) {
 
 // TestFloat64 tests retrieving values as float64.
 func TestFloat64(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -251,7 +251,7 @@ func TestFloat64(t *testing.T) {
 
 // TestBool tests retrieving values as bool.
 func TestBool(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -270,7 +270,7 @@ func TestBool(t *testing.T) {
 
 // TestQuery tests querying a document.
 func TestQuery(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	bs, _ := createDocument(assert)
 
 	doc, err := gjp.Parse(bs, "/")
@@ -308,7 +308,7 @@ func TestQuery(t *testing.T) {
 
 // TestBuilding tests the creation of documents.
 func TestBuilding(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Most simple document.
 	doc := gjp.NewDocument("/")
@@ -361,7 +361,7 @@ func TestBuilding(t *testing.T) {
 
 // TestMarshalJSON tests building a JSON document again.
 func TestMarshalJSON(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Compare input and output.
 	bsIn, _ := createDocument(assert)

@@ -24,7 +24,7 @@ import (
 
 // TestStackPushPop tests the core stack methods.
 func TestStackPushPop(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Start with an empty stack.
 	sa := collections.NewStack()
@@ -71,7 +71,7 @@ func TestStackPushPop(t *testing.T) {
 
 // TestStackAll tests the retrieval of all values.
 func TestStackAll(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	s := collections.NewStack(1, "b", 3.0, true)
 	all := s.All()
@@ -82,7 +82,7 @@ func TestStackAll(t *testing.T) {
 
 // TestStringStackPushPop tests the core string stack methods.
 func TestStringStackPushPop(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Start with an empty stack.
 	sa := collections.NewStringStack()

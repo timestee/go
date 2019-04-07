@@ -29,7 +29,7 @@ import (
 // TestInvalidMethodWrapper tests the panic if the past handler for the
 // MethodWrapper is invalid.
 func TestInvalidMethodWrapper(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	assert.Panics(func() {
 		webbox.NewMethodWrapper(nil)
@@ -39,7 +39,7 @@ func TestInvalidMethodWrapper(t *testing.T) {
 // TestMethodWrapper tests the wrapping of a handler for the dispatching
 // of HTTP methods.
 func TestMethodWrapper(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := startWebAsserter(assert)
 	defer wa.Close()
 
@@ -100,7 +100,7 @@ func TestMethodWrapper(t *testing.T) {
 // TestNestedWrapperNoHandler tests the mapping of requests to a
 // nested wrapper w/o sub-handlers.
 func TestNestedWrapperNoHandler(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := startWebAsserter(assert)
 	defer wa.Close()
 
@@ -118,7 +118,7 @@ func TestNestedWrapperNoHandler(t *testing.T) {
 // TestNestedWrapper tests the mapping of requests to a number of
 // nested individual handlers.
 func TestNestedWrapper(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := startWebAsserter(assert)
 	defer wa.Close()
 
@@ -195,7 +195,7 @@ func TestNestedWrapper(t *testing.T) {
 // TestJWTWrapper tests access control by usage of the
 // JWT wrapper.
 func TestJWTWrapper(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := startWebAsserter(assert)
 	defer wa.Close()
 

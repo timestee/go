@@ -25,7 +25,7 @@ import (
 
 // TestSplitFilter tests splitting with a filter.
 func TestSplitFilter(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		name   string
 		in     string
@@ -86,7 +86,7 @@ func TestSplitFilter(t *testing.T) {
 
 // TestSplitMap tests spliting with a mapper.
 func TestSplitMap(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		name   string
 		in     string
@@ -150,7 +150,7 @@ func TestSplitMap(t *testing.T) {
 
 // TestMatches tests matching string.
 func TestMatches(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		name       string
 		pattern    string

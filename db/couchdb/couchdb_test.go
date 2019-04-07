@@ -36,7 +36,7 @@ const (
 // TestInvalidConfiguration tests opening the database with an invalid
 //  configuration.
 func TestInvalidConfiguration(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Open with illegal configuration is okay, only
 	// usage of this will fail.
@@ -50,7 +50,7 @@ func TestInvalidConfiguration(t *testing.T) {
 
 // TestCreateDesignDocument tests creating new design documents.
 func TestCreateDesignDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "tmp-create-design")
 	defer cleanup()
 
@@ -79,7 +79,7 @@ func TestCreateDesignDocument(t *testing.T) {
 
 // TestReadDesignDocument tests reading design documents.
 func TestReadDesignDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "tmp-read-design")
 	defer cleanup()
 
@@ -98,7 +98,7 @@ func TestReadDesignDocument(t *testing.T) {
 
 // TestUpdateDesignDocument tests updating design documents.
 func TestUpdateDesignDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "tmp-update-design")
 	defer cleanup()
 
@@ -130,7 +130,7 @@ func TestUpdateDesignDocument(t *testing.T) {
 
 // TestDeleteDesignDocument tests deleting design documents.
 func TestDeleteDesignDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "tmp-delete-design")
 	defer cleanup()
 
@@ -161,7 +161,7 @@ func TestDeleteDesignDocument(t *testing.T) {
 
 // TestCreateDocument tests creating new documents.
 func TestCreateDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDatabase(assert, "tmp-create-document")
 	defer cleanup()
 
@@ -190,7 +190,7 @@ func TestCreateDocument(t *testing.T) {
 
 // TestReadDocument tests reading a document.
 func TestReadDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDatabase(assert, "tmp-read-document")
 	defer cleanup()
 
@@ -223,7 +223,7 @@ func TestReadDocument(t *testing.T) {
 
 // TestUpdateDocument tests updating documents.
 func TestUpdateDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDatabase(assert, "tmp-update-document")
 	defer cleanup()
 
@@ -281,7 +281,7 @@ func TestUpdateDocument(t *testing.T) {
 
 // TestDeleteDocument tests deleting a document.
 func TestDeleteDocument(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDatabase(assert, "tmp-delete-document")
 	defer cleanup()
 
@@ -321,7 +321,7 @@ func TestDeleteDocument(t *testing.T) {
 
 // TestDeleteDocumentByID tests deleting a document by identifier.
 func TestDeleteDocumentByID(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareDatabase(assert, "tmp-delete-document-by-id")
 	defer cleanup()
 

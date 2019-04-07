@@ -25,7 +25,7 @@ import (
 
 // TestWrapping tests wrapping a standard function to a processor.
 func TestWrapping(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	upperCaser := stringex.WrapProcessorFunc(strings.ToUpper)
 
 	value, ok := upperCaser("test")
@@ -35,7 +35,7 @@ func TestWrapping(t *testing.T) {
 
 // TestSplitMapProcessor tests the splitting and mapping.
 func TestSplitMapProcessor(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	sep := "the"
 	upperCaser := stringex.WrapProcessorFunc(strings.ToUpper)
 	splitMapper := stringex.NewSplitMapProcessor(sep, upperCaser)
@@ -47,7 +47,7 @@ func TestSplitMapProcessor(t *testing.T) {
 
 // TestSubstringProcessor tests retrieving substrings.
 func TestSubstringProcessor(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		index  int
 		length int
@@ -73,7 +73,7 @@ func TestSubstringProcessor(t *testing.T) {
 
 // TestMatchProcessor tests the matching of patterns.
 func TestMatchProcessor(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		pattern string
 		in      string
@@ -94,7 +94,7 @@ func TestMatchProcessor(t *testing.T) {
 
 // TestTrimmingProcessors tests the trimming.
 func TestTrimmingProcessors(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	in := "+++++foo+++"
 
 	// Prefix.
@@ -133,7 +133,7 @@ func TestTrimmingProcessors(t *testing.T) {
 
 // TestUpperLowerProcessor tests converting strings to upper- or lowe-case.
 func TestUpperLowerProcessor(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	in := "this IS in UPPER & lower cAsE"
 	uppercaser := stringex.NewUpperProcessor()
 	lowercaser := stringex.NewLowerProcessor()
@@ -148,7 +148,7 @@ func TestUpperLowerProcessor(t *testing.T) {
 
 // TestProcessorScenario tests the combination of multiple processors.
 func TestProcessorScenario(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	in := "+++++Yadda+++/-----Foobar--/+-+-Testing-+-+/Out"
 	trimmer := stringex.NewTrimFuncProcessor(func(r rune) bool {
 		return r == '+' || r == '-'

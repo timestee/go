@@ -25,7 +25,7 @@ import (
 // TestNew tests the creation of new versions and their
 // accessor methods.
 func TestNew(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		id         string
 		vsn        version.Version
@@ -108,7 +108,7 @@ func TestNew(t *testing.T) {
 // TestParse tests the creation of new versions and their
 // accessor methods by parsing strings.
 func TestParse(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		id         string
 		vsn        string
@@ -231,7 +231,7 @@ func TestParse(t *testing.T) {
 
 // TestCompare tests the comparing of two versions.
 func TestCompare(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		vsnA       version.Version
 		vsnB       version.Version
@@ -326,7 +326,7 @@ func TestCompare(t *testing.T) {
 
 // TestLess tests if a version is less (older) than another.
 func TestLess(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		vsnA version.Version
 		vsnB version.Version

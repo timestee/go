@@ -31,7 +31,7 @@ import (
 
 // TestRead tests reading a configuration out of a reader.
 func TestRead(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {foo 42}{bar 24}}"
 	cfg, err := etc.Read(strings.NewReader(source))
@@ -61,7 +61,7 @@ func TestRead(t *testing.T) {
 
 // TestReadFile tests reading a configuration out of a file.
 func TestReadFile(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	tempDir := environments.NewTempDir(assert)
 	defer tempDir.Restore()
 	etcFile, err := ioutil.TempFile(tempDir.String(), "etc")
@@ -84,7 +84,7 @@ func TestReadFile(t *testing.T) {
 
 // TestWrite tests the writing of configurations.
 func TestWrite(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub {sub-a World}{sub-b {sub-b-sub My}}}{b Friend}}"
 	cfgIn, err := etc.ReadString(source)
@@ -123,7 +123,7 @@ func TestWrite(t *testing.T) {
 
 // TestTemplates tests the substitution of templates.
 func TestTemplates(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	err := os.Setenv("GOTEXT_ETC_TEST_A", "1.2.3.4")
 	assert.Nil(err)
@@ -179,7 +179,7 @@ func TestTemplates(t *testing.T) {
 
 // TestHasPath tests the checking of paths.
 func TestHasPath(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub {a World}}}"
 	cfg, err := etc.Read(strings.NewReader(source))
@@ -195,7 +195,7 @@ func TestHasPath(t *testing.T) {
 
 // TestDo tests the iteration over the nodes.
 func TestDo(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub-a {a World}{b here}{c I}{d am}}{sub-b {a Tester}}}"
 	cfg, err := etc.Read(strings.NewReader(source))
@@ -235,7 +235,7 @@ func TestDo(t *testing.T) {
 
 // TestValueSuccess tests the successful retrieval of values.
 func TestValueSuccess(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := `{etc
 	{a  Hello}
@@ -267,7 +267,7 @@ func TestValueSuccess(t *testing.T) {
 
 // TestGetDefault tests the retrieval of default values.
 func TestGetFail(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub {a World}}}"
 	cfg, err := etc.Read(strings.NewReader(source))
@@ -289,7 +289,7 @@ func TestGetFail(t *testing.T) {
 
 // TestSplit tests the splitting of configurations.
 func TestSplit(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub {a World}{b Friend}}}"
 	cfg, err := etc.ReadString(source)
@@ -327,7 +327,7 @@ func TestSplit(t *testing.T) {
 
 // TestDump tests the dumping of a configuration.
 func TestDump(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub {a World}}}"
 	cfg, err := etc.ReadString(source)
@@ -353,7 +353,7 @@ func TestDump(t *testing.T) {
 
 // TestApply tests the applying of values.
 func TestApply(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub {a World}}}"
 	cfg, err := etc.ReadString(source)
@@ -375,7 +375,7 @@ func TestApply(t *testing.T) {
 // TestContext tests adding a configuration to a context
 // an retrieve it again.
 func TestContext(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	source := "{etc {a Hello}{sub {a World}}}"
 	cfg, err := etc.ReadString(source)

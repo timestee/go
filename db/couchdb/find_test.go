@@ -25,7 +25,7 @@ import (
 
 // TestSimpleFind tests tests calling find with a simple search.
 func TestSimpleFind(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "find-simple")
 	defer cleanup()
 
@@ -62,7 +62,7 @@ func TestSimpleFind(t *testing.T) {
 
 // TestLimitedFind tests retrieving a larger number but set the limit.
 func TestLimitedFind(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "find-limited")
 	defer cleanup()
 
@@ -83,7 +83,7 @@ func TestLimitedFind(t *testing.T) {
 
 // TestSortedFind tests retrieving a larger number in a sorted way.
 func TestSortedFind(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "find-sorted")
 	defer cleanup()
 
@@ -110,7 +110,7 @@ func TestSortedFind(t *testing.T) {
 
 // TestFindExists tests calling find with an exists selector.
 func TestFindExists(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "find-exists")
 	defer cleanup()
 
@@ -148,7 +148,7 @@ func TestFindExists(t *testing.T) {
 
 // TestMatches tests using element and all match operators.
 func TestMatches(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "find-match")
 	defer cleanup()
 

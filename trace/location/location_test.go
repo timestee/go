@@ -25,7 +25,7 @@ import (
 // TestHere tests retrieving the location in a detailed
 // way and as ID.
 func TestHere(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	pkg, file, fn, line := location.Here(0)
 
@@ -41,7 +41,7 @@ func TestHere(t *testing.T) {
 
 // TestOffset tests retrieving the location with an offset.
 func TestOffset(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	id := there()
 
 	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:45)")
@@ -61,7 +61,7 @@ func TestOffset(t *testing.T) {
 
 // TestCache tests the caching of locations.
 func TestCache(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	for i := 0; i < 100; i++ {
 		id := nameless()

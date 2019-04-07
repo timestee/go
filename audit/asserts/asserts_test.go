@@ -180,7 +180,7 @@ func TestAssertContents(t *testing.T) {
 
 // TestAssertContentsPrint test the visualization of failing content tests.
 func TestAssertContentsPrint(t *testing.T) {
-	assert := asserts.NewTesting(t, false)
+	assert := asserts.NewTesting(t, asserts.NoFailing)
 
 	assert.Logf("printing of failing content tests")
 	assert.Contents("foobar", []byte("the quick brown fox jumps over the lazy dog"), "test fails but passes, just visualization")
@@ -190,7 +190,7 @@ func TestAssertContentsPrint(t *testing.T) {
 // TestOffsetPrint test the correct visualization when printing
 // with offset.
 func TestOffsetPrint(t *testing.T) {
-	assert := asserts.NewTesting(t, false)
+	assert := asserts.NewTesting(t, asserts.NoFailing)
 
 	// Log should reference line below (174).
 	failWithOffset(assert, "174")
@@ -460,7 +460,7 @@ func TestAssertFail(t *testing.T) {
 
 // TestTestingAssertion tests the testing assertion.
 func TestTestingAssertion(t *testing.T) {
-	assert := asserts.NewTesting(t, false)
+	assert := asserts.NewTesting(t, asserts.NoFailing)
 	foo := func() {}
 	bar := 4711
 
@@ -543,7 +543,7 @@ func TestSetFailable(t *testing.T) {
 
 // TestSetPrinter tests the chaning of the printer.
 func TestSetPrinter(t *testing.T) {
-	assert := asserts.NewTesting(t, false)
+	assert := asserts.NewTesting(t, asserts.NoFailing)
 
 	// Must not fail.
 	assert.Logf("first %d %s", 1, "(a)")

@@ -29,7 +29,7 @@ import (
 // TestCachePutGet tests the putting and getting of tokens
 // to the cache.
 func TestCachePutGet(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing cache put and get")
 	cache := cache.New(nil, time.Minute, time.Minute, time.Minute, 10)
 	key := []byte("secret")
@@ -51,7 +51,7 @@ func TestCachePutGet(t *testing.T) {
 // TestCacheAccessCleanup tests the access based cleanup
 // of the JWT cache.
 func TestCacheAccessCleanup(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing cache access based cleanup")
 	ctx := context.Background()
 	cache := cache.New(ctx, time.Second, time.Second, time.Second, 10)
@@ -75,7 +75,7 @@ func TestCacheAccessCleanup(t *testing.T) {
 // TestCacheValidityCleanup tests the validity based cleanup
 // of the JWT cache.
 func TestCacheValidityCleanup(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing cache validity based cleanup")
 	ctx := context.Background()
 	cache := cache.New(ctx, time.Minute, time.Second, time.Second, 10)
@@ -110,7 +110,7 @@ func TestCacheValidityCleanup(t *testing.T) {
 
 // TestCacheLoad tests the cache load based cleanup.
 func TestCacheLoad(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing cache load based cleanup")
 	cacheTime := 100 * time.Millisecond
 	ctx := context.Background()
@@ -132,7 +132,7 @@ func TestCacheLoad(t *testing.T) {
 
 // TestCacheContext tests the cache stopping by context.
 func TestCacheContext(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing cache stopping by context")
 	ctx, cancel := context.WithCancel(context.Background())
 	cache := cache.New(ctx, time.Minute, time.Minute, time.Minute, 10)

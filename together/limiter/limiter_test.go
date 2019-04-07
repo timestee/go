@@ -30,7 +30,7 @@ import (
 // in multiple goroutines without an error.
 func TestLimitOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	runs := 100
 	startedC := make(chan struct{}, 1)
 	stoppedC := make(chan struct{}, 1)
@@ -77,7 +77,7 @@ func TestLimitOK(t *testing.T) {
 // executed function.
 func TestLimitError(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	job := func() error {
 		time.Sleep(25 * time.Millisecond)
 		return errors.New("ouch")

@@ -36,7 +36,7 @@ var timeout time.Duration = 5 * time.Second
 // channels closes.
 func TestCloserOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ccs := []chan struct{}{
 		make(chan struct{}),
 		make(chan struct{}),
@@ -66,7 +66,7 @@ func TestCloserOK(t *testing.T) {
 // TestCloserTimeout tests what happes if no channel signals the closing.
 func TestCloserTimeout(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	closer := notifier.NewCloser(make(chan struct{})).Go()
 	beenThereDoneThat := false
 
@@ -83,7 +83,7 @@ func TestCloserTimeout(t *testing.T) {
 // TestNotifiersOK tests the notification of multiple Notifier through one Notifiers.
 func TestNotifiersOK(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	na := notifier.New()
 	nb := notifier.New()
 	nc := notifier.New()
@@ -149,7 +149,7 @@ func TestNotifiersOK(t *testing.T) {
 // of a status.
 func TestNotifiersMulti(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	n := notifier.New()
 	b := notifier.NewBundle()
 	b.Add(n)

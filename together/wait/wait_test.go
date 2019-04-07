@@ -28,7 +28,7 @@ import (
 // changing interval durations.
 func TestPollWithChangingInterval(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	makeChanger := func(interval time.Duration) wait.TickChanger {
 		return func(in time.Duration) (out time.Duration, ok bool) {
 			if in == 0 {
@@ -91,7 +91,7 @@ func TestPollWithChangingInterval(t *testing.T) {
 // TestPollWithInterval tests the polling of conditions in intervals.
 func TestPollWithInterval(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Tests.
 	assert.Logf("end with positive condition")
@@ -142,7 +142,7 @@ func TestPollWithInterval(t *testing.T) {
 // number of intervals.
 func TestPollWithMaxInterval(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Tests.
 	assert.Logf("end with positive condition")
@@ -218,7 +218,7 @@ func TestPollWithMaxInterval(t *testing.T) {
 // TestPollWithDeadline tests the polling of conditions with deadlines.
 func TestPollWithDeadline(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Tests.
 	assert.Logf("end with positive condition")
@@ -294,7 +294,7 @@ func TestPollWithDeadline(t *testing.T) {
 // TestPollWithTimeout tests the polling of conditions with timeouts.
 func TestPollWithTimeout(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Tests.
 	assert.Logf("end with positive condition")
@@ -371,7 +371,7 @@ func TestPollWithTimeout(t *testing.T) {
 // number of intervals.
 func TestPollWithJitter(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Tests.
 	assert.Logf("end with positive condition")
@@ -457,7 +457,7 @@ func TestPollWithJitter(t *testing.T) {
 // TestPoll tests the polling of conditions with a user-defined ticker.
 func TestPoll(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	ticker := func(ctx context.Context) <-chan struct{} {
 		// Ticker runs 1000 times.
 		tickc := make(chan struct{})
@@ -526,7 +526,7 @@ func TestPoll(t *testing.T) {
 // TestPanic tests the handling of panics during condition checks.
 func TestPanic(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Test.
 	assert.Logf("using With...()")

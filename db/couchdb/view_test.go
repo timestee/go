@@ -26,7 +26,7 @@ import (
 
 // TestView tests calling a view.
 func TestView(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	cdb, cleanup := prepareFilledDatabase(assert, "views")
 	defer cleanup()
 

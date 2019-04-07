@@ -25,7 +25,7 @@ import (
 
 // TestSimpleRequests tests simple requests to individual handlers.
 func TestSimpleRequests(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := StartWebAsserter(assert)
 	defer wa.Close()
 
@@ -77,7 +77,7 @@ func TestSimpleRequests(t *testing.T) {
 
 // TestHeaderCookies tests access to header and cookies.
 func TestHeaderCookies(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := StartWebAsserter(assert)
 	defer wa.Close()
 

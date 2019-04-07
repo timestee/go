@@ -25,7 +25,7 @@ import (
 
 // TestMarshalResponseBody tests the encoding of data into a response body.
 func TestMarshalResponseBody(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := startWebAsserter(assert)
 	defer wa.Close()
 
@@ -83,6 +83,5 @@ func TestMarshalResponseBody(t *testing.T) {
 	assert.Equal(dRecv.Name, "XML")
 	assert.Equal(dRecv.Tags, dSend.Tags)
 }
-
 
 // EOF

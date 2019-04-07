@@ -26,7 +26,7 @@ import (
 
 // Test time containments.
 func TestTimeContainments(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// Create some test data.
 	ts := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
@@ -56,7 +56,7 @@ func TestTimeContainments(t *testing.T) {
 
 // TestBeginOf tests the calculation of a beginning of a unit of time.
 func TestBeginOf(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	ts := time.Date(2015, time.August, 2, 15, 10, 45, 12345, time.UTC)
 
@@ -70,7 +70,7 @@ func TestBeginOf(t *testing.T) {
 
 // TestEndOf tests the calculation of a ending of a unit of time.
 func TestEndOf(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	ts := time.Date(2012, time.February, 2, 15, 10, 45, 12345, time.UTC)
 
@@ -84,7 +84,7 @@ func TestEndOf(t *testing.T) {
 
 // TestRetrySuccess tests a successful retry.
 func TestRetrySuccess(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	count := 0
 	err := timex.Retry(func() (bool, error) {
@@ -97,7 +97,7 @@ func TestRetrySuccess(t *testing.T) {
 
 // TestRetryFuncError tests an error inside the retried func.
 func TestRetryFuncError(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	err := timex.Retry(func() (bool, error) {
 		return false, errors.New("ouch")
@@ -107,7 +107,7 @@ func TestRetryFuncError(t *testing.T) {
 
 // TestRetryTooLong tests a retry timout.
 func TestRetryTooLong(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	rs := timex.RetryStrategy{
 		Count:          10,
@@ -123,7 +123,7 @@ func TestRetryTooLong(t *testing.T) {
 
 // TestRetryTooOften tests a retry count error.
 func TestRetryTooOften(t *testing.T) {
-	assert := asserts.NewTesting(t, true)
+	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	rs := timex.RetryStrategy{
 		Count:          5,
