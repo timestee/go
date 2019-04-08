@@ -17,7 +17,6 @@ import (
 
 	"tideland.dev/go/audit/asserts"
 	"tideland.dev/go/audit/environments"
-	"tideland.dev/go/net/jwt/token"
 	"tideland.dev/go/net/webbox"
 )
 
@@ -95,15 +94,6 @@ func makeMethodEcho(assert *asserts.Asserts) http.HandlerFunc {
 		w.Write([]byte(reply))
 		w.WriteHeader(http.StatusOK)
 	}
-}
-
-// createToken creates a test JWT with the passed access claim.
-func createToken(assert *asserts.Asserts, access string) *token.JWT {
-	claims := token.NewClaims()
-	claims.Set("access", access)
-	jwt, err := token.Encode(claims, []byte("secret"), token.HS512)
-	assert.NoError(err)
-	return jwt
 }
 
 // data is used in marshalling tests.

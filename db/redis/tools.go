@@ -78,58 +78,18 @@ func valueToBytes(value interface{}) []byte {
 	return []byte(fmt.Sprintf("%v", value))
 }
 
-// keyValueArgsToKeys converts a mixed number of keys and values
-// into a slice containing the keys.
-func keyValueArgsToKeys(kvs ...interface{}) []string {
-	keys := []string{}
-	ok := true
-	for _, k := range kvs {
-		if ok {
-			key := string(valueToBytes(k))
-			keys = append(keys, key)
-		}
-		ok = !ok
-	}
-	return keys
-}
-
-// buildInterfaces creates a slice of interfaces out
-// of the passed arguments. Found string or interface
-// slices are flattened.
-func buildInterfaces(values ...interface{}) []interface{} {
-	ifcs := []interface{}{}
-	for _, value := range values {
-		switch v := value.(type) {
-		case []string:
-			for _, s := range v {
-				ifcs = append(ifcs, s)
-			}
-		case []interface{}:
-			for _, i := range v {
-				ifcs = append(ifcs, i)
-			}
-		default:
-			ifcs = append(ifcs, v)
-		}
-	}
-	return ifcs
-}
-
 // containsPatterns checks, if the channel contains a pattern
 // to subscribe to or unsubscribe from multiple channels.
 func containsPattern(channel interface{}) bool {
 	ch := channel.(string)
-	if strings.IndexAny(ch, "*?[") != -1 {
-		return true
-	}
-	return false
+	return strings.ContainsAny(ch, "*?[")
 }
 
 // logCommand logs a command and its execution status.
 func logCommand(cmd string, args []interface{}, err error, log bool) {
 	// Format the command for the log entry.
 	formatArgs := func() string {
-		if args == nil || len(args) == 0 {
+		if len(args) == 0 {
 			return "(none)"
 		}
 		output := make([]string, len(args))

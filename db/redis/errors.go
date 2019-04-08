@@ -8,32 +8,28 @@
 package redis
 
 //--------------------
-// IMPORTS
-//--------------------
-
-//--------------------
 // CONSTANTS
 //--------------------
 
 // Error codes.
 const (
 	ErrInvalidConfiguration   = "E001"
-	ErrPoolLimitReached       = "E002"
-	ErrConnectionEstablishing = "E003"
-	ErrConnectionBroken       = "E004"
-	ErrInvalidResponse        = "E005"
-	ErrServerResponse         = "E006"
-	ErrTimeout                = "E007"
-	ErrAuthenticate           = "E008"
-	ErrSelectDatabase         = "E009"
-	ErrUseSubscription        = "E010"
-	ErrInvalidType            = "E011"
-	ErrInvalidKey             = "E012"
-	ErrIllegalItemIndex       = "E013"
-	ErrIllegalItemType        = "E014"
+	ErrConnectionEstablishing = "E002"
+	ErrConnectionBroken       = "E003"
+	ErrInvalidResponse        = "E004"
+	ErrServerResponse         = "E005"
+	ErrTimeout                = "E006"
+	ErrAuthenticate           = "E007"
+	ErrSelectDatabase         = "E008"
+	ErrUseSubscription        = "E009"
+	ErrInvalidType            = "E010"
+	ErrInvalidKey             = "E011"
+	ErrIllegalItemIndex       = "E012"
+	ErrIllegalItemType        = "E013"
+	ErrPoolLimitReached       = "E101"
+	ErrPoolClosed             = "E199"
 
 	msgInvalidConfiguration   = "invalid configuration value in field %q: %v"
-	msgPoolLimitReached       = "connection pool limit (%d) reached"
 	msgConnectionEstablishing = "cannot establish connection"
 	msgConnectionBroken       = "cannot %s, connection is broken"
 	msgInvalidResponse        = "invalid server response: %q"
@@ -46,6 +42,8 @@ const (
 	msgInvalidKey             = "invalid key %q"
 	msgIllegalItemIndex       = "item index %d is illegal for result set size %d"
 	msgIllegalItemType        = "item at index %d is no %s"
+	msgPoolLimitReached       = "connection pool limit (%d) reached"
+	msgPoolClosed             = "connection pool closed"
 )
 
 // EOF

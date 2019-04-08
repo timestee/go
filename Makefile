@@ -18,7 +18,7 @@ cover: test ## Run all the tests and opens the coverage report
 
 .PHONY: lint
 lint: ## Run all the linters
-	gometalinter --skip=gen/v2 --skip=design --vendor --disable-all \
+	gometalinter --tests --errors --disable-all \
 		--enable=deadcode \
 		--enable=goconst \
 		--enable=goimports \

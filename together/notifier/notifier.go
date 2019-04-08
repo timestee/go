@@ -153,9 +153,7 @@ func NewBundle() *Bundle {
 func (b *Bundle) Add(ns ...*Notifier) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	for _, n := range ns {
-		b.notifiers = append(b.notifiers, n)
-	}
+	b.notifiers = append(b.notifiers, ns...)
 }
 
 // Notify sets the new status and informs all Notifiers.

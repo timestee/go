@@ -41,6 +41,8 @@ func TestPure(t *testing.T) {
 			select {
 			case <-c.Done():
 				return nil
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -65,6 +67,8 @@ func TestPureError(t *testing.T) {
 			select {
 			case <-c.Done():
 				return nil
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -91,6 +95,8 @@ func TestPureInternalError(t *testing.T) {
 			select {
 			case <-c.Done():
 				return nil
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -112,6 +118,8 @@ func TestContextCancelOK(t *testing.T) {
 			select {
 			case <-c.Done():
 				return nil
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -139,6 +147,8 @@ func TestContextCancelError(t *testing.T) {
 			select {
 			case <-c.Done():
 				return errors.New("oh, no")
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -165,6 +175,8 @@ func TestMultipleNotifier(t *testing.T) {
 			select {
 			case <-c.Done():
 				return nil
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -182,6 +194,7 @@ func TestMultipleNotifier(t *testing.T) {
 
 	x := 0
 
+timeout:
 	for x != 7 {
 		select {
 		case <-notifierA.Stopped():
@@ -191,7 +204,7 @@ func TestMultipleNotifier(t *testing.T) {
 		case <-notifierC.Stopped():
 			x |= 4
 		case <-time.After(time.Second):
-			break
+			break timeout
 		}
 	}
 
@@ -209,6 +222,8 @@ func TestFinalizerOK(t *testing.T) {
 			select {
 			case <-c.Done():
 				return errors.New("don't want to stop")
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -239,6 +254,8 @@ func TestContextCancelFinalizerError(t *testing.T) {
 			select {
 			case <-c.Done():
 				return errors.New("don't want to stop")
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -316,6 +333,8 @@ func TestRecoveredOK(t *testing.T) {
 			select {
 			case <-c.Done():
 				return nil
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}
@@ -347,6 +366,8 @@ func TestRecovererError(t *testing.T) {
 			select {
 			case <-c.Done():
 				return errors.New("oh, no")
+			case <-time.Tick(time.Minute):
+				// Just for linter.
 			}
 		}
 	}

@@ -415,24 +415,4 @@ func (wa *WebAsserter) CreateRequest(method, path string) *WebRequest {
 	}
 }
 
-// consumeHeader consumes its values from the HTTP response header.
-func (wa *WebAsserter) consumeHeader(r *http.Response) *Values {
-	vs := newValues(wa)
-	for key, values := range r.Header {
-		for _, value := range values {
-			vs.Add(key, value)
-		}
-	}
-	return vs
-}
-
-// consumeCookies consumes its values from the HTTP response cookies.
-func (wa *WebAsserter) consumeCookies(r *http.Response) *Values {
-	vs := newValues(wa)
-	for _, cookie := range r.Cookies() {
-		vs.Add(cookie.Name, cookie.Value)
-	}
-	return vs
-}
-
 // EOF

@@ -15,7 +15,6 @@ import (
 	"math/rand"
 	stdsort "sort"
 	"testing"
-	"time"
 
 	"tideland.dev/go/audit/asserts"
 	"tideland.dev/go/dsa/sort"
@@ -80,13 +79,6 @@ func generateIntSlice(count int) stdsort.IntSlice {
 		is[i] = rand.Int()
 	}
 	return is
-}
-
-// duration measures the duration of a function execution.
-func duration(f func()) time.Duration {
-	start := time.Now()
-	f()
-	return time.Since(start)
 }
 
 // EOF

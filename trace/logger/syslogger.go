@@ -22,9 +22,9 @@ import (
 // SYSWRITER
 //--------------------
 
-// sysWriter uses the Go syslog package. It does not work
+// syslogWriter uses the Go syslog package. It does not work
 // on Windows or Plan9.
-type sysWriter struct {
+type syslogWriter struct {
 	out *syslog.Writer
 }
 
@@ -37,11 +37,13 @@ func NewSysWriter(tag string) (Writer, error) {
 		log.Fatalf("cannot init syslog: %v", err)
 		return nil, err
 	}
-	return &sysWriter{out}, nil
+	return &syslogWriter{
+		out: out,
+	}, nil
 }
 
 // Write implements Writer.
-func (w *sysWriter) Write(level LogLevel, msg string) {
+func (w *syslogWriter) Write(level LogLevel, msg string) {
 	switch level {
 	case LevelDebug:
 		w.out.Debug(msg)

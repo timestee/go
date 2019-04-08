@@ -228,7 +228,7 @@ SeekLoop:
 		copy(buffer[space:cap(buffer)], buffer)
 		buffer = buffer[0 : len(buffer)+space]
 		offset -= int64(space)
-		_, err := s.source.Seek(offset, os.SEEK_SET)
+		_, err := s.source.Seek(offset, io.SeekStart)
 		if err != nil {
 			return err
 		}
@@ -270,7 +270,7 @@ SeekLoop:
 		buffer = buffer[0:end]
 	}
 	// Final positioning.
-	s.source.Seek(seekPos, os.SEEK_SET)
+	s.source.Seek(seekPos, io.SeekStart)
 	return nil
 }
 
@@ -298,7 +298,7 @@ func (s *Scroller) readLine() ([]byte, error) {
 		case io.EOF:
 			// Reached EOF without a delimiter,
 			// so step back for next time.
-			s.source.Seek(-int64(len(line)), os.SEEK_CUR)
+			s.source.Seek(-int64(len(line)), io.SeekCurrent)
 			return nil, err
 		default:
 			return nil, err

@@ -258,6 +258,7 @@ func TestClaimsAudience(t *testing.T) {
 	c := token.NewClaims()
 	aud, ok := c.Audience()
 	assert.False(ok)
+	assert.Nil(aud)
 	none := c.SetAudience(audience...)
 	assert.Length(none, 0)
 	aud, ok = c.Audience()
@@ -298,6 +299,7 @@ func TestClaimsIdentifier(t *testing.T) {
 	c := token.NewClaims()
 	jti, ok := c.Identifier()
 	assert.False(ok)
+	assert.Empty(jti)
 	none := c.SetIdentifier(identifier)
 	assert.Equal(none, "")
 	jti, ok = c.Identifier()
@@ -338,6 +340,7 @@ func TestClaimsIssuer(t *testing.T) {
 	c := token.NewClaims()
 	iss, ok := c.Issuer()
 	assert.False(ok)
+	assert.Empty(iss)
 	none := c.SetIssuer(issuer)
 	assert.Equal(none, "")
 	iss, ok = c.Issuer()
@@ -378,6 +381,7 @@ func TestClaimsSubject(t *testing.T) {
 	c := token.NewClaims()
 	sub, ok := c.Subject()
 	assert.False(ok)
+	assert.Empty(sub)
 	none := c.SetSubject(subject)
 	assert.Equal(none, "")
 	sub, ok = c.Subject()
@@ -433,32 +437,6 @@ func TestClaimsValidity(t *testing.T) {
 	c.SetNotBefore(nbf)
 	valid = c.IsValid(leeway)
 	assert.False(valid)
-}
-
-//--------------------
-// HELPERS
-//--------------------
-
-// initClaims creates test token.
-func initClaims() token.Claims {
-	c := token.NewClaims()
-	c.SetSubject("1234567890")
-	c.Set("name", "John Doe")
-	c.Set("admin", true)
-	return c
-}
-
-// testClaims checks the passed token.
-func testClaims(assert asserts.Asserts, c token.Claims) {
-	sub, ok := c.Subject()
-	assert.True(ok)
-	assert.Equal(sub, "1234567890")
-	name, ok := c.GetString("name")
-	assert.True(ok)
-	assert.Equal(name, "John Doe")
-	admin, ok := c.GetBool("admin")
-	assert.True(ok)
-	assert.True(admin)
 }
 
 // EOF

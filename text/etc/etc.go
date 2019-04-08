@@ -308,7 +308,7 @@ func (e *Etc) valueAt(path string) *value {
 // postProcess replaces templates formated [path||default]
 // with values found at that path or the default.
 func (e *Etc) postProcess() error {
-	re := regexp.MustCompile("\\[.+(||.+)\\]")
+	re := regexp.MustCompile(`\[.+(||.+)\]`)
 	// Find all entries with template.
 	changers := e.values.FindAll(func(k, v string) (bool, error) {
 		return re.MatchString(v), nil

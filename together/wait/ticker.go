@@ -35,7 +35,7 @@ type Ticker func(ctx context.Context) <-chan struct{}
 type TickChanger func(in time.Duration) (out time.Duration, ok bool)
 
 // MakeGenericIntervalTicker is a factory for tickers based on time
-// intervals. The given changer is reponsible for the intervals and
+// intervals. The given changer is responsible for the intervals and
 // if the ticker shall signal a stopping. The changer is called initially
 // with a duration of zero to allow the changer stopping the ticker even
 // before a first tick.

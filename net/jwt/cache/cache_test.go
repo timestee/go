@@ -31,7 +31,8 @@ import (
 func TestCachePutGet(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	assert.Logf("testing cache put and get")
-	cache := cache.New(nil, time.Minute, time.Minute, time.Minute, 10)
+	ctx := context.Background()
+	cache := cache.New(ctx, time.Minute, time.Minute, time.Minute, 10)
 	key := []byte("secret")
 	claims := initClaims()
 	jwtIn, err := token.Encode(claims, key, token.HS512)

@@ -78,14 +78,6 @@ type couchdbBulkDocuments struct {
 	NewEdits bool          `json:"new_edits,omitempty"`
 }
 
-// couchdbDocument is used to simply retrieve ID and revision of
-// a document.
-type couchdbDocument struct {
-	ID       string `json:"_id"`
-	Revision string `json:"_rev"`
-	Deleted  bool   `json:"_deleted"`
-}
-
 // couchdbRows returns rows containing IDs of documents. It's
 // part of a view document.
 type couchdbRows struct {

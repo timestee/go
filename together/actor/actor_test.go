@@ -177,7 +177,8 @@ func TestRecovery(t *testing.T) {
 
 	err := act.DoSyncTimeout(func() error {
 		counter++
-		print(counter / (counter - counter))
+		// Will crash on first call.
+		print(counter / (counter - 1))
 		return nil
 	}, time.Second)
 	assert.True(actor.IsTimedOut(err))
