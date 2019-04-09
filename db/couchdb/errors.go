@@ -24,9 +24,8 @@ const (
 	ErrClientRequest       = "E009"
 	ErrUnmarshallingDoc    = "E010"
 	ErrReadingResponseBody = "E011"
-	ErrNoSession           = "E101"
-	ErrUserNotFound        = "E102"
-	ErrUserExists          = "E103"
+	ErrUserNotFound        = "E101"
+	ErrUserExists          = "E102"
 
 	msgStartupActionFailed = "startup action failed for version '%v'"
 	msgInvalidVersion      = "CouchDB returns no or invalid version"
@@ -39,7 +38,6 @@ const (
 	msgClientRequest       = "client request failed: status code %d, error '%s', reason '%s'"
 	msgUnmarshallingDoc    = "cannot unmarshal database document"
 	msgReadingResponseBody = "cannot read response body"
-	msgNoSession           = "command needs authenticated session"
 	msgUserNotFound        = "user not found"
 	msgUserExists          = "user already exists"
 )

@@ -137,30 +137,4 @@ func TestRetryTooOften(t *testing.T) {
 	assert.ErrorMatch(err, ".* retried more than .* times")
 }
 
-//--------------------
-// HELPERS
-//--------------------
-
-type cronjob struct {
-	times []time.Time
-	flip  bool
-	fail  bool
-}
-
-func (j *cronjob) ShallExecute(t time.Time) bool {
-	j.flip = !j.flip
-	return j.flip
-}
-
-func (j *cronjob) Execute() (bool, error) {
-	j.times = append(j.times, time.Now())
-	if j.fail && len(j.times) == 5 {
-		return false, errors.New("failed")
-	}
-	if len(j.times) == 10 {
-		return false, nil
-	}
-	return true, nil
-}
-
 // EOF

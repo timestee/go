@@ -41,17 +41,6 @@ func newTagNode(tag string) (*tagNode, error) {
 	}, nil
 }
 
-// appendTagNode creates a new tag node, appends it as last child
-// and returns it.
-func (tn *tagNode) appendTagNode(tag string) (*tagNode, error) {
-	ntn, err := newTagNode(tag)
-	if err != nil {
-		return nil, err
-	}
-	tn.appendChild(ntn)
-	return ntn, nil
-}
-
 // appendTextNode creates a text node, appends it as last child
 // and returns it.
 func (tn *tagNode) appendTextNode(text string) *textNode {

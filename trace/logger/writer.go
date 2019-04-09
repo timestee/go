@@ -38,6 +38,15 @@ var levelText = map[LogLevel]string{
 	LevelFatal:    "FATAL",
 }
 
+// levelToText translates levels to string representations.
+func levelToText(level LogLevel) string {
+	text, ok := levelText[level]
+	if !ok {
+		return "INVALID LEVEL"
+	}
+	return text
+}
+
 // Writer is the interface for different log writers.
 type Writer interface {
 	// Write writes the given message with additional
@@ -78,10 +87,7 @@ func NewStandardOutWriter() Writer {
 func (w *standardWriter) Write(level LogLevel, msg string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	text, ok := levelText[level]
-	if !ok {
-		text = "INVALID"
-	}
+	text := levelToText(level)
 	io.WriteString(w.out, time.Now().Format(w.timeFormat))
 	io.WriteString(w.out, " [")
 	io.WriteString(w.out, text)
@@ -100,10 +106,7 @@ func NewGoWriter() Writer {
 
 // Write implements Writer.
 func (w *goWriter) Write(level LogLevel, msg string) {
-	text, ok := levelText[level]
-	if !ok {
-		text = "INVALID"
-	}
+	text := levelToText(level)
 	log.Println("["+text+"]", msg)
 }
 
@@ -141,11 +144,7 @@ func NewTestWriter() TestWriter {
 func (w *testWriter) Write(level LogLevel, msg string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-
-	text, ok := levelText[level]
-	if !ok {
-		text = "INVALID"
-	}
+	text := levelToText(level)
 	entry := fmt.Sprintf("%d [%s] %s", time.Now().UnixNano(), text, msg)
 	w.entries = append(w.entries, entry)
 }

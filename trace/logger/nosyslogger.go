@@ -23,7 +23,7 @@ import (
 
 // sysWriter uses the Go syslog package. It does not work
 // on Windows or Plan9.
-type sysWriter struct {
+type nosyslogWriter struct {
 	tag string
 }
 
@@ -34,15 +34,14 @@ func NewSysWriter(tag string) (Writer, error) {
 	if len(tag) > 0 {
 		tag = "(" + tag + ")"
 	}
-	return &sysWriter{tag}, nil
+	return &nosyslogWriter{
+		tag: tag,
+	}, nil
 }
 
 // Write implements Writer.
-func (w *sysWriter) Write(level LogLevel, msg string) {
-	text, ok := levelText[level]
-	if !ok {
-		text = "INVALID"
-	}
+func (w *nosyslogWriter) Write(level LogLevel, msg string) {
+	text := levelToText(level)
 	log.Println("["+text+"]", msg)
 }
 

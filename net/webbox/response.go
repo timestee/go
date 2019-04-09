@@ -56,4 +56,3 @@ func MarshalResponseBody(w http.ResponseWriter, contentType string, v interface{
 }
 
 // EOF
-

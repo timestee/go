@@ -1,24 +1,45 @@
+SHELL=/bin/bash
+
+GOCMD=go
+GOBUILD=$(GOCMD) build
+GOCLEAN=$(GOCMD) clean
+GOTEST=$(GOCMD) test
+GOGET=$(GOCMD) get
+GOCOVER=$(GOCMD) tool cover
+GOLINT=$(gometalinter)
+
 GO111MODULE=on
 
 .PHONY: setup
 setup: ## Install all the build and lint dependencies
-	go get -u golang.org/x/tools/cmd/cover
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install --update
+	$(GOGET) -u golang.org/x/tools/cmd/cover
+	$(GOGET) -u github.com/alecthomas/gometalinter
+	$(GOLINT) --install --update
 
-allpackages = $$(go list ./... | grep -v /vendor/)
+
+.PHONY: build
+build: ## Build the library
+	$(GOBUILD) -v  ./...
+
 
 .PHONY: test
 test: ## Run all the tests
-	echo 'mode: atomic' > coverage.txt && go test -v -race -covermode=atomic -coverprofile=coverage.txt -timeout=30s ./...
+	echo 'mode: atomic' > coverage.txt && $(GOTEST) -v -race -covermode=atomic -coverprofile=coverage.txt -timeout=30s ./...
+
+
+.PHONY: clean
+clean:  ## Clean 
+	$(GOCLEAN)
+
 
 .PHONY: cover
 cover: test ## Run all the tests and opens the coverage report
-	go tool cover -html=coverage.txt
+	$(GOCOVER) -html=coverage.txt
+
 
 .PHONY: lint
 lint: ## Run all the linters
-	gometalinter --skip=gen/v2 --skip=design --vendor --disable-all \
+	$(GOLINT) --tests --errors --disable-all \
 		--enable=deadcode \
 		--enable=goconst \
 		--enable=goimports \
@@ -33,11 +54,10 @@ lint: ## Run all the linters
 		--deadline=10m \
 		./...
 
+
 .PHONY: ci
 ci: lint test ## Run all the tests and code checks
 
-.PHONY: build
-build: ## Build a binary
 
 .PHONY: help
 help:

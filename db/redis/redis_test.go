@@ -105,26 +105,31 @@ func TestOptions(t *testing.T) {
 
 func TestConcurrency(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	db, err := redis.Open(redis.TCPConnection("", 0), redis.PoolSize(5))
+	db, err := redis.Open(redis.TCPConnection("", 0), redis.PoolSize(100))
 	assert.Nil(err)
 	defer db.Close()
 
 	var wg sync.WaitGroup
+	var connErr error
 	for i := 0; i < 500; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			conn, err := db.Connection()
-			if !assert.Nil(err) {
-				t.FailNow()
+			if err != nil {
+				if connErr == nil {
+					connErr = err
+				}
+				return
 			}
 			defer conn.Return()
 			result, err := conn.Do("ping")
-			assert.Nil(err)
+			assert.NoError(err)
 			assertEqualString(assert, result, 0, "+PONG")
 		}()
 	}
 	wg.Wait()
+	assert.NoError(connErr)
 }
 
 //--------------------

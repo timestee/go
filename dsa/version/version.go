@@ -34,14 +34,14 @@ const (
 	Metadata = "+"
 
 	Newer Precedence = 1
-	Equal            = 0
-	Older            = -1
+	Equal Precedence = 0
+	Older Precedence = -1
 
 	Major      Level = "major"
-	Minor            = "minor"
-	Patch            = "patch"
-	PreRelease       = "pre-release"
-	All              = "all"
+	Minor      Level = "minor"
+	Patch      Level = "patch"
+	PreRelease Level = "pre-release"
+	All        Level = "all"
 )
 
 //--------------------

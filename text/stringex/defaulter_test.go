@@ -29,7 +29,6 @@ import (
 
 const (
 	maxUint = ^uint(0)
-	minUint = 0
 	maxInt  = int(maxUint >> 1)
 	minInt  = -maxInt - 1
 )
@@ -345,7 +344,7 @@ func TestDefaulterString(t *testing.T) {
 }
 
 // TestStringValuer checks the simple valuer for plain strings.
-func StringValuer(t *testing.T) {
+func TestStringValuer(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	d := stringex.NewDefaulter("StringValuer", false)

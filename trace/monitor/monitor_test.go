@@ -30,7 +30,7 @@ func TestSimpleMonitor(t *testing.T) {
 	m := monitor.New()
 	defer m.Stop()
 
-	assert.True(m.StopWatch().Measure("simple", func() { time.Sleep(1) }) > 0)
+	assert.True(m.StopWatch().Measure("simple", func() { time.Sleep(time.Millisecond) }) > 0)
 
 	mp, err := m.StopWatch().Read("simple")
 	assert.NoError(err)

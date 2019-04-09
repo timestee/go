@@ -29,12 +29,13 @@ type Connection struct {
 
 // newConnection creates a new connection instance.
 func newConnection(db *Database) (*Connection, error) {
-	conn := &Connection{
-		database: db,
-	}
-	err := conn.ensureProtocol()
+	r, err := db.pool.pullRetry()
 	if err != nil {
 		return nil, err
+	}
+	conn := &Connection{
+		database: db,
+		resp:     r,
 	}
 	// Perform authentication and database selection.
 	err = conn.resp.authenticate()
@@ -57,11 +58,7 @@ func (conn *Connection) Do(cmd string, args ...interface{}) (*ResultSet, error) 
 	if strings.Contains(cmd, "subscribe") {
 		return nil, errors.New(ErrUseSubscription, msgUseSubscription)
 	}
-	err := conn.ensureProtocol()
-	if err != nil {
-		return nil, err
-	}
-	err = conn.resp.sendCommand(cmd, args...)
+	err := conn.resp.sendCommand(cmd, args...)
 	logCommand(cmd, args, err, conn.database.logging)
 	if err != nil {
 		return nil, err
@@ -184,18 +181,6 @@ func (conn *Connection) Return() error {
 	err := conn.database.pool.push(conn.resp)
 	conn.resp = nil
 	return err
-}
-
-// ensureProtocol retrieves a protocol from the pool if needed.
-func (conn *Connection) ensureProtocol() error {
-	if conn.resp == nil {
-		p, err := conn.database.pool.pullRetry()
-		if err != nil {
-			return err
-		}
-		conn.resp = p
-	}
-	return nil
 }
 
 // EOF

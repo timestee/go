@@ -63,12 +63,6 @@ func (r *response) value() Value {
 	return Value(r.data)
 }
 
-// errorValue returns the error as value.
-func (r *response) errorValue() Value {
-	errdata := []byte(r.err.Error())
-	return Value(errdata)
-}
-
 // String creates a string representation of the response.
 func (r *response) String() string {
 	descr := responseKindDescr[r.kind]
@@ -256,8 +250,8 @@ func (r *resp) buildArgumentsPart(args []interface{}) []byte {
 		return tmp
 	}
 	tmp := []byte{}
-	part := []byte{}
 	for _, arg := range args {
+		var part []byte
 		switch typedArg := arg.(type) {
 		case valuer:
 			part = buildValuesPart(typedArg)
