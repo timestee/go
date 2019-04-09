@@ -62,7 +62,8 @@ func LongAttempt() RetryStrategy {
 }
 
 // Retry executes the passed function until it returns true or an error.
-// These retries are restricted by the retry strategy.
+// These retries are restricted by the retry strategy. It's a simple
+// approach, more flexible ways can be found at together/wait.
 func Retry(f func() (bool, error), rs RetryStrategy) error {
 	timeout := time.Now().Add(rs.Timeout)
 	sleep := rs.Break

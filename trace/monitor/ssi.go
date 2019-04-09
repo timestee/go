@@ -81,30 +81,15 @@ const (
 )
 
 // StaySetIndicator allows to increase and decrease stay-set values.
-type StaySetIndicator interface {
-	// Increase increases a stay-set staySetIndicator.
-	Increase(id string)
-
-	// Decrease decreases a stay-set staySetIndicator.
-	Decrease(id string)
-
-	// Read returns a stay-set staySetIndicator.
-	Read(id string) (IndicatorValue, error)
-
-	// Do performs the function f for all values.
-	Do(f func(IndicatorValue) error) error
-}
-
-// staySetIndicator implements StaySetIndicator.
-type staySetIndicator struct {
+type StaySetIndicator struct {
 	act     *actor.Actor
 	changes map[string][]bool
 	values  map[string]*IndicatorValue
 }
 
 // newStaySetIndicator creates a new StaySetIndicator.
-func newStaySetIndicator() *staySetIndicator {
-	i := &staySetIndicator{
+func newStaySetIndicator() *StaySetIndicator {
+	i := &StaySetIndicator{
 		act:     actor.New(actor.WithQueueLen(100)).Go(),
 		changes: make(map[string][]bool),
 		values:  make(map[string]*IndicatorValue),
@@ -113,24 +98,24 @@ func newStaySetIndicator() *staySetIndicator {
 	return i
 }
 
-// Increase implements StaySetIndicator.
-func (i *staySetIndicator) Increase(id string) {
+// Increase increases a stay-set staySetIndicator.
+func (i *StaySetIndicator) Increase(id string) {
 	i.act.DoAsync(func() error {
 		i.changes[id] = append(i.changes[id], up)
 		return nil
 	})
 }
 
-// Decrease implements StaySetIndicator.
-func (i *staySetIndicator) Decrease(id string) {
+// Decrease decreases a stay-set staySetIndicator.
+func (i *StaySetIndicator) Decrease(id string) {
 	i.act.DoAsync(func() error {
 		i.changes[id] = append(i.changes[id], down)
 		return nil
 	})
 }
 
-// Read implemets StaySetIndicator.
-func (i *staySetIndicator) Read(id string) (IndicatorValue, error) {
+// Read returns a stay-set staySetIndicator.
+func (i *StaySetIndicator) Read(id string) (IndicatorValue, error) {
 	var iv *IndicatorValue
 	var err error
 	i.act.DoSync(func() error {
@@ -147,8 +132,8 @@ func (i *staySetIndicator) Read(id string) (IndicatorValue, error) {
 	return *iv, nil
 }
 
-// Do implements StaySetIndicator.
-func (i *staySetIndicator) Do(f func(IndicatorValue) error) error {
+// Do performs the function f for all values.
+func (i *StaySetIndicator) Do(f func(IndicatorValue) error) error {
 	var err error
 	i.act.DoSync(func() error {
 		i.accumulateAll()
@@ -163,7 +148,7 @@ func (i *staySetIndicator) Do(f func(IndicatorValue) error) error {
 }
 
 // reset clears all values.
-func (i *staySetIndicator) reset() {
+func (i *StaySetIndicator) reset() {
 	i.act.DoAsync(func() error {
 		i.changes = make(map[string][]bool)
 		i.values = make(map[string]*IndicatorValue)
@@ -172,13 +157,13 @@ func (i *staySetIndicator) reset() {
 }
 
 // stop terminates the indicator.
-func (i *staySetIndicator) stop() error {
+func (i *StaySetIndicator) stop() error {
 	return i.act.Stop(nil)
 }
 
 // ticker makes the monitor accumulate all measuring points
 // in intervals.
-func (i *staySetIndicator) ticker() {
+func (i *StaySetIndicator) ticker() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
@@ -193,7 +178,7 @@ func (i *staySetIndicator) ticker() {
 }
 
 // accumulateOne updates the indicator value for one ID.
-func (i *staySetIndicator) accumulateOne(id string) {
+func (i *StaySetIndicator) accumulateOne(id string) {
 	changes, ok := i.changes[id]
 	if ok {
 		iv := i.values[id]
@@ -211,7 +196,7 @@ func (i *staySetIndicator) accumulateOne(id string) {
 }
 
 // accumulateAll updates all indicator values.
-func (i *staySetIndicator) accumulateAll() {
+func (i *StaySetIndicator) accumulateAll() {
 	for id := range i.changes {
 		i.accumulateOne(id)
 	}

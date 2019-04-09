@@ -13,8 +13,8 @@ package timex
 
 // Error codes of the timex package.
 const (
-	ErrRetriedTooLong  = "E001"
-	ErrRetriedTooOften = "E002"
+	ErrRetriedTooLong  = "err-too-long"
+	ErrRetriedTooOften = "err-too-often"
 
 	msgRetriedTooLong  = "retried longer than %v"
 	msgRetriedTooOften = "retried more than %d times"

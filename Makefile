@@ -1,14 +1,15 @@
 SHELL=/bin/bash
-
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 GOCOVER=$(GOCMD) tool cover
-GOLINT=$(gometalinter)
+GOLINT=gometalinter
+
 
 GO111MODULE=on
+
 
 .PHONY: setup
 setup: ## Install all the build and lint dependencies

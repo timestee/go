@@ -27,11 +27,11 @@ import (
 func TestIsError(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 
-	ec := "E001"
+	ec := "err-test"
 	emsg := "test error %d"
 	err := errors.New(ec, emsg, 1)
 
-	assert.Equal(err.Error(), "(tideland.dev/go/trace/errors_test:errors_test.go:TestIsError:32) [E001] test error 1")
+	assert.Equal(err.Error(), "(tideland.dev/go/trace/errors_test:errors_test.go:TestIsError:32) [err-test] test error 1")
 	assert.True(errors.IsError(err, ec))
 	assert.False(errors.IsError(err, "0"))
 
@@ -53,7 +53,7 @@ func TestValidation(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	// First a valid error.
-	ec := "E001"
+	ec := "err-invalid"
 	emsg := "valid"
 	err := errors.New(ec, emsg)
 	assert.True(errors.Valid(err))
@@ -76,10 +76,10 @@ func TestAnnotation(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 
 	err1 := testError("wrapped")
-	err2 := errors.Annotate(err1, "E123", "1st annotated")
-	err3 := errors.Annotate(err2, "E456", "2nd annotated")
+	err2 := errors.Annotate(err1, "err-first", "1st annotated")
+	err3 := errors.Annotate(err2, "err-second", "2nd annotated")
 
-	assert.ErrorMatch(err3, `.* \[E456\] 2nd annotated: .* \[E123\] 1st annotated: wrapped`)
+	assert.ErrorMatch(err3, `.* \[err-second\] 2nd annotated: .* \[err-first\] 1st annotated: wrapped`)
 	assert.Equal(errors.Annotated(err3), err2)
 	assert.Equal(errors.Annotated(err2), err1)
 	assert.Length(errors.Stack(err3), 3)
@@ -91,13 +91,13 @@ func TestAnnotation(t *testing.T) {
 func TestCollection(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 
-	errA := testError("E001")
-	errB := testError("E002")
-	errC := testError("E003")
-	errD := testError("E004")
+	errA := testError("err-one")
+	errB := testError("err-two")
+	errC := testError("err-three")
+	errD := testError("err-four")
 	cerr := errors.Collect(errA, errB, errC, errD)
 
-	assert.ErrorMatch(cerr, "E001\nE002\nE003\nE004")
+	assert.ErrorMatch(cerr, "err-one\nerr-two\nerr-three\nerr-four")
 }
 
 // TestDoAll tests the iteration over errors.
@@ -110,10 +110,10 @@ func TestDoAll(t *testing.T) {
 
 	// Test it on annotated errors.
 	errX := testError("E000")
-	errA := errors.Annotate(errX, "E001", "foo")
-	errB := errors.Annotate(errA, "E002", "bar")
-	errC := errors.Annotate(errB, "E003", "baz")
-	errD := errors.Annotate(errC, "E004", "yadda")
+	errA := errors.Annotate(errX, "err-foo", "foo")
+	errB := errors.Annotate(errA, "err-bar", "bar")
+	errC := errors.Annotate(errB, "err-baz", "baz")
+	errD := errors.Annotate(errC, "err-yadda", "yadda")
 
 	errors.DoAll(errD, f)
 
@@ -121,15 +121,15 @@ func TestDoAll(t *testing.T) {
 
 	// Test it on collected errors.
 	msgs = []string{}
-	errA = testError("E001")
-	errB = testError("E002")
-	errC = testError("E003")
-	errD = testError("E004")
+	errA = testError("err-foo")
+	errB = testError("err-bar")
+	errC = testError("err-baz")
+	errD = testError("err-yadda")
 	cerr := errors.Collect(errA, errB, errC, errD)
 
 	errors.DoAll(cerr, f)
 
-	assert.Equal(msgs, []string{"E001", "E002", "E003", "E004"})
+	assert.Equal(msgs, []string{"err-foo", "err-bar", "err-baz", "err-yadda"})
 
 	// Test it on a single error.
 	msgs = []string{}

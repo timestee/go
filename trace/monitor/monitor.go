@@ -12,53 +12,38 @@ package monitor
 //--------------------
 
 // Monitor combines StopWatch and StaySetIndicator.
-type Monitor interface {
-	// StopWatch returns the internal stop watch instance.
-	StopWatch() StopWatch
-
-	// StaySetIndicator returns a stay-set indicator instance.
-	StaySetIndicator() StaySetIndicator
-
-	// Reset clears all collected values so far.
-	Reset()
-
-	// Stop terminates the monitor.
-	Stop()
-}
-
-// monitor implements Monitor.
-type monitor struct {
-	sw  *stopWatch
-	ssi *staySetIndicator
+type Monitor struct {
+	sw  *StopWatch
+	ssi *StaySetIndicator
 }
 
 // New creates a new monitor.
-func New() Monitor {
-	m := &monitor{
+func New() *Monitor {
+	m := &Monitor{
 		sw:  newStopWatch(),
 		ssi: newStaySetIndicator(),
 	}
 	return m
 }
 
-// StopWatch implements Monitor.
-func (m *monitor) StopWatch() StopWatch {
+// StopWatch returns the internal stop watch instance.
+func (m *Monitor) StopWatch() *StopWatch {
 	return m.sw
 }
 
-// StaySetIndicator implements Monitor.
-func (m *monitor) StaySetIndicator() StaySetIndicator {
+// StaySetIndicator returns a stay-set indicator instance.
+func (m *Monitor) StaySetIndicator() *StaySetIndicator {
 	return m.ssi
 }
 
-// Reset implements Monitor.
-func (m *monitor) Reset() {
+// Reset clears all collected values so far.
+func (m *Monitor) Reset() {
 	m.sw.reset()
 	m.ssi.reset()
 }
 
-// Stop implements Monitor.
-func (m *monitor) Stop() {
+// Stop terminates the monitor.
+func (m *Monitor) Stop() {
 	m.sw.stop()
 	m.ssi.stop()
 }

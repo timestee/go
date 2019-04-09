@@ -13,17 +13,17 @@ package collections
 
 // Error codes of the collections package.
 const (
-	ErrEmpty            = "E001"
-	ErrNilValue         = "E002"
-	ErrDuplicate        = "E003"
-	ErrInvalidPath      = "E004"
-	ErrCannotAdd        = "E005"
-	ErrCannotRemove     = "E006"
-	ErrCannotFind       = "E007"
-	ErrCannotFindFirst  = "E008"
-	ErrCannotFindAll    = "E009"
-	ErrCannotDoAll      = "E010"
-	ErrCannotDoChildren = "E011"
+	ErrEmpty            = "err-empty"
+	ErrNilValue         = "err-nil"
+	ErrDuplicate        = "err-duplicate"
+	ErrInvalidPath      = "err-path"
+	ErrCannotAdd        = "err-adding"
+	ErrCannotRemove     = "err-removing"
+	ErrCannotFind       = "err-finding"
+	ErrCannotFindFirst  = "err-finding-first"
+	ErrCannotFindAll    = "err-finding-all"
+	ErrCannotDoAll      = "err-processing-all"
+	ErrCannotDoChildren = "err-processing-children"
 )
 
 // EOF

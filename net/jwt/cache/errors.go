@@ -13,8 +13,8 @@ package cache
 
 const (
 	// Error codes.
-	ErrNoAuthorizationHeader      = "E101"
-	ErrInvalidAuthorizationHeader = "E102"
+	ErrNoAuthorizationHeader      = "err-no-auth"
+	ErrInvalidAuthorizationHeader = "err-inv-auth"
 
 	// Error messages.
 	msgNoAuthorizationHeader      = "request contains no authorization header"

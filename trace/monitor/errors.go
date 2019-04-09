@@ -13,8 +13,8 @@ package monitor
 
 // Error codes of the monitoring package.
 const (
-	ErrInvalidWatchValue     = "E001"
-	ErrInvalidIndicatorValue = "E002"
+	ErrInvalidWatchValue     = "err-inv-watch"
+	ErrInvalidIndicatorValue = "err-inv-indicator"
 )
 
 // EOF
