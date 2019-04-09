@@ -24,9 +24,9 @@ import (
 
 // Error codes of the errors package.
 const (
-	ErrInvalidType       = "E001"
-	ErrNotYetImplemented = "E002"
-	ErrDeprecated        = "E999"
+	ErrInvalidType       = "err-inv-type"
+	ErrNotYetImplemented = "err-not-yet-implemented"
+	ErrDeprecated        = "err-deprecated"
 
 	msgInvalidType       = "passed error has type %T: '%s'"
 	msgNotYetImplemented = "feature is not yet implemented: '%s'"
@@ -49,7 +49,7 @@ type errorBox struct {
 func newErrorBox(err error, code string, msg string, args ...interface{}) *errorBox {
 	return &errorBox{
 		err:    err,
-		code:   code,
+		code:   strings.ToLower(code),
 		msg:    fmt.Sprintf(msg, args...),
 		hereID: location.HereID(2),
 	}
@@ -106,7 +106,7 @@ func Valid(err error) bool {
 // package and has the passed code
 func IsError(err error, code string) bool {
 	if e, ok := err.(*errorBox); ok {
-		return e.code == code
+		return e.code == strings.ToLower(code)
 	}
 	return false
 }

@@ -21,8 +21,8 @@ import (
 
 // Error codes of the identifier package.
 const (
-	ErrInvalidHexLength = "E001"
-	ErrInvalidHexValue  = "E002"
+	ErrInvalidHexLength = "err-inv-hex-len"
+	ErrInvalidHexValue  = "err-inv-hex-value"
 )
 
 //--------------------

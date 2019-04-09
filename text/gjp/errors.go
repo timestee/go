@@ -13,12 +13,12 @@ package gjp
 
 // Error codes of the etc package.
 const (
-	ErrUnmarshalling      = "E001"
-	ErrCorruptingDocument = "E002"
-	ErrInvalidPart        = "E003"
-	ErrInvalidPath        = "E004"
-	ErrPathTooLong        = "E005"
-	ErrProcessing         = "E006"
+	ErrUnmarshalling      = "err-unmarshalling"
+	ErrCorruptingDocument = "err-corrupting"
+	ErrInvalidPart        = "err-inv-part"
+	ErrInvalidPath        = "err-inv-path"
+	ErrPathTooLong        = "err-long-path"
+	ErrProcessing         = "err-processing"
 )
 
 // EOF

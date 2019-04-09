@@ -8,23 +8,27 @@
 package actor
 
 //--------------------
+// IMPORTS
+//--------------------
+
+import (
+	"tideland.dev/go/trace/errors"
+)
+
+//--------------------
 // ERRORS
 //--------------------
 
-// Errors of the actor package.
-var (
-	errTimeout = "synchronous action execution timed out"
-	errStopped = "actor has been stopped"
+// Error codes of the actor package.
+const (
+	ErrTimeout = "err-timeout"
+
+	msgTimeout = "synchronous action execution timed out"
 )
 
 // IsTimedOut checks if the error signals an action timeout.
 func IsTimedOut(err error) bool {
-	return err.Error() == errTimeout
-}
-
-// HasBeenStopped checks if the error signals a stopped actor.
-func HasBeenStopped(err error) bool {
-	return err.Error() == errStopped
+	return errors.IsError(err, ErrTimeout)
 }
 
 // EOF

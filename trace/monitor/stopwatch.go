@@ -26,20 +26,14 @@ import (
 // Measuring defines one execution time measuring containing the ID and
 // the starting time of the measuring and able to pass this data after
 // the end of the measuring to the measurer.
-type Measuring interface {
-	// End ends the measuring and passes it to the measurer.
-	End() time.Duration
-}
-
-// measuring implements Measuring.
-type measuring struct {
-	owner *stopWatch
+type Measuring struct {
+	owner *StopWatch
 	id    string
 	begin time.Time
 }
 
-// End implements Measuring.
-func (m *measuring) End() time.Duration {
+// End ends the measuring and passes it to the measurer.
+func (m *Measuring) End() time.Duration {
 	duration := time.Since(m.begin)
 	m.owner.end(m.id, duration)
 	return duration
@@ -103,30 +97,15 @@ func (wvs WatchValues) Less(i, j int) bool { return wvs[i].ID < wvs[j].ID }
 
 // StopWatch allows to measure the execution time of
 // code fragments.
-type StopWatch interface {
-	// Begin starts a new measuring with a given id.
-	Begin(id string) Measuring
-
-	// Measure measures the execution time of one function.
-	Measure(id string, f func()) time.Duration
-
-	// Read returns the measuring point for an id.
-	Read(id string) (WatchValue, error)
-
-	// Do performs the function f for all measuring points.
-	Do(f func(WatchValue) error) error
-}
-
-// stopWatch implements StopWatch.
-type stopWatch struct {
+type StopWatch struct {
 	act        *actor.Actor
 	measurings map[string][]time.Duration
 	values     map[string]*WatchValue
 }
 
 // newStopWatch creates a new stop watch.
-func newStopWatch() *stopWatch {
-	s := &stopWatch{
+func newStopWatch() *StopWatch {
+	s := &StopWatch{
 		act:        actor.New(actor.WithQueueLen(100)).Go(),
 		measurings: make(map[string][]time.Duration),
 		values:     make(map[string]*WatchValue),
@@ -135,9 +114,9 @@ func newStopWatch() *stopWatch {
 	return s
 }
 
-// Begin implements StopWatch.
-func (s *stopWatch) Begin(id string) Measuring {
-	return &measuring{
+// Begin starts a new measuring with a given id.
+func (s *StopWatch) Begin(id string) *Measuring {
+	return &Measuring{
 		owner: s,
 		id:    id,
 		begin: time.Now(),
@@ -145,16 +124,16 @@ func (s *stopWatch) Begin(id string) Measuring {
 }
 
 // end returns a measuring to the collected ones.
-func (s *stopWatch) end(id string, duration time.Duration) {
+func (s *StopWatch) end(id string, duration time.Duration) {
 	s.act.DoAsync(func() error {
 		s.measurings[id] = append(s.measurings[id], duration)
 		return nil
 	})
 }
 
-// Measure implements StopWatch.
-func (s *stopWatch) Measure(id string, f func()) time.Duration {
-	measuring := &measuring{
+// Measure measures the execution time of one function.
+func (s *StopWatch) Measure(id string, f func()) time.Duration {
+	measuring := &Measuring{
 		owner: s,
 		id:    id,
 		begin: time.Now(),
@@ -163,8 +142,8 @@ func (s *stopWatch) Measure(id string, f func()) time.Duration {
 	return measuring.End()
 }
 
-// Read implements StopWatch.
-func (s *stopWatch) Read(id string) (WatchValue, error) {
+// Read returns the measuring point for an id.
+func (s *StopWatch) Read(id string) (WatchValue, error) {
 	var wv *WatchValue
 	var err error
 	s.act.DoSync(func() error {
@@ -181,8 +160,8 @@ func (s *stopWatch) Read(id string) (WatchValue, error) {
 	return *wv, nil
 }
 
-// Do implements StopWatch.
-func (s *stopWatch) Do(f func(WatchValue) error) error {
+// Do performs the function f for all measuring points.
+func (s *StopWatch) Do(f func(WatchValue) error) error {
 	var err error
 	s.act.DoSync(func() error {
 		s.accumulateAll()
@@ -197,7 +176,7 @@ func (s *stopWatch) Do(f func(WatchValue) error) error {
 }
 
 // reset clears all values.
-func (s *stopWatch) reset() {
+func (s *StopWatch) reset() {
 	s.act.DoAsync(func() error {
 		s.measurings = make(map[string][]time.Duration)
 		s.values = make(map[string]*WatchValue)
@@ -206,13 +185,13 @@ func (s *stopWatch) reset() {
 }
 
 // stop terminates the indicator.
-func (s *stopWatch) stop() error {
+func (s *StopWatch) stop() error {
 	return s.act.Stop(nil)
 }
 
 // ticker makes the measurer accumulate all measuring points
 // in intervals.
-func (s *stopWatch) ticker() {
+func (s *StopWatch) ticker() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
@@ -227,7 +206,7 @@ func (s *stopWatch) ticker() {
 }
 
 // accumulateOne updates one watch value.
-func (s *stopWatch) accumulateOne(id string) {
+func (s *StopWatch) accumulateOne(id string) {
 	measurings, ok := s.measurings[id]
 	if ok {
 		wv := s.values[id]
@@ -245,7 +224,7 @@ func (s *stopWatch) accumulateOne(id string) {
 }
 
 // accumulateAll accumulates all watch values.
-func (s *stopWatch) accumulateAll() {
+func (s *StopWatch) accumulateAll() {
 	for id := range s.measurings {
 		s.accumulateOne(id)
 	}

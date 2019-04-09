@@ -12,12 +12,12 @@ package actor
 //--------------------
 
 import (
-	"errors"
 	"sync"
 	"time"
 
 	"tideland.dev/go/together/loop"
 	"tideland.dev/go/together/notifier"
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
@@ -111,7 +111,7 @@ func (act *Actor) DoSyncTimeout(action Action, timeout time.Duration) error {
 	select {
 	case <-waitC:
 	case <-time.After(timeout):
-		return errors.New(errTimeout)
+		return errors.New(ErrTimeout, msgTimeout)
 	}
 	return nil
 }

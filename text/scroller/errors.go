@@ -21,9 +21,9 @@ import (
 
 // Error codes of the scroller package.
 const (
-	ErrNoSource      = "E001"
-	ErrNoTarget      = "E002"
-	ErrNegativeLines = "E003"
+	ErrNoSource      = "err-no-source"
+	ErrNoTarget      = "err-no-target"
+	ErrNegativeLines = "err-negative-lines"
 )
 
 //--------------------
