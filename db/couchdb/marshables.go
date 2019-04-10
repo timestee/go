@@ -64,7 +64,7 @@ func (u *Unmarshable) Raw() []byte {
 func (u *Unmarshable) Unmarshal(doc interface{}) error {
 	err := json.Unmarshal(u.message, doc)
 	if err != nil {
-		return errors.Annotate(err, ErrUnmarshallingDoc, msgUnmarshallingDoc)
+		return errors.Annotate(err, ErrDecoding, msgDecoding)
 	}
 	return nil
 }

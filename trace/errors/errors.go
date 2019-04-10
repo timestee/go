@@ -24,9 +24,9 @@ import (
 
 // Error codes of the errors package.
 const (
-	ErrInvalidType       = "err-inv-type"
-	ErrNotYetImplemented = "err-not-yet-implemented"
-	ErrDeprecated        = "err-deprecated"
+	ErrInvalidType       = "EINVTYPE"
+	ErrNotYetImplemented = "ENOTYETI"
+	ErrDeprecated        = "EFEATDEPR"
 
 	msgInvalidType       = "passed error has type %T: '%s'"
 	msgNotYetImplemented = "feature is not yet implemented: '%s'"
@@ -49,7 +49,7 @@ type errorBox struct {
 func newErrorBox(err error, code string, msg string, args ...interface{}) *errorBox {
 	return &errorBox{
 		err:    err,
-		code:   strings.ToLower(code),
+		code:   harmonize(code),
 		msg:    fmt.Sprintf(msg, args...),
 		hereID: location.HereID(2),
 	}
@@ -106,7 +106,7 @@ func Valid(err error) bool {
 // package and has the passed code
 func IsError(err error, code string) bool {
 	if e, ok := err.(*errorBox); ok {
-		return e.code == strings.ToLower(code)
+		return e.code == harmonize(code)
 	}
 	return false
 }
@@ -193,6 +193,25 @@ func DeprecatedError(feature string) error {
 // feature.
 func IsDeprecatedError(err error) bool {
 	return IsError(err, ErrDeprecated)
+}
+
+//--------------------
+// HELPER
+//--------------------
+
+// harmonzie ensures upper-case and a length of 8 by padding.
+func harmonize(code string) string {
+	var b strings.Builder
+	code = strings.ToUpper(code) + "__________"
+	for _, r := range code {
+		if r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '_' {
+			b.WriteRune(r)
+		}
+		if b.Len() == 10 {
+			break
+		}
+	}
+	return b.String()
 }
 
 // EOF

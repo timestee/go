@@ -21,7 +21,7 @@ import (
 
 // Error codes of the actor package.
 const (
-	ErrTimeout = "err-timeout"
+	ErrTimeout = "ETIMEOUT"
 
 	msgTimeout = "synchronous action execution timed out"
 )

@@ -186,25 +186,25 @@ func TestParse(t *testing.T) {
 			metadata:   "007.a",
 		}, {
 			id:  "",
-			err: "malformed version.*",
+			err: ".*version is malformed.*",
 		}, {
 			id:  "a",
-			err: "malformed version.*",
+			err: ".*version is malformed.*",
 		}, {
 			id:  "1.a",
-			err: "malformed version.*",
+			err: ".*version is malformed.*",
 		}, {
 			id:  "1,1",
-			err: "malformed version.*",
+			err: ".*version is malformed.*",
 		}, {
 			id:  "-1",
-			err: "malformed version.*",
+			err: ".*version is malformed.*",
 		}, {
 			id:  "1.-1",
-			err: "malformed version.*",
+			err: ".*version is malformed.*",
 		}, {
 			id:  "+",
-			err: "malformed version.*",
+			err: ".*version is malformed.*",
 		},
 	}
 	// Perform tests.

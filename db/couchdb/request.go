@@ -143,7 +143,7 @@ func (req *Request) do(method string) *ResultSet {
 	if req.doc != nil {
 		marshalled, err := json.Marshal(req.doc)
 		if err != nil {
-			return newResultSet(nil, errors.Annotate(err, ErrMarshallingDoc, msgMarshallingDoc))
+			return newResultSet(nil, errors.Annotate(err, ErrEncoding, msgEncoding))
 		}
 		req.docReader = bytes.NewBuffer(marshalled)
 	}
