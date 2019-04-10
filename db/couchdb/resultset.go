@@ -164,7 +164,7 @@ func (rs *ResultSet) Document(value interface{}) error {
 	}
 	err := json.Unmarshal(rs.body, value)
 	if err != nil {
-		return errors.Annotate(err, ErrUnmarshallingDoc, msgUnmarshallingDoc)
+		return errors.Annotate(err, ErrDecoding, msgDecoding)
 	}
 	return nil
 }

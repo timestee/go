@@ -12,10 +12,11 @@ package version
 //--------------------
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
@@ -284,7 +285,7 @@ func splitVersionString(vsnstr string) ([]string, error) {
 			return []string{nXp[0], nXp[1], npXm[1]}, nil
 		}
 	}
-	return nil, errors.New("malformed version")
+	return nil, errors.New(ErrMalformed, msgMalformed, vsnstr)
 }
 
 // parseNumberString retrieves major, minor, and patch number
@@ -292,16 +293,16 @@ func splitVersionString(vsnstr string) ([]string, error) {
 func parseNumberString(nstr string) ([]int, error) {
 	nstrs := strings.Split(nstr, ".")
 	if len(nstrs) < 1 || len(nstrs) > 3 {
-		return nil, errors.New("malformed version")
+		return nil, errors.New(ErrMalformed, msgMalformed, nstr)
 	}
 	vsn := []int{1, 0, 0}
 	for i, nstr := range nstrs {
 		num, err := strconv.Atoi(nstr)
 		if err != nil {
-			return nil, errors.New("malformed version: " + err.Error())
+			return nil, errors.New(ErrMalformed, msgMalformed, err)
 		}
 		if num < 0 {
-			return nil, errors.New("malformed version")
+			return nil, errors.New(ErrMalformed, msgMalformed, nstr)
 		}
 		vsn[i] = num
 	}

@@ -21,9 +21,9 @@ import (
 
 // Error codes of the wait package.
 const (
-	ErrTickerExceeded    = "err-ticker-exceeded"
-	ErrContextCancelled  = "err-context-cancelled"
-	ErrConditionPanicked = "err-condition-panicked"
+	ErrTickerExceeded    = "EEXCEEDED"
+	ErrContextCancelled  = "ECANCELLED"
+	ErrConditionPanicked = "EPANIC"
 
 	msgTickerExceeded    = "ticker exceeded while waiting for the condition"
 	msgContextCancelled  = "context has been cancelled"

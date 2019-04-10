@@ -74,11 +74,11 @@ func (rs *ResultSet) Len() int {
 // ValueAt returns the value at index.
 func (rs *ResultSet) ValueAt(index int) (Value, error) {
 	if len(rs.items) < index+1 {
-		return nil, errors.New(ErrIllegalItemIndex, msgIllegalItemIndex, index, len(rs.items))
+		return nil, errors.New(ErrInvlidItemIndex, msgInvalidItemIndex, index, len(rs.items))
 	}
 	value, ok := rs.items[index].(Value)
 	if !ok {
-		return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "value")
+		return nil, errors.New(ErrInvalidItemType, msgInvalidItemType, index, "value")
 	}
 	return value, nil
 }
@@ -116,11 +116,11 @@ func (rs *ResultSet) StringAt(index int) (string, error) {
 // ResultSetAt returns the nested result set at index.
 func (rs *ResultSet) ResultSetAt(index int) (*ResultSet, error) {
 	if len(rs.items) < index-1 {
-		return nil, errors.New(ErrIllegalItemIndex, msgIllegalItemIndex, index, len(rs.items))
+		return nil, errors.New(ErrInvlidItemIndex, msgInvalidItemIndex, index, len(rs.items))
 	}
 	resultSet, ok := rs.items[index].(*ResultSet)
 	if !ok {
-		return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "result set")
+		return nil, errors.New(ErrInvalidItemType, msgInvalidItemType, index, "result set")
 	}
 	return resultSet, nil
 }
@@ -146,7 +146,7 @@ func (rs *ResultSet) KeyValues() (KeyValues, error) {
 	for index, item := range rs.items {
 		value, ok := item.(Value)
 		if !ok {
-			return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "value")
+			return nil, errors.New(ErrInvalidItemType, msgInvalidItemType, index, "value")
 		}
 		if index%2 == 0 {
 			key = value.String()
@@ -166,7 +166,7 @@ func (rs *ResultSet) ScoredValues(withscores bool) (ScoredValues, error) {
 	for index, item := range rs.items {
 		value, ok := item.(Value)
 		if !ok {
-			return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "value")
+			return nil, errors.New(ErrInvalidItemType, msgInvalidItemType, index, "value")
 		}
 		if withscores {
 			// With scores, so alternating values and scores.
@@ -198,7 +198,7 @@ func (rs *ResultSet) Hash() (Hash, error) {
 	for index, item := range rs.items {
 		value, ok := item.(Value)
 		if !ok {
-			return nil, errors.New(ErrIllegalItemType, msgIllegalItemType, index, "value")
+			return nil, errors.New(ErrInvalidItemType, msgInvalidItemType, index, "value")
 		}
 		if index%2 == 0 {
 			key = value.String()

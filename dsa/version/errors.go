@@ -1,11 +1,11 @@
-// Tideland Go Library - DSA - Time Extensions
+// Tideland Go Library - DSA - Version
 //
 // Copyright (C) 2015-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package timex
+package version
 
 //--------------------
 // CONSTANTS
@@ -13,11 +13,9 @@ package timex
 
 // Error codes of the timex package.
 const (
-	ErrRetriedTooLong  = "ETOOLONG"
-	ErrRetriedTooOften = "ETOOOFTEN"
+	ErrMalformed = "EMALFORMED"
 
-	msgRetriedTooLong  = "retried longer than %v"
-	msgRetriedTooOften = "retried more than %d times"
+	msgMalformed = "version is malformed: %v"
 )
 
 // EOF

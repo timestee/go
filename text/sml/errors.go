@@ -21,10 +21,10 @@ import (
 
 // Error codes of the SML package.
 const (
-	ErrBuilder          = "err-builder"
-	ErrReader           = "err-reader"
-	ErrNoRootProcessor  = "err-root-processor"
-	ErrRegisteredPlugin = "err-plugin"
+	ErrBuilder          = "EBUILD"
+	ErrReader           = "EREAD"
+	ErrNoRootProcessor  = "EPROCESS"
+	ErrRegisteredPlugin = "EPLUGIN"
 )
 
 //--------------------

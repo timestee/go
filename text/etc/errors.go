@@ -21,13 +21,12 @@ import (
 
 // Error codes of the etc package.
 const (
-	ErrInvalidSourceFormat = "err-inv-source"
-	ErrIllegalConfigSource = "err-illegal-config"
-	ErrCannotReadFile      = "err-reading-file"
-	ErrCannotPostProcess   = "err-post-process"
-	ErrInvalidPath         = "err-inv-path"
-	ErrCannotSplit         = "err-cannot-split"
-	ErrCannotApply         = "err-cannot-apply"
+	ErrInvalidSourceFormat = "EINVSRC"
+	ErrCannotReadFile      = "EREADFILE"
+	ErrCannotPostProcess   = "EPOSTPROC"
+	ErrInvalidPath         = "EINVPATH"
+	ErrCannotSplit         = "ECNOTSPLIT"
+	ErrCannotApply         = "ECNOTAPPLY"
 )
 
 //--------------------

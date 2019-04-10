@@ -21,10 +21,10 @@ import (
 
 // Error codes of the loop package.
 const (
-	ErrInvalidLoopOption = "err-inv-option"
-	ErrLoopNotReady      = "err-not-ready"
-	ErrLoopNotWorking    = "err-not-working"
-	ErrTimeout           = "err-timeout"
+	ErrInvalidLoopOption = "EINVOPT"
+	ErrLoopNotReady      = "ENOTREADY"
+	ErrLoopNotWorking    = "ENOTWORK"
+	ErrTimeout           = "ETIMEOUT"
 
 	msgInvalidLoopOption = "invalid loop option: %v"
 	msgLoopNotReady      = "loop not ready"
