@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package cache
+package cache // import "tideland.dev/go/net/jwt/cache"
 
 //--------------------
 // IMPORTS

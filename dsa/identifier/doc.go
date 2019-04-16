@@ -11,6 +11,6 @@
 // on passed data or types. Here the individual parts are harmonized and
 // concatenated by the passed seperators. It is the users responsibility
 // to check if the identifier is unique in its context.
-package identifier
+package identifier // import "tideland.dev/go/dsa/identifier"
 
 // EOF

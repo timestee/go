@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package redis
+package redis // import "tideland.dev/go/db/redis"
 
 //--------------------
 // CONSTANTS

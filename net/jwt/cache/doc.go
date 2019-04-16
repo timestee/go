@@ -7,6 +7,6 @@
 
 // Package cache of Tideland Go Library provides a caching of verified JSON
 // Web Tokens.
-package cache
+package cache // import "tideland.dev/go/net/jwt/cache"
 
 // EOF

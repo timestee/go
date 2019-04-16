@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package identifier
+package identifier // import "tideland.dev/go/dsa/identifier"
 
 //--------------------
 // IMPORTS

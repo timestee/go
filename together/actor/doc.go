@@ -39,6 +39,6 @@
 //
 // Different options for the constructor allow to pass a context for stopping,
 // how many actions are queued, and how panics in actions shall be handled.
-package actor
+package actor // import "tideland.dev/go/together/actor"
 
 // EOF

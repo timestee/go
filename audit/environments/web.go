@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package environments
+package environments // import "tideland.dev/go/audit/environments"
 
 //--------------------
 // IMPORTS

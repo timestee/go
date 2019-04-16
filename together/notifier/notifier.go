@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package notifier
+package notifier // import "tideland.dev/go/together/notifier"
 
 //--------------------
 // IMPORTS

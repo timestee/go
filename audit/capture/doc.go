@@ -19,6 +19,6 @@
 //     cout, cerr = capture.Both(func() { ... })
 //
 // The captured content data also can be retrieved as bytes.
-package capture
+package capture // import "tideland.dev/go/audit/capture"
 
 // EOF

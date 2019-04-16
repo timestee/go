@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package etc
+package etc // import "tideland.dev/go/text/etc"
 
 //--------------------
 // IMPORTS

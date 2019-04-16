@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package sort
+package sort // import "tideland.dev/go/dsa/sort"
 
 //--------------------
 // IMPORTS
@@ -21,10 +21,10 @@ import (
 //--------------------
 
 // sequentialThreshold for switching from sequential quick sort to insertion sort.
-var sequentialThreshold int = runtime.NumCPU()*4 - 1
+var sequentialThreshold = runtime.NumCPU()*4 - 1
 
 // parallelThreshold for switching from parallel to sequential quick sort.
-var parallelThreshold int = runtime.NumCPU()*2048 - 1
+var parallelThreshold = runtime.NumCPU()*2048 - 1
 
 //--------------------
 // HELPING FUNCS

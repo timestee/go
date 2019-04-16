@@ -21,6 +21,6 @@
 // number. These information can be retrieved using Location(). In
 // case of a chain of annotated errors those can be retrieved as a
 // slice of errors with Stack().
-package errors
+package errors // import "tideland.dev/go/trace/errors"
 
 // EOF

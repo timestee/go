@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package stringex
+package stringex // import "tideland.dev/go/text/stringex"
 
 //--------------------
 // IMPORTS

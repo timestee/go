@@ -7,7 +7,7 @@
 
 // +build windows plan9 nacl
 
-package logger
+package logger // import "tideland.dev/go/trace/logger"
 
 //--------------------
 // IMPORTS

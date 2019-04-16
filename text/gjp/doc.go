@@ -40,6 +40,6 @@
 //
 // privides a gjp.Diff instance which helps to compare individual
 // paths of the two document.
-package gjp
+package gjp // import "tideland.dev/go/text/gjp"
 
 // EOF

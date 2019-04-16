@@ -12,6 +12,6 @@
 // and passed to the MapReduce() function. The type is responsible
 // for the input, the mapping, the reducing and the consuming while
 // the package provides the runtime environment for it.
-package mapreduce
+package mapreduce // import "tideland.dev/go/dsa/mapreduce"
 
 // EOF

@@ -12,6 +12,6 @@
 // and '-'. Also several parts of the tag can be separated by colons.
 // The package contains a kind of DOM as well as a parser and a
 // processor. The latter is used e.g. for printing SML documents.
-package sml
+package sml // import "tideland.dev/go/text/sml"
 
 // EOF

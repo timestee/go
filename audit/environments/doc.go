@@ -13,6 +13,6 @@
 // against own http.Handler and http.HandlerFunc as well as (b) act as a
 // mock for own clients using HTTP. Included request and response types
 // simplify most usual access.
-package environments
+package environments // import "tideland.dev/go/audit/environments"
 
 // EOF

@@ -7,6 +7,6 @@
 
 // Package sort provides a parallel quicksort. It uses the same interface
 // as the standard sort package.
-package sort
+package sort // import "tideland.dev/go/dsa/sort"
 
 // EOF

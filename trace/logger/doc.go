@@ -31,6 +31,6 @@
 // and logger.SetFatalExiter(). Own logger backends and exiter can be
 // defined. Additionally a filter function allows to drill down the
 // logged entries.
-package logger
+package logger // import "tideland.dev/go/trace/logger"
 
 // EOF

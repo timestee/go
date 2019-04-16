@@ -13,6 +13,6 @@
 //     here := location.HereID(0)
 //
 // Internal caching fastens retrieval after first call.
-package location
+package location // import "tideland.dev/go/trace/location"
 
 // EOF

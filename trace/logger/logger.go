@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package logger
+package logger // import "tideland.dev/go/trace/logger"
 
 //--------------------
 // IMPORTS
