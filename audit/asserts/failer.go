@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package asserts
+package asserts // import "tideland.dev/go/audit/asserts"
 
 //--------------------
 // IMPORTS

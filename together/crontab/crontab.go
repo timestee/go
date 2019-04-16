@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package crontab
+package crontab // import "tideland.dev/go/together/crontab"
 
 //--------------------
 // IMPORTS

@@ -28,6 +28,6 @@
 // in the sense of the Redis Pub/Sub, can be subscribed or unsubscribed.
 // Published values can be retrieved with sub.Pop(). If the subscription
 // is not needed anymore it can be closed using sub.Close().
-package redis
+package redis // import "tideland.dev/go/db/redis"
 
 // EOF

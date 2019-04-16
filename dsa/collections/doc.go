@@ -9,6 +9,6 @@
 // like a ring buffer, stacks, sets and trees. They are implemented as generic
 // collections managing empty interfaces as well as typed ones, e.g. for strings.
 // They are not synchronized, so this has to be done by the user.
-package collections
+package collections // import "tideland.dev/go/dsa/collections"
 
 // EOF

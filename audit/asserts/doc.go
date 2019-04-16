@@ -19,6 +19,6 @@
 //
 // If shallFail is set to true a failing assert also lets fail the Go test.
 // Otherwise the failing is printed but the tests continue.
-package asserts
+package asserts // import "tideland.dev/go/audit/asserts"
 
 // EOF

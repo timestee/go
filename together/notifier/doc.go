@@ -60,6 +60,6 @@
 //     ...
 //     b.Notify(notifier.Stopped)
 //
-package notifier
+package notifier // import "tideland.dev/go/together/notifier"
 
 // EOF

@@ -12,6 +12,6 @@
 // filter the output by a filter function and write it into a Writer. If
 // a number of lines and a filter are passed the Scroller tries to find that
 // number of lines matching to the filter.
-package scroller
+package scroller // import "tideland.dev/go/text/scroller"
 
 // EOF

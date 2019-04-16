@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// package couchdb provides a very powerful as well as convenient client
+// Package couchdb provides a very powerful as well as convenient client
 // for the Redis database.
 //
 // A connection to the database or at least a server can be established
@@ -17,6 +17,6 @@
 // databases, the listing of all design documents and data documents,
 // the creation, reading, updating, and deleting of documents, searches,
 // and views.
-package couchdb
+package couchdb // import "tideland.dev/go/db/couchdb"
 
 // EOF

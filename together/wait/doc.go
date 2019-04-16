@@ -56,6 +56,6 @@
 //     )
 //
 // From external the polling can be stopped by cancelling the context.
-package wait
+package wait // import "tideland.dev/go/together/wait"
 
 // EOF

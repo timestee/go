@@ -7,6 +7,6 @@
 
 // Package token of Tideland Go Library provides the generation,
 // verification, and analyzing of JSON Web Tokens.
-package token
+package token // import "tideland.dev/go/net/jwt/token"
 
 // EOF

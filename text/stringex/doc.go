@@ -24,6 +24,6 @@
 // Those easily can be chained or used for stream splitting again
 // working with processor chains. Some processors are already
 // pre-defined.
-package stringex
+package stringex // import "tideland.dev/go/text/stringex"
 
 // EOF

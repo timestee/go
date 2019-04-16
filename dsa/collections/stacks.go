@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package collections
+package collections // import "tideland.dev/go/dsa/collections"
 
 //--------------------
 // IMPORTS

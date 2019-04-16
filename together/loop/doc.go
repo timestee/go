@@ -38,6 +38,6 @@
 // a possible internal error. Also recovering of internal errors or
 // panics by starting the loop with a recoverer function is possible.
 // See the code examples.
-package loop
+package loop // import "tideland.dev/go/together/loop"
 
 // EOF

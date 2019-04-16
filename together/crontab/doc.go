@@ -34,6 +34,6 @@
 //     })
 //
 // Jobs can be deleted with crontab.Revoke(anyID) again.
-package crontab
+package crontab // import "tideland.dev/go/together/crontab"
 
 // EOF

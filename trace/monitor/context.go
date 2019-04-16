@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package monitor
+package monitor // import "tideland.dev/go/trace/monitor"
 
 //--------------------
 // IMPORTS

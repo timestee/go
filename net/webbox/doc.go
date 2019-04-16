@@ -9,6 +9,6 @@
 // and handlers to extend the net/http package of the standard library.
 // It's based on the http.Handler interface and allows to encapsulate
 // own business logic again in simple handlers.
-package webbox
+package webbox // import "tideland.dev/go/net/webbox"
 
 // EOF

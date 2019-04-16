@@ -42,6 +42,6 @@
 // leads to "/var/lib/myserver/service-a" and if the base directory
 // isn't set to "./service-a". If nothing is set the default value
 // is the "." passed in the method call.
-package etc
+package etc // import "tideland.dev/go/text/etc"
 
 // EOF

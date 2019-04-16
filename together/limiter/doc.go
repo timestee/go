@@ -19,6 +19,6 @@
 //
 // Here even with a large number of goroutines the execution of function job
 // is restricted to 10 at the same time.
-package limiter
+package limiter // import "tideland.dev/go/together/limiter"
 
 // EOF
