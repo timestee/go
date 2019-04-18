@@ -30,6 +30,7 @@ import (
 // CONSTANTS
 //--------------------
 
+// Header and content-types.
 const (
 	HeaderAccept      = "Accept"
 	HeaderContentType = "Content-Type"

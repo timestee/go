@@ -11,8 +11,8 @@ package token // import "tideland.dev/go/net/jwt/token"
 // CONSTANTS
 //--------------------
 
+// Error codes and messages.
 const (
-	// Error codes.
 	ErrCannotEncode               = "EENCODE"
 	ErrCannotDecode               = "EDECODE"
 	ErrCannotVerify               = "EVERIFY"
@@ -35,7 +35,6 @@ const (
 	ErrNoAuthorizationHeader      = "ENOAUTH"
 	ErrInvalidAuthorizationHeader = "EINVAUTH"
 
-	// Error messages.
 	msgNoAuthorizationHeader      = "request contains no authorization header"
 	msgInvalidAuthorizationHeader = "invalid authorization header: %q"
 )

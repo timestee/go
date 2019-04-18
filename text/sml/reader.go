@@ -253,7 +253,7 @@ func (mr *mlReader) readTextNode() error {
 	}
 }
 
-// Reads one rune of the reader.
+// readRune reads one rune of the reader.
 func (mr *mlReader) readRune() (r rune, rc int, err error) {
 	var size int
 	mr.index++

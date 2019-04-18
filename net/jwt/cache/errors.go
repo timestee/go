@@ -11,12 +11,11 @@ package cache // import "tideland.dev/go/net/jwt/cache"
 // CONSTANTS
 //--------------------
 
+// Error codes and messages.
 const (
-	// Error codes.
 	ErrNoAuthorizationHeader      = "err-no-auth"
 	ErrInvalidAuthorizationHeader = "err-inv-auth"
 
-	// Error messages.
 	msgNoAuthorizationHeader      = "request contains no authorization header"
 	msgInvalidAuthorizationHeader = "invalid authorization header: %q"
 )
