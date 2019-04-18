@@ -21,15 +21,15 @@ import (
 
 // httpMethods contains all HTTP methods.
 var httpMethods = map[string]struct{}{
-	http.MethodGet:     struct{}{},
-	http.MethodHead:    struct{}{},
-	http.MethodPost:    struct{}{},
-	http.MethodPut:     struct{}{},
-	http.MethodPatch:   struct{}{},
-	http.MethodDelete:  struct{}{},
-	http.MethodConnect: struct{}{},
-	http.MethodOptions: struct{}{},
-	http.MethodTrace:   struct{}{},
+	http.MethodGet:     {},
+	http.MethodHead:    {},
+	http.MethodPost:    {},
+	http.MethodPut:     {},
+	http.MethodPatch:   {},
+	http.MethodDelete:  {},
+	http.MethodConnect: {},
+	http.MethodOptions: {},
+	http.MethodTrace:   {},
 }
 
 //--------------------

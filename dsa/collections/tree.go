@@ -425,7 +425,7 @@ func (t *Tree) FindAll(f func(v interface{}) (bool, error)) []*Changer {
 		return f(fn.content.value())
 	})
 	if err != nil {
-		return []*Changer{&Changer{nil, err}}
+		return []*Changer{{nil, err}}
 	}
 	var cs []*Changer
 	for _, n := range ns {
@@ -543,7 +543,7 @@ func (t *StringTree) FindAll(f func(v string) (bool, error)) []*StringChanger {
 		return f(fn.content.value().(string))
 	})
 	if err != nil {
-		return []*StringChanger{&StringChanger{nil, err}}
+		return []*StringChanger{{nil, err}}
 	}
 	var cs []*StringChanger
 	for _, n := range ns {
@@ -661,7 +661,7 @@ func (t *KeyValueTree) FindAll(f func(k string, v interface{}) (bool, error)) []
 		return f(fn.content.key().(string), fn.content.value())
 	})
 	if err != nil {
-		return []*KeyValueChanger{&KeyValueChanger{nil, err}}
+		return []*KeyValueChanger{{nil, err}}
 	}
 	var cs []*KeyValueChanger
 	for _, n := range ns {
@@ -797,7 +797,7 @@ func (t *KeyStringValueTree) FindAll(f func(k, v string) (bool, error)) []*KeySt
 		return f(fn.content.key().(string), fn.content.value().(string))
 	})
 	if err != nil {
-		return []*KeyStringValueChanger{&KeyStringValueChanger{nil, err}}
+		return []*KeyStringValueChanger{{nil, err}}
 	}
 	var cs []*KeyStringValueChanger
 	for _, n := range ns {
