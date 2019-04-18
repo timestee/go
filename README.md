@@ -3,8 +3,8 @@
 [![GitHub release](https://img.shields.io/github/release/tideland/go.svg)](https://github.com/tideland/go)
 [![GitHub license](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://raw.githubusercontent.com/tideland/go/master/LICENSE)
 [![GoDoc](https://godoc.org/tideland.dev/go?status.svg)](https://godoc.org/tideland.dev/go)
-[![Sourcegraph](https://sourcegraph.com/github.com/tideland/go/-/badge.svg)](https://sourcegraph.com/github.com/tideland/go?badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tideland/go)](https://goreportcard.com/report/tideland.one/go)
+[![Sourcegraph](https://sourcegraph.com/tideland.dev/go/-/badge.svg)](https://sourcegraph.com/tideland.dev/go?badge)
+[![Go Report Card](https://goreportcard.com/badge/tideland.dev/go)](https://goreportcard.com/report/tideland.dev/go)
 
 ## Description
 
