@@ -12,7 +12,7 @@
 //     current := logger.SetWriter(w)
 //     defer logger.SetWriter(current)
 //
-// No logged entries can be retrieved and reseted.
+// Now logged entries can be retrieved and reseted.
 //
 //     es := w.Entries()
 //     w.Reset()

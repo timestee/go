@@ -6,7 +6,7 @@
 // by the new BSD license.
 
 // Package couchdb provides a very powerful as well as convenient client
-// for the Redis database.
+// for the CouchDB database.
 //
 // A connection to the database or at least a server can be established
 // by calling

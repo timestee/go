@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package capture assists testing code writing output to stdout or stderr.
+// Package capture assists in testing code writing output to stdout or stderr.
 // Those will be temporarily exchanged so that the written output will be
 // caught and can be retrieved.
 //

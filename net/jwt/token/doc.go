@@ -5,8 +5,8 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package token of Tideland Go Library provides the generation,
-// verification, and analyzing of JSON Web Tokens.
+// Package token provides the generation, verification, and analyzing
+// of JSON Web Tokens.
 package token // import "tideland.dev/go/net/jwt/token"
 
 // EOF
