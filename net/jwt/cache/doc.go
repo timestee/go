@@ -5,8 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-// Package cache of Tideland Go Library provides a caching of verified JSON
-// Web Tokens.
+// Package cache provides a caching of verified JSON Web Tokens.
 package cache // import "tideland.dev/go/net/jwt/cache"
 
 // EOF
