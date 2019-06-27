@@ -5,7 +5,7 @@
 [![GoDoc](https://godoc.org/tideland.dev/go?status.svg)](https://godoc.org/tideland.dev/go)
 [![Sourcegraph](https://sourcegraph.com/github.com/tideland/go/-/badge.svg)](https://sourcegraph.com/github.com/tideland/go?badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tideland/go)](https://goreportcard.com/report/tideland.dev/go)
-[![Coverage Status](https://codecov.io/gh/tideland/go/branch/master/graphs/badge.svg?branch=master)]
+[![Coverage Status](https://codecov.io/gh/tideland/go/branch/master/graphs/badge.svg?branch=master)](https://github.com/tideland/go)
 
 ## Description
 
