@@ -109,7 +109,6 @@ func SetFatalExiter(fef FatalExiterFunc) FatalExiterFunc {
 	defer backend.mu.Unlock()
 	current := backend.fatalExiter
 	if fef != nil {
-		println("=====> set new fatal exiter")
 		backend.fatalExiter = fef
 	}
 	return current

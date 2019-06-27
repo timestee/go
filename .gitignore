@@ -9,3 +9,4 @@
 *.out
 *.test
 coverage.txt
+*.coverprofile
