@@ -37,6 +37,7 @@
 - `together` focusses on goroutines and how to manage them more convenient and reliable
     + `actor` runs a backend goroutine processing anonymous functions for the serialization of changes, e.g. in a structure
     + `crontab` allows running functions at configured times and in chronological order
+    + `events` provides an event processing based on the idea of networked cells with different behaviors
     + `limiter` limits the number of parallel executing goroutines in its scope
     + `loop` helps running a controlled endless `select` loop for goroutine backends
     + `notifier` helps at the coordination of multiple goroutines
