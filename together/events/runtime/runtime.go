@@ -13,6 +13,8 @@ package runtime // import "tideland.dev/go/together/events/runtime"
 
 import (
 	"sync"
+
+	"tideland.dev/go/trace/errors"
 )
 
 //--------------------
@@ -86,7 +88,6 @@ func New() *Runtime {
 func (r *Runtime) SpawnProcessors(processors ...Processor) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	// Check cells and identifiers.
 	for _, processor := range processors {
 		_, ok := r.processors[processor.ID()]
 		if ok {
@@ -97,6 +98,79 @@ func (r *Runtime) SpawnProcessors(processors ...Processor) error {
 			return err
 		}
 		r.processors[processor.ID()] = engine
+	}
+	return nil
+}
+
+// ProcessorIDs returns the identifiers of the spawned processors.
+func (r *Runtime) ProcessorIDs() []string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var ids []string
+	for id := range r.processors {
+		ids = append(ids, id)
+	}
+	return ids
+}
+
+// Subscribe subscribes the subscriber processors to the given processor.
+func (r *Runtime) Subscribe(processorID string, subscriberIDs ...string) error {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	// Retrieve all needed processor engines.
+	processor, ok := r.processors[processorID]
+	if !ok {
+		return errors.New(ErrProcessorNotFound, msgProcessorNotFound, processorID)
+	}
+	var subscribers []*processorEngine
+	for _, subscriberID := range subscriberIDs {
+		subscriber, ok := r.processors[subscriberID]
+		if !ok {
+			return errors.New(ErrProcessorNotFound, msgProcessorNotFound, subscriberID)
+		}
+		subscribers = append(subscribers, subscriber)
+	}
+	// Got them, now subscribe.
+	return processor.subscribe(subscribers)
+}
+
+// Emit sends an event to the given processor.
+func (r *Runtime) Emit(processorID string, event Event) error {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	// Retrieve the needed processor engine.
+	processor, ok := r.processors[processorID]
+	if !ok {
+		return errors.New(ErrProcessorNotFound, msgProcessorNotFound, processorID)
+	}
+	return processor.process(event)
+}
+
+// Stop terminates the processors, stops the engines, and cleans up.
+func (r *Runtime) Stop() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	perrs := make([]error, len(r.processors))
+	idx := 0
+	// Terminate.
+	for _, processor := range r.processors {
+		perrs[idx] = processor.terminate()
+		idx++
+	}
+	// Stop.
+	idx = 0
+	for _, processor := range r.processors {
+		perrs[idx] = processor.stop(perrs[idx])
+	}
+	// Drop nil errors.
+	var errs []error
+	for _, err := range perrs {
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) > 0 {
+		return errors.Collect(errs...)
 	}
 	return nil
 }

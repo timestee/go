@@ -11,13 +11,15 @@ package runtime // import "tideland.dev/go/together/events/runtime"
 // ERRORS
 //--------------------
 
-// Error codes of the cells package.
+// Error codes of the runtime package.
 const (
-	ErrEngineInit    = "EENGINEINIT"
-	ErrEngineBackend = "EENGINEBACKEND"
+	ErrEngineInit        = "EENGINEINIT"
+	ErrEngineBackend     = "EENGINEBACKEND"
+	ErrProcessorNotFound = "EPROCNOTFOUND"
 
-	msgEngineInit    = "process engine %q cannot initialize"
-	msgEngineBackend = "process engine %q has a backend failure"
+	msgEngineInit        = "process engine %q cannot initialize"
+	msgEngineBackend     = "process engine %q has a backend failure"
+	msgProcessorNotFound = "processor %q not found"
 )
 
 // EOF

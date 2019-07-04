@@ -62,7 +62,7 @@ func (pe *processorEngine) Emit(event Event) error {
 
 // subscribe adds processor engines to the subscribers of this engine.
 func (pe *processorEngine) subscribe(engines []*processorEngine) error {
-	if aerr := pe.act.DoSync(func() error {
+	if aerr := pe.act.DoAsync(func() error {
 		for _, engine := range engines {
 			pe.subscribers[engine.processor.ID()] = engine
 		}
@@ -84,16 +84,50 @@ func (pe *processorEngine) process(event Event) error {
 	return nil
 }
 
-// stop terminates the processor and the engine.
-func (pe *processorEngine) stop() error {
+// terminate tells the processor to end and replaces it with a dummy.
+func (pe *processorEngine) terminate() error {
 	var err error
 	if aerr := pe.act.DoSync(func() error {
 		err = pe.processor.Terminate()
+		pe.processor = &dummyProcessor{pe.processor.ID()}
 		return nil
 	}); aerr != nil {
 		return errors.Annotate(aerr, ErrEngineBackend, msgEngineBackend, pe.processor.ID())
 	}
 	return err
+}
+
+// stop ends the actor.
+func (pe *processorEngine) stop(err error) error {
+	return pe.act.Stop(err)
+}
+
+//--------------------
+// DUMB PROCESSOR
+//--------------------
+
+// dummyProcessor will be used by  a processor engine while it's shutting down.
+type dummyProcessor struct {
+	id string
+}
+
+func (dp *dummyProcessor) ID() string {
+	return dp.id
+}
+
+func (dp *dummyProcessor) Init(emitter Emitter) error {
+	return nil
+}
+
+func (dp *dummyProcessor) Terminate() error {
+	return nil
+}
+
+func (dp *dummyProcessor) Process(event Event) {
+}
+
+func (dp *dummyProcessor) Recover(r interface{}) error {
+	return nil
 }
 
 // EOF
