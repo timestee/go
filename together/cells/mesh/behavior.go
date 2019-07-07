@@ -1,11 +1,11 @@
-// Tideland Go Library - Together - Mesh - Nodes
+// Tideland Go Library - Together - Cells - Mesh
 //
 // Copyright (C) 2010-2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license
 
-package nodes // import "tideland.dev/go/together/mesh/nodes"
+package mesh // import "tideland.dev/go/together/cells/mesh"
 
 //--------------------
 // EVENT
@@ -21,8 +21,8 @@ type Event struct {
 // EMITTER
 //--------------------
 
-// Emitter describes a type to emit events to subscribers. An instance
-// is passed to a Behavior at initialization.
+// Emitter describes a behavior to emit events to subscribers. An instance
+// is passed during initialization.
 type Emitter interface {
 	Emit(event Event) error
 }
@@ -32,18 +32,18 @@ type Emitter interface {
 //--------------------
 
 // Behavior is the interface that has to be implemented for event
-// processing inside the nodes.
+// processing inside the cells.
 type Behavior interface {
 	// ID returns the individual identifier of a behavior instance.
 	// Behaviors can be deployed multiple times as long as these return
 	// different identifiers.
 	ID() string
 
-	// Init is called by the nodes runtime to initialize the behavior.
+	// Init is called by the cells to initialize the behavior.
 	// Events can be sent to subscribers by emitter.Emit().
 	Init(emitter Emitter) error
 
-	// Terminate is called when a processor is stopped.
+	// Terminate is called when a cell is stopped.
 	Terminate() error
 
 	// Process is called to process the given event.
