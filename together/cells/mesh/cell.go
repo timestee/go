@@ -13,6 +13,7 @@ package mesh // import "tideland.dev/go/together/cells/mesh"
 
 import (
 	"tideland.dev/go/together/actor"
+	"tideland.dev/go/together/cells/event"
 	"tideland.dev/go/trace/errors"
 )
 
@@ -47,10 +48,10 @@ func newCell(behavior Behavior) (*cell, error) {
 }
 
 // Emit allows a behavior to emit events to its subsribers.
-func (c *cell) Emit(event Event) error {
+func (c *cell) Emit(evt *event.Event) error {
 	if aerr := c.act.DoAsync(func() error {
 		for _, subscriber := range c.subscribers {
-			subscriber.process(event)
+			subscriber.process(evt)
 		}
 		return nil
 	}); aerr != nil {
@@ -73,9 +74,9 @@ func (c *cell) subscribe(subscribers []*cell) error {
 }
 
 // process lets the cell behavior process the event asynchronously.
-func (c *cell) process(event Event) error {
+func (c *cell) process(evt *event.Event) error {
 	if aerr := c.act.DoAsync(func() error {
-		c.behavior.Process(event)
+		c.behavior.Process(evt)
 		return nil
 	}); aerr != nil {
 		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
@@ -122,7 +123,7 @@ func (db *dummyBehavior) Terminate() error {
 	return nil
 }
 
-func (db *dummyBehavior) Process(event Event) {
+func (db *dummyBehavior) Process(evt *event.Event) {
 }
 
 func (db *dummyBehavior) Recover(r interface{}) error {

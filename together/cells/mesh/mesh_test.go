@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license
 
-package mesh_test
+package mesh_test // import "tideland.dev/go/together/cells/mesh"
 
 //--------------------
 // IMPORTS
@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	"tideland.dev/go/audit/asserts"
+	"tideland.dev/go/together/cells/event"
 	"tideland.dev/go/together/cells/mesh"
 )
 
@@ -55,10 +56,10 @@ func TestEmitEvents(t *testing.T) {
 	err := msh.SpawnCells(NewTestBehavior("foo", datasC))
 	assert.NoError(err)
 
-	msh.Emit("foo", mesh.Event{"add", "a"})
-	msh.Emit("foo", mesh.Event{"add", "b"})
-	msh.Emit("foo", mesh.Event{"add", "c"})
-	msh.Emit("foo", mesh.Event{"send", ""})
+	msh.Emit("foo", event.New("add", "x", "a"))
+	msh.Emit("foo", event.New("add", "x", "b"))
+	msh.Emit("foo", event.New("add", "x", "c"))
+	msh.Emit("foo", event.New("send"))
 
 	datas := <-datasC
 
@@ -86,24 +87,24 @@ func TestSubscription(t *testing.T) {
 	msh.Subscribe("foo", "bar")
 	msh.Subscribe("bar", "baz")
 
-	msh.Emit("foo", mesh.Event{"add", "a"})
-	msh.Emit("foo", mesh.Event{"add", "b"})
-	msh.Emit("foo", mesh.Event{"add", "c"})
-	msh.Emit("foo", mesh.Event{"length?", ""})
+	msh.Emit("foo", event.New("add", "x"))
+	msh.Emit("foo", event.New("add", "x"))
+	msh.Emit("foo", event.New("add", "x"))
+	msh.Emit("foo", event.New("length"))
 
 	<-fooDatasC
 
-	msh.Emit("bar", mesh.Event{"send", ""})
+	msh.Emit("bar", event.New("send"))
 
 	datas := <-barDatasC
 
 	assert.Length(datas, 1)
 
-	msh.Emit("bar", mesh.Event{"length?", ""})
+	msh.Emit("bar", event.New("length"))
 
 	<-barDatasC
 
-	msh.Emit("baz", mesh.Event{"send", ""})
+	msh.Emit("baz", event.New("send"))
 
 	datas = <-bazDatasC
 
@@ -145,17 +146,17 @@ func (tb *TestBehavior) Terminate() error {
 	return nil
 }
 
-func (tb *TestBehavior) Process(event mesh.Event) {
-	switch event.Topic {
+func (tb *TestBehavior) Process(evt *event.Event) {
+	switch evt.Topic() {
 	case "add":
-		tb.datas = append(tb.datas, event.Data)
+		tb.datas = append(tb.datas, evt.Payload("x"))
 	case "clear":
 		tb.datas = nil
-	case "length?":
-		tb.emitter.Emit(mesh.Event{
-			Topic: "add",
-			Data:  fmt.Sprintf("length %q = %d", tb.id, len(tb.datas)),
-		})
+	case "length":
+		tb.emitter.Emit(event.New(
+			"add",
+			"x", fmt.Sprintf("length %q = %d", tb.id, len(tb.datas)),
+		))
 		close(tb.datasC)
 	case "send":
 		tb.datasC <- tb.datas

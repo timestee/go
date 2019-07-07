@@ -8,14 +8,12 @@
 package mesh // import "tideland.dev/go/together/cells/mesh"
 
 //--------------------
-// EVENT
+// IMPORTS
 //--------------------
 
-// Event is some data with a topic describing it.
-type Event struct {
-	Topic string
-	Data  string
-}
+import (
+	"tideland.dev/go/together/cells/event"
+)
 
 //--------------------
 // EMITTER
@@ -24,7 +22,7 @@ type Event struct {
 // Emitter describes a behavior to emit events to subscribers. An instance
 // is passed during initialization.
 type Emitter interface {
-	Emit(event Event) error
+	Emit(evt *event.Event) error
 }
 
 //--------------------
@@ -47,7 +45,7 @@ type Behavior interface {
 	Terminate() error
 
 	// Process is called to process the given event.
-	Process(event Event)
+	Process(evt *event.Event)
 
 	// Recover is called in case of an error or panic during the processing
 	// of an event. Here the behavior can check if it can recover and establish

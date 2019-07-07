@@ -14,6 +14,7 @@ package mesh // import "tideland.dev/go/together/cells/mesh"
 import (
 	"sync"
 
+	"tideland.dev/go/together/cells/event"
 	"tideland.dev/go/trace/errors"
 )
 
@@ -86,7 +87,7 @@ func (m *Mesh) Subscribe(cellID string, subscriberIDs ...string) error {
 }
 
 // Emit sends an event to the given cell.
-func (m *Mesh) Emit(cellID string, event Event) error {
+func (m *Mesh) Emit(cellID string, evt *event.Event) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	// Retrieve the needed cell.
@@ -94,7 +95,7 @@ func (m *Mesh) Emit(cellID string, event Event) error {
 	if !ok {
 		return errors.New(ErrCellNotFound, msgCellNotFound, cellID)
 	}
-	return c.process(event)
+	return c.process(evt)
 }
 
 // Stop terminates the behaviors, stops the cells, and cleans up.
