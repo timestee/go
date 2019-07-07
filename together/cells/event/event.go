@@ -8,6 +8,14 @@
 package event // import "tideland.dev/go/together/cells/event"
 
 //--------------------
+// IMPORTS
+//--------------------
+
+import (
+	"strconv"
+)
+
+//--------------------
 // DEFAULTS
 //--------------------
 
@@ -64,6 +72,26 @@ func (e *Event) Payload(key string) string {
 		return NonExistingValue
 	}
 	return p
+}
+
+// PayloadBool tries to interpred the keyed payload as bool.
+func (e *Event) PayloadBool(key string) (bool, error) {
+	return strconv.ParseBool(e.Payload(key))
+}
+
+// PayloadFloat tries to interpred the keyed payload as float64.
+func (e *Event) PayloadFloat(key string) (float64, error) {
+	return strconv.ParseFloat(e.Payload(key), 64)
+}
+
+// PayloadInt tries to interpred the keyed payload as int64.
+func (e *Event) PayloadInt(key string) (int64, error) {
+	return strconv.ParseInt(e.Payload(key), 10, 64)
+}
+
+// PayloadUint tries to interpred the keyed payload as uint64.
+func (e *Event) PayloadUint(key string) (uint64, error) {
+	return strconv.ParseUint(e.Payload(key), 10, 64)
 }
 
 // EOF
