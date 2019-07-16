@@ -60,11 +60,24 @@ func (c *cell) Emit(evt *event.Event) error {
 	return nil
 }
 
-// subscribe adds processor engines to the subscribers of this engine.
+// subscribe adds cells to the subscribers of this cell.
 func (c *cell) subscribe(subscribers []*cell) error {
 	if aerr := c.act.DoAsync(func() error {
 		for _, subscriber := range subscribers {
 			c.subscribers[subscriber.behavior.ID()] = subscriber
+		}
+		return nil
+	}); aerr != nil {
+		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+	}
+	return nil
+}
+
+// unsubscribe removes cells from the subscribers of this cell.
+func (c *cell) unsubscribe(subscribers []*cell) error {
+	if aerr := c.act.DoAsync(func() error {
+		for _, subscriber := range subscribers {
+			delete(c.subscribers, subscriber.behavior.ID())
 		}
 		return nil
 	}); aerr != nil {
@@ -84,7 +97,7 @@ func (c *cell) process(evt *event.Event) error {
 	return nil
 }
 
-// terminate tells the processor to end and replaces it with a dummy.
+// terminate tells the cell to end the behavior and replace it with a dummy.
 func (c *cell) terminate() error {
 	var err error
 	if aerr := c.act.DoSync(func() error {

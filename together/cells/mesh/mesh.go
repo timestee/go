@@ -65,7 +65,7 @@ func (m *Mesh) CellIDs() []string {
 	return ids
 }
 
-// Subscribe subscribes the subscriber processors to the given processor.
+// Subscribe connects cells to the given cell.
 func (m *Mesh) Subscribe(cellID string, subscriberIDs ...string) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -84,6 +84,27 @@ func (m *Mesh) Subscribe(cellID string, subscriberIDs ...string) error {
 	}
 	// Got them, now subscribe.
 	return c.subscribe(subscribers)
+}
+
+// Unsubsribe disconnect cells from the given cell.
+func (m *Mesh) Unsubscribe(cellID string, subscriberIDs ...string) error {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	// Retrieve all needed cells.
+	c, ok := m.cells[cellID]
+	if !ok {
+		return errors.New(ErrCellNotFound, msgCellNotFound, cellID)
+	}
+	var subscribers []*cell
+	for _, subscriberID := range subscriberIDs {
+		subscriber, ok := m.cells[subscriberID]
+		if !ok {
+			return errors.New(ErrCellNotFound, msgCellNotFound, subscriberID)
+		}
+		subscribers = append(subscribers, subscriber)
+	}
+	// Got them, now unsubscribe.
+	return c.unsubscribe(subscribers)
 }
 
 // Emit sends an event to the given cell.

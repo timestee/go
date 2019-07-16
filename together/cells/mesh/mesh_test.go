@@ -12,8 +12,10 @@ package mesh_test // import "tideland.dev/go/together/cells/mesh"
 //--------------------
 
 import (
+	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"tideland.dev/go/audit/asserts"
 	"tideland.dev/go/together/cells/event"
@@ -52,8 +54,9 @@ func TestEmitEvents(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	msh := mesh.New()
 
-	datasC := make(chan []string, 1)
-	err := msh.SpawnCells(NewTestBehavior("foo", datasC))
+	lenC := asserts.MakeWaitChan()
+
+	err := msh.SpawnCells(NewTestBehavior("foo", lenC))
 	assert.NoError(err)
 
 	msh.Emit("foo", event.New("add", "x", "a"))
@@ -61,26 +64,33 @@ func TestEmitEvents(t *testing.T) {
 	msh.Emit("foo", event.New("add", "x", "c"))
 	msh.Emit("foo", event.New("send"))
 
-	datas := <-datasC
+	dataLen := <-lenC
 
-	assert.Length(datas, 3)
+	assert.Equal(dataLen, 3)
 
 	err = msh.Stop()
 	assert.NoError(err)
 }
 
-// TestSubscription verifies the subscription mechanics.
-func TestSubscription(t *testing.T) {
+// TestSubscribe verifies the subscription of cells.
+func TestSubscribe(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
+	oneTest := func(data interface{}) error {
+		if !assert.Equal(data, 1) {
+			return errors.New("not 1")
+		}
+		return nil
+	}
 	msh := mesh.New()
 
-	fooDatasC := make(chan []string, 1)
-	barDatasC := make(chan []string, 1)
-	bazDatasC := make(chan []string, 1)
+	fooC := asserts.MakeWaitChan()
+	barC := asserts.MakeWaitChan()
+	bazC := asserts.MakeWaitChan()
+
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", fooDatasC),
-		NewTestBehavior("bar", barDatasC),
-		NewTestBehavior("baz", bazDatasC),
+		NewTestBehavior("foo", fooC),
+		NewTestBehavior("bar", barC),
+		NewTestBehavior("baz", bazC),
 	)
 	assert.NoError(err)
 
@@ -88,28 +98,79 @@ func TestSubscription(t *testing.T) {
 	msh.Subscribe("bar", "baz")
 
 	msh.Emit("foo", event.New("add", "x"))
-	msh.Emit("foo", event.New("add", "x"))
-	msh.Emit("foo", event.New("add", "x"))
 	msh.Emit("foo", event.New("length"))
+	msh.Emit("foo", event.New("send"))
 
-	<-fooDatasC
-
-	msh.Emit("bar", event.New("send"))
-
-	datas := <-barDatasC
-
-	assert.Length(datas, 1)
+	<-fooC
 
 	msh.Emit("bar", event.New("length"))
-
-	<-barDatasC
+	msh.Emit("bar", event.New("send"))
+	assert.WaitTested(barC, oneTest, 1*time.Second)
 
 	msh.Emit("baz", event.New("send"))
+	assert.WaitTested(bazC, oneTest, 1*time.Second)
 
-	datas = <-bazDatasC
+	err = msh.Stop()
+	assert.NoError(err)
+}
 
-	assert.Length(datas, 1)
-	assert.Equal(datas[0], `length "bar" = 1`)
+// TestUnsubscribe verifies the unsubscription of cells.
+func TestUnsubscribe(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	zeroTest := func(data interface{}) error {
+		if !assert.Equal(data, 0) {
+			return errors.New("not 0")
+		}
+		return nil
+	}
+	oneTest := func(data interface{}) error {
+		if !assert.Equal(data, 1) {
+			return errors.New("not 1")
+		}
+		return nil
+	}
+	msh := mesh.New()
+
+	fooC := asserts.MakeWaitChan()
+	barC := asserts.MakeWaitChan()
+	bazC := asserts.MakeWaitChan()
+
+	err := msh.SpawnCells(
+		NewTestBehavior("foo", fooC),
+		NewTestBehavior("bar", barC),
+		NewTestBehavior("baz", bazC),
+	)
+	assert.NoError(err)
+
+	// Subscribe bar and baz, test both.
+	msh.Subscribe("foo", "bar", "baz")
+
+	msh.Emit("foo", event.New("add", "x"))
+	msh.Emit("foo", event.New("length"))
+	msh.Emit("foo", event.New("send"))
+
+	<-fooC
+
+	msh.Emit("bar", event.New("send"))
+	assert.WaitTested(barC, oneTest, 1*time.Second)
+
+	msh.Emit("baz", event.New("send"))
+	assert.WaitTested(bazC, oneTest, 1*time.Second)
+
+	// Unsubscribe baz, test both, expect zero in baz.
+	msh.Unsubscribe("foo", "baz")
+
+	msh.Emit("foo", event.New("add", "x"))
+	msh.Emit("foo", event.New("length"))
+	msh.Emit("foo", event.New("send"))
+
+	<-fooC
+
+	msh.Emit("bar", event.New("send"))
+	assert.WaitTested(barC, oneTest, 1*time.Second)
+
+	msh.Emit("baz", event.New("send"))
+	assert.WaitTested(bazC, zeroTest, 1*time.Second)
 
 	err = msh.Stop()
 	assert.NoError(err)
@@ -121,15 +182,15 @@ func TestSubscription(t *testing.T) {
 
 type TestBehavior struct {
 	id      string
-	datas   []string
-	datasC  chan []string
+	datas   []interface{}
+	dataC   chan interface{}
 	emitter mesh.Emitter
 }
 
-func NewTestBehavior(id string, datasC chan []string) *TestBehavior {
+func NewTestBehavior(id string, dataC chan interface{}) *TestBehavior {
 	return &TestBehavior{
-		id:     id,
-		datasC: datasC,
+		id:    id,
+		dataC: dataC,
 	}
 }
 
@@ -150,16 +211,14 @@ func (tb *TestBehavior) Process(evt *event.Event) {
 	switch evt.Topic() {
 	case "add":
 		tb.datas = append(tb.datas, evt.Payload("x"))
-	case "clear":
-		tb.datas = nil
 	case "length":
 		tb.emitter.Emit(event.New(
 			"add",
 			"x", fmt.Sprintf("length %q = %d", tb.id, len(tb.datas)),
 		))
-		close(tb.datasC)
 	case "send":
-		tb.datasC <- tb.datas
+		tb.dataC <- len(tb.datas)
+		tb.datas = nil
 	}
 }
 
