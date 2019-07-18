@@ -31,7 +31,7 @@ func TestIsError(t *testing.T) {
 	emsg := "test error %d"
 	err := errors.New(ec, emsg, 1)
 
-	assert.Equal(err.Error(), "(tideland.dev/go/trace/errors_test:errors_test.go:TestIsError:32) [ETEST_____] test error 1")
+	assert.Equal(err.Error(), "(tideland.dev/go/trace/errors_test:errors_test.go:TestIsError:32) [ETEST_______] test error 1")
 	assert.True(errors.IsError(err, ec))
 	assert.False(errors.IsError(err, "0"))
 
@@ -79,7 +79,7 @@ func TestAnnotation(t *testing.T) {
 	err2 := errors.Annotate(err1, "EFIRST", "1st annotated")
 	err3 := errors.Annotate(err2, "ESECOND", "2nd annotated")
 
-	assert.ErrorMatch(err3, `.* \[ESECOND___\] 2nd annotated: .* \[EFIRST____\] 1st annotated: wrapped`)
+	assert.ErrorMatch(err3, `.* \[ESECOND_____\] 2nd annotated: .* \[EFIRST______\] 1st annotated: wrapped`)
 	assert.Equal(errors.Annotated(err3), err2)
 	assert.Equal(errors.Annotated(err2), err1)
 	assert.Length(errors.Stack(err3), 3)
@@ -98,6 +98,14 @@ func TestCollection(t *testing.T) {
 	cerr := errors.Collect(errA, errB, errC, errD)
 
 	assert.ErrorMatch(cerr, "EONE\nETWO\nETHREE\nEFOUR")
+
+	cerr = errors.Collect(errA, errB, nil, errD)
+
+	assert.ErrorMatch(cerr, "EONE\nETWO\nEFOUR")
+
+	cerr = errors.Collect()
+
+	assert.NoError(cerr)
 }
 
 // TestDoAll tests the iteration over errors.

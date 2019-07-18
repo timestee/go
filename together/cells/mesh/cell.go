@@ -73,6 +73,20 @@ func (c *cell) subscribe(subscribers []*cell) error {
 	return nil
 }
 
+// subscriberIDs returns the subscriber IDs of the cell.
+func (c *cell) subscriberIDs() ([]string, error) {
+	var subscriberIDs []string
+	if aerr := c.act.DoSync(func() error {
+		for subscriberID := range c.subscribers {
+			subscriberIDs = append(subscriberIDs, subscriberID)
+		}
+		return nil
+	}); aerr != nil {
+		return nil, errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+	}
+	return subscriberIDs, nil
+}
+
 // unsubscribe removes cells from the subscribers of this cell.
 func (c *cell) unsubscribe(subscribers []*cell) error {
 	if aerr := c.act.DoAsync(func() error {
@@ -97,22 +111,18 @@ func (c *cell) process(evt *event.Event) error {
 	return nil
 }
 
-// terminate tells the cell to end the behavior and replace it with a dummy.
-func (c *cell) terminate() error {
-	var err error
+// stop terminates the cell and stops the actor.
+func (c *cell) stop() error {
+	var cerr error
 	if aerr := c.act.DoSync(func() error {
-		err = c.behavior.Terminate()
+		cerr = c.behavior.Terminate()
 		c.behavior = &dummyBehavior{c.behavior.ID()}
 		return nil
 	}); aerr != nil {
 		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
 	}
-	return err
-}
-
-// stop ends the actor.
-func (c *cell) stop(err error) error {
-	return c.act.Stop(err)
+	// Stop actor with cell or given error.
+	return c.act.Stop(cerr)
 }
 
 //--------------------

@@ -13,9 +13,9 @@ package mesh // import "tideland.dev/go/together/cells/mesh"
 
 // Error codes of the runtime package.
 const (
-	ErrCellInit     = "ECELLINIT"
-	ErrCellBackend  = "ECELLBACKEND"
-	ErrCellNotFound = "ECELLNOTFOUND"
+	ErrCellInit     = "ECINIT"
+	ErrCellBackend  = "ECBACKEND"
+	ErrCellNotFound = "ENOTFOUND"
 
 	msgCellInit     = "cell %q cannot initialize"
 	msgCellBackend  = "cell %q has a backend failure"

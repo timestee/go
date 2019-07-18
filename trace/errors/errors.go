@@ -90,8 +90,19 @@ func New(code string, msg string, args ...interface{}) error {
 
 // Collect collects multiple errors into one.
 func Collect(errs ...error) error {
+	// Drop nil errors.
+	var nnerrs []error
+	for _, err := range errs {
+		if err != nil {
+			nnerrs = append(nnerrs, err)
+		}
+	}
+	// Check if still errors exist.
+	if len(nnerrs) == 0 {
+		return nil
+	}
 	return &errorCollection{
-		errs: errs,
+		errs: nnerrs,
 	}
 }
 
@@ -202,12 +213,12 @@ func IsDeprecatedError(err error) bool {
 // harmonzie ensures upper-case and a length of 8 by padding.
 func harmonize(code string) string {
 	var b strings.Builder
-	code = strings.ToUpper(code) + "__________"
+	code = strings.ToUpper(code) + "____________"
 	for _, r := range code {
 		if r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '_' {
 			b.WriteRune(r)
 		}
-		if b.Len() == 10 {
+		if b.Len() == 12 {
 			break
 		}
 	}
