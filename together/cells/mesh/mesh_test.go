@@ -55,6 +55,50 @@ func TestSpawnCells(t *testing.T) {
 	assert.NoError(err)
 }
 
+// TestStopCells verifies stopping some cells.
+func TestStopCells(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	msh := mesh.New()
+
+	// Initial environment with subscriptions.
+	err := msh.SpawnCells(
+		NewTestBehavior("foo", nil),
+		NewTestBehavior("bar", nil),
+		NewTestBehavior("baz", nil),
+	)
+	assert.NoError(err)
+
+	ids := msh.Cells()
+	assert.Length(ids, 3)
+	assert.Contains(ids, "foo")
+	assert.Contains(ids, "bar")
+	assert.Contains(ids, "baz")
+
+	msh.Subscribe("foo", "bar", "baz")
+
+	fooS, err := msh.Subscribers("foo")
+	assert.NoError(err)
+	assert.Length(fooS, 2)
+	assert.Contains(fooS, "bar")
+	assert.Contains(fooS, "baz")
+
+	// Stopping shall unsubscribe too.
+	err = msh.StopCells("baz")
+
+	ids = msh.Cells()
+	assert.Length(ids, 2)
+	assert.Contains(ids, "foo")
+	assert.Contains(ids, "bar")
+
+	fooS, err = msh.Subscribers("foo")
+	assert.NoError(err)
+	assert.Length(fooS, 1)
+	assert.Contains(fooS, "bar")
+
+	err = msh.Stop()
+	assert.NoError(err)
+}
+
 // TestEmitEvents verifies emitting some events to a node.
 func TestEmitEvents(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)

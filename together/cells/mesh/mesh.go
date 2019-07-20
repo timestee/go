@@ -60,7 +60,12 @@ func (m *Mesh) SpawnCells(behaviors ...Behavior) error {
 func (m *Mesh) StopCells(ids ...string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
+	for _, id := range ids {
+		if err := m.cells.unsubscribeFromAll(id); err != nil {
+			return err
+		}
+		return m.cells.remove(id)
+	}
 	return nil
 }
 

@@ -22,6 +22,16 @@ import (
 // subscribedRegistry manages the cell IDs a cell subscribed to.
 type subscribedRegistry map[string]struct{}
 
+// ids returns the pure identifiers to avoid conflicts when
+// removing ones.
+func (sr subscribedRegistry) ids() []string {
+	var ids []string
+	for id := range sr {
+		ids = append(ids, id)
+	}
+	return ids
+}
+
 // add a cell ID to the registry.
 func (sr subscribedRegistry) add(id string) {
 	sr[id] = struct{}{}
@@ -57,8 +67,12 @@ func (cr cellRegistry) add(id string, c *cell) {
 }
 
 // removes deregisters a cell.
-func (cr cellRegistry) remove(id string) {
+func (cr cellRegistry) remove(id string) error {
+	if err := cr[id].cell.stop(); err != nil {
+		return err
+	}
 	delete(cr, id)
+	return nil
 }
 
 // cells retirieves the identified cells.
@@ -124,6 +138,23 @@ func (cr cellRegistry) unsubscribe(id string, unsubscriberIDs []string) error {
 	// Tell unsubscribers that they aren't subscribed anymore.
 	for _, unsubscriberID := range unsubscriberIDs {
 		cr[unsubscriberID].subscribedTo.remove(id)
+	}
+	return nil
+}
+
+// unsubscribeFromAll unsubscribes the given cell from where it subscribed to.
+func (cr cellRegistry) unsubscribeFromAll(id string) error {
+	// Retrieve cell.
+	entry, ok := cr[id]
+	if !ok {
+		return nil
+	}
+	// Iterate over subscriptions.
+	ids := []string{id}
+	for _, subsciptionID := range entry.subscribedTo.ids() {
+		if err := cr.unsubscribe(subsciptionID, ids); err != nil {
+			return err
+		}
 	}
 	return nil
 }
