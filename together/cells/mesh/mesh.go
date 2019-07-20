@@ -25,13 +25,13 @@ import (
 // Mesh operates a set of interacting cells.
 type Mesh struct {
 	mu    sync.RWMutex
-	cells map[string]*cell
+	cells cellRegistry
 }
 
 // New creates a new event processing mesh.
 func New() *Mesh {
 	m := &Mesh{
-		cells: map[string]*cell{},
+		cells: cellRegistry{},
 	}
 	return m
 }
@@ -42,30 +42,30 @@ func (m *Mesh) SpawnCells(behaviors ...Behavior) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for _, behavior := range behaviors {
-		_, ok := m.cells[behavior.ID()]
-		if ok {
+		id := behavior.ID()
+		if m.cells.contains(id) {
+			// No double deployment.
 			continue
 		}
-		c, err := newCell(behavior)
+		cell, err := newCell(behavior)
 		if err != nil {
 			return err
 		}
-		m.cells[behavior.ID()] = c
+		m.cells.add(id, cell)
 	}
 	return nil
 }
 
 // StopCells terminates the given cells.
-func (m *Mesh) StopCells(cellIDs ...string) error {
+func (m *Mesh) StopCells(ids ...string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	// cerrs := make([]error, len(cellIDs))
 
 	return nil
 }
 
-// CellIDs returns the identifiers of the spawned cells.
-func (m *Mesh) CellIDs() []string {
+// Cells returns the identifiers of the spawned cells.
+func (m *Mesh) Cells() []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	var ids []string
@@ -75,70 +75,42 @@ func (m *Mesh) CellIDs() []string {
 	return ids
 }
 
-// Subscribe connects cells to the given cell.
-func (m *Mesh) Subscribe(cellID string, subscriberIDs ...string) error {
+// Subscribers retrieves the subscriber IDs of a cell.
+func (m *Mesh) Subscribers(id string) ([]string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	// Retrieve all needed cells.
-	c, ok := m.cells[cellID]
+	entry, ok := m.cells[id]
 	if !ok {
-		return errors.New(ErrCellNotFound, msgCellNotFound, cellID)
+		return nil, errors.New(ErrCellNotFound, msgCellNotFound, id)
 	}
-	var subscribers []*cell
-	for _, subscriberID := range subscriberIDs {
-		subscriber, ok := m.cells[subscriberID]
-		if !ok {
-			return errors.New(ErrCellNotFound, msgCellNotFound, subscriberID)
-		}
-		subscribers = append(subscribers, subscriber)
-	}
-	// Got them, now subscribe.
-	return c.subscribe(subscribers)
+	return entry.cell.subscribers()
 }
 
-// SubscriberIDs retrieves the subscriber IDs of a cell.
-func (m *Mesh) SubscriberIDs(cellID string) ([]string, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	// Retrieve all needed cells.
-	c, ok := m.cells[cellID]
-	if !ok {
-		return nil, errors.New(ErrCellNotFound, msgCellNotFound, cellID)
-	}
-	return c.subscriberIDs()
+// Subscribe connects cells to the given cell.
+func (m *Mesh) Subscribe(id string, subscriberIDs ...string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.cells.subscribe(id, subscriberIDs)
 }
 
 // Unsubsribe disconnect cells from the given cell.
-func (m *Mesh) Unsubscribe(cellID string, subscriberIDs ...string) error {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	// Retrieve all needed cells.
-	c, ok := m.cells[cellID]
-	if !ok {
-		return errors.New(ErrCellNotFound, msgCellNotFound, cellID)
-	}
-	var subscribers []*cell
-	for _, subscriberID := range subscriberIDs {
-		subscriber, ok := m.cells[subscriberID]
-		if !ok {
-			return errors.New(ErrCellNotFound, msgCellNotFound, subscriberID)
-		}
-		subscribers = append(subscribers, subscriber)
-	}
-	// Got them, now unsubscribe.
-	return c.unsubscribe(subscribers)
+func (m *Mesh) Unsubscribe(id string, unsubscriberIDs ...string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.cells.unsubscribe(id, unsubscriberIDs)
 }
 
 // Emit sends an event to the given cell.
-func (m *Mesh) Emit(cellID string, evt *event.Event) error {
+func (m *Mesh) Emit(id string, evt *event.Event) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	// Retrieve the needed cell.
-	c, ok := m.cells[cellID]
+	entry, ok := m.cells[id]
 	if !ok {
-		return errors.New(ErrCellNotFound, msgCellNotFound, cellID)
+		return errors.New(ErrCellNotFound, msgCellNotFound, id)
 	}
-	return c.process(evt)
+	return entry.cell.process(evt)
 }
 
 // Broadcast sends an event to all cells.
@@ -148,8 +120,8 @@ func (m *Mesh) Broadcast(evt *event.Event) error {
 	cerrs := make([]error, len(m.cells))
 	idx := 0
 	// Broadcast.
-	for _, c := range m.cells {
-		cerrs[idx] = c.process(evt)
+	for _, entry := range m.cells {
+		cerrs[idx] = entry.cell.process(evt)
 		idx++
 	}
 	// Return collected errors.
@@ -163,10 +135,11 @@ func (m *Mesh) Stop() error {
 	cerrs := make([]error, len(m.cells))
 	idx := 0
 	// Terminate.
-	for _, c := range m.cells {
-		cerrs[idx] = c.stop()
+	for _, entry := range m.cells {
+		cerrs[idx] = entry.cell.stop()
 		idx++
 	}
+	m.cells = cellRegistry{}
 	// Return collected errors.
 	return errors.Collect(cerrs...)
 }

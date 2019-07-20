@@ -45,7 +45,7 @@ func TestSpawnCells(t *testing.T) {
 	)
 	assert.NoError(err)
 
-	ids := msh.CellIDs()
+	ids := msh.Cells()
 	assert.Length(ids, 3)
 	assert.Contains(ids, "foo")
 	assert.Contains(ids, "bar")
@@ -127,11 +127,15 @@ func TestSubscribe(t *testing.T) {
 	msh.Subscribe("foo", "bar")
 	msh.Subscribe("bar", "baz")
 
+	fooS, err := msh.Subscribers("foo")
+	assert.NoError(err)
+	assert.Length(fooS, 1)
+	assert.Contains(fooS, "bar")
+
 	msh.Emit("foo", event.New("add", "x"))
 	msh.Emit("foo", event.New("length"))
 	msh.Emit("foo", event.New("send"))
-
-	<-fooC
+	assert.WaitTested(fooC, oneTest, waitTimeout)
 
 	msh.Emit("bar", event.New("length"))
 	msh.Emit("bar", event.New("send"))
@@ -165,6 +169,12 @@ func TestUnsubscribe(t *testing.T) {
 	// Subscribe bar and baz, test both.
 	msh.Subscribe("foo", "bar", "baz")
 
+	fooS, err := msh.Subscribers("foo")
+	assert.NoError(err)
+	assert.Length(fooS, 2)
+	assert.Contains(fooS, "bar")
+	assert.Contains(fooS, "baz")
+
 	msh.Emit("foo", event.New("add", "x"))
 	msh.Emit("foo", event.New("length"))
 	msh.Emit("foo", event.New("send"))
@@ -178,6 +188,11 @@ func TestUnsubscribe(t *testing.T) {
 
 	// Unsubscribe baz, test both, expect zero in baz.
 	msh.Unsubscribe("foo", "baz")
+
+	fooS, err = msh.Subscribers("foo")
+	assert.NoError(err)
+	assert.Length(fooS, 1)
+	assert.Contains(fooS, "bar")
 
 	msh.Emit("foo", event.New("add", "x"))
 	msh.Emit("foo", event.New("length"))
@@ -239,18 +254,18 @@ func TestSubscriberIDs(t *testing.T) {
 	err = msh.Subscribe("foo", "bar", "baz")
 	assert.NoError(err)
 
-	subscriberIDs, err := msh.SubscriberIDs("foo")
+	subscriberIDs, err := msh.Subscribers("foo")
 	assert.NoError(err)
 	assert.Length(subscriberIDs, 2)
 
-	subscriberIDs, err = msh.SubscriberIDs("bar")
+	subscriberIDs, err = msh.Subscribers("bar")
 	assert.NoError(err)
 	assert.Length(subscriberIDs, 0)
 
 	err = msh.Unsubscribe("foo", "baz")
 	assert.NoError(err)
 
-	subscriberIDs, err = msh.SubscriberIDs("foo")
+	subscriberIDs, err = msh.Subscribers("foo")
 	assert.NoError(err)
 	assert.Length(subscriberIDs, 1)
 

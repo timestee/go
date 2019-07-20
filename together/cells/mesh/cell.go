@@ -24,16 +24,16 @@ import (
 // cell runs a behavior for the processing of events and emitting of
 // resulting events.
 type cell struct {
-	behavior    Behavior
-	subscribers map[string]*cell
-	act         *actor.Actor
+	behavior        Behavior
+	subscribedCells map[string]*cell
+	act             *actor.Actor
 }
 
 // newCell creates a new cell running the given behavior in a goroutine.
 func newCell(behavior Behavior) (*cell, error) {
 	c := &cell{
-		behavior:    behavior,
-		subscribers: map[string]*cell{},
+		behavior:        behavior,
+		subscribedCells: map[string]*cell{},
 		act: actor.New(
 			actor.WithQueueLen(32),
 			actor.WithRecoverer(behavior.Recover),
@@ -50,7 +50,7 @@ func newCell(behavior Behavior) (*cell, error) {
 // Emit allows a behavior to emit events to its subsribers.
 func (c *cell) Emit(evt *event.Event) error {
 	if aerr := c.act.DoAsync(func() error {
-		for _, subscriber := range c.subscribers {
+		for _, subscriber := range c.subscribedCells {
 			subscriber.process(evt)
 		}
 		return nil
@@ -60,24 +60,11 @@ func (c *cell) Emit(evt *event.Event) error {
 	return nil
 }
 
-// subscribe adds cells to the subscribers of this cell.
-func (c *cell) subscribe(subscribers []*cell) error {
-	if aerr := c.act.DoAsync(func() error {
-		for _, subscriber := range subscribers {
-			c.subscribers[subscriber.behavior.ID()] = subscriber
-		}
-		return nil
-	}); aerr != nil {
-		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
-	}
-	return nil
-}
-
-// subscriberIDs returns the subscriber IDs of the cell.
-func (c *cell) subscriberIDs() ([]string, error) {
+// subscribers returns the subscriber IDs of the cell.
+func (c *cell) subscribers() ([]string, error) {
 	var subscriberIDs []string
 	if aerr := c.act.DoSync(func() error {
-		for subscriberID := range c.subscribers {
+		for subscriberID := range c.subscribedCells {
 			subscriberIDs = append(subscriberIDs, subscriberID)
 		}
 		return nil
@@ -87,11 +74,24 @@ func (c *cell) subscriberIDs() ([]string, error) {
 	return subscriberIDs, nil
 }
 
+// subscribe adds cells to the subscribers of this cell.
+func (c *cell) subscribe(subscribers []*cell) error {
+	if aerr := c.act.DoAsync(func() error {
+		for _, subscriber := range subscribers {
+			c.subscribedCells[subscriber.behavior.ID()] = subscriber
+		}
+		return nil
+	}); aerr != nil {
+		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+	}
+	return nil
+}
+
 // unsubscribe removes cells from the subscribers of this cell.
 func (c *cell) unsubscribe(subscribers []*cell) error {
 	if aerr := c.act.DoAsync(func() error {
 		for _, subscriber := range subscribers {
-			delete(c.subscribers, subscriber.behavior.ID())
+			delete(c.subscribedCells, subscriber.behavior.ID())
 		}
 		return nil
 	}); aerr != nil {
@@ -117,6 +117,7 @@ func (c *cell) stop() error {
 	if aerr := c.act.DoSync(func() error {
 		cerr = c.behavior.Terminate()
 		c.behavior = &dummyBehavior{c.behavior.ID()}
+		c.subscribedCells = map[string]*cell{}
 		return nil
 	}); aerr != nil {
 		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
