@@ -36,7 +36,7 @@
 //
 // Events from the outside are emitted using
 //
-//     msh.Emit("foo", event.New("foo", "foo", "42"))
+//     msh.Emit("foo", event.New("foo", "answer", 42))
 //
 package mesh // import "tideland.dev/go/together/cells/mesh"
 

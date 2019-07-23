@@ -13,6 +13,7 @@ package event_test // import "tideland.dev/go/together/cells/event"
 
 import (
 	"testing"
+	"time"
 
 	"tideland.dev/go/audit/asserts"
 	"tideland.dev/go/together/cells/event"
@@ -22,39 +23,52 @@ import (
 // TESTS
 //--------------------
 
-// TestEmptyEvent verifies creation of an empty event with default
-// topic and return of default value for random key.
-func TestEmptyEvent(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-	evt := event.New()
-
-	assert.Equal(evt.Topic(), event.DefaultTopic)
-	assert.Equal(evt.Payload("a"), event.NonExistingValue)
-	assert.Equal(evt.Payload("b"), event.NonExistingValue)
-	assert.Equal(evt.Payload("c"), event.NonExistingValue)
-}
-
 // TestTopicOnly verifies creation of an event with only a topic.
 func TestTopicOnly(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	evt := event.New("topic")
+	evt := event.New("test")
 
-	assert.Equal(evt.Topic(), "topic")
-	assert.Equal(evt.Payload("a"), event.NonExistingValue)
-	assert.Equal(evt.Payload("b"), event.NonExistingValue)
-	assert.Equal(evt.Payload("c"), event.NonExistingValue)
+	assert.Equal(evt.Topic(), "test")
+	pl, err := evt.Payload().String("foo")
+	assert.ErrorMatch(err, ".*ENOVAL.*")
+	assert.Equal(pl, "")
 }
 
 // TestKeyValues verifies creation of an event with a topic
-// and matching key/value pairs.
+// and key/value pairs.
 func TestKeyValues(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	evt := event.New("topic", "a", "1", "b", "2")
+	evt := event.New("topic", "a", 1, "b", "2")
 
 	assert.Equal(evt.Topic(), "topic")
-	assert.Equal(evt.Payload("a"), "1")
-	assert.Equal(evt.Payload("b"), "2")
-	assert.Equal(evt.Payload("c"), event.NonExistingValue)
+	plai, err := evt.Payload().Int("a")
+	assert.NoError(err)
+	assert.Equal(plai, 1)
+	plbi, err := evt.Payload().Int("b")
+	assert.NoError(err)
+	assert.Equal(plbi, 2)
+	plbs, err := evt.Payload().String("b")
+	assert.NoError(err)
+	assert.Equal(plbs, "2")
+}
+
+// TestWithPayload verifies creation of an event with a topic
+// and an external created payload.
+func TestWithPayload(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	p := event.NewPayload("a", 1, "b", "2")
+	evt := event.WithPayload("topic", p)
+
+	assert.Equal(evt.Topic(), "topic")
+	plai, err := evt.Payload().Int("a")
+	assert.NoError(err)
+	assert.Equal(plai, 1)
+	plbi, err := evt.Payload().Int("b")
+	assert.NoError(err)
+	assert.Equal(plbi, 2)
+	plbs, err := evt.Payload().String("b")
+	assert.NoError(err)
+	assert.Equal(plbs, "2")
 }
 
 // TestDefaultValue verifies creation of an event with a topic
@@ -64,16 +78,22 @@ func TestDefaultValue(t *testing.T) {
 	evt := event.New("topic", "a")
 
 	assert.Equal(evt.Topic(), "topic")
-	assert.Equal(evt.Payload("a"), event.DefaultValue)
-	assert.Equal(evt.Payload("b"), event.NonExistingValue)
+	plab, err := evt.Payload().Bool("a")
+	assert.NoError(err)
+	assert.True(plab)
 
-	evt = event.New("topic", "a", "1", "b", "2", "c")
+	evt = event.New("topic", "a", 1, "b", 2, "c")
 
 	assert.Equal(evt.Topic(), "topic")
-	assert.Equal(evt.Payload("a"), "1")
-	assert.Equal(evt.Payload("b"), "2")
-	assert.Equal(evt.Payload("c"), event.DefaultValue)
-	assert.Equal(evt.Payload("d"), event.NonExistingValue)
+	plai, err := evt.Payload().Int("a")
+	assert.NoError(err)
+	assert.Equal(plai, 1)
+	plbi, err := evt.Payload().Int("b")
+	assert.NoError(err)
+	assert.Equal(plbi, 2)
+	plcb, err := evt.Payload().Bool("c")
+	assert.NoError(err)
+	assert.True(plcb)
 }
 
 // TestPayloadConv verifies the converting of the string payloads
@@ -84,59 +104,95 @@ func TestPayloadConv(t *testing.T) {
 	// First some bool.
 	evt := event.New("topic", "a", "true", "b", "false", "c")
 
-	b, err := evt.PayloadBool("a")
+	b, err := evt.Payload().Bool("a")
 	assert.NoError(err)
 	assert.True(b)
-	b, err = evt.PayloadBool("b")
+	b, err = evt.Payload().Bool("b")
 	assert.NoError(err)
 	assert.False(b)
-	b, err = evt.PayloadBool("c")
+	b, err = evt.Payload().Bool("c")
 	assert.NoError(err)
 	assert.True(b)
-	b, err = evt.PayloadBool("d")
-	assert.NoError(err)
-	assert.False(b)
+	b, err = evt.Payload().Bool("d")
+	assert.ErrorMatch(err, ".*ENOVAL.*")
 
 	// Next some float.
 	evt = event.New("topic", "a", "1.1", "b", "47.11", "c")
 
-	f, err := evt.PayloadFloat("a")
+	f, err := evt.Payload().Float64("a")
 	assert.NoError(err)
 	assert.Equal(f, 1.1)
-	f, err = evt.PayloadFloat("b")
+	f, err = evt.Payload().Float64("b")
 	assert.NoError(err)
 	assert.Equal(f, 47.11)
-	f, err = evt.PayloadFloat("c")
+	f, err = evt.Payload().Float64("c")
 	assert.ErrorMatch(err, `.*parsing "true": invalid syntax.*`)
-	f, err = evt.PayloadFloat("d")
-	assert.ErrorMatch(err, `.*parsing "false": invalid syntax.*`)
+	f, err = evt.Payload().Float64("d")
+	assert.ErrorMatch(err, ".*ENOVAL.*")
 
-	// Next some int.
+	// Now some int.
+	evt = event.New("topic", "a", 1, "b", "-4711", "c")
+
+	i, err := evt.Payload().Int("a")
+	assert.NoError(err)
+	assert.Equal(i, 1)
+	i, err = evt.Payload().Int("b")
+	assert.NoError(err)
+	assert.Equal(i, -4711)
+	i, err = evt.Payload().Int("c")
+	assert.ErrorMatch(err, `.*parsing "true": invalid syntax.*`)
+	i, err = evt.Payload().Int("d")
+	assert.ErrorMatch(err, ".*ENOVAL.*")
+
+	// Next some int64.
 	evt = event.New("topic", "a", "1", "b", "-4711", "c")
 
-	i, err := evt.PayloadInt("a")
+	ii, err := evt.Payload().Int64("a")
 	assert.NoError(err)
-	assert.Equal(i, int64(1))
-	i, err = evt.PayloadInt("b")
+	assert.Equal(ii, int64(1))
+	ii, err = evt.Payload().Int64("b")
 	assert.NoError(err)
-	assert.Equal(i, int64(-4711))
-	i, err = evt.PayloadInt("c")
+	assert.Equal(ii, int64(-4711))
+	ii, err = evt.Payload().Int64("c")
 	assert.ErrorMatch(err, `.*parsing "true": invalid syntax.*`)
-	i, err = evt.PayloadInt("d")
-	assert.ErrorMatch(err, `.*parsing "false": invalid syntax.*`)
+	ii, err = evt.Payload().Int64("d")
+	assert.ErrorMatch(err, ".*ENOVAL.*")
 
-	// And finally some uint.
+	// Now some uint64.
 	evt = event.New("topic", "a", "1", "b", "-4711", "c")
 
-	ui, err := evt.PayloadUint("a")
+	ui, err := evt.Payload().Uint64("a")
 	assert.NoError(err)
 	assert.Equal(ui, uint64(1))
-	ui, err = evt.PayloadUint("b")
+	ui, err = evt.Payload().Uint64("b")
 	assert.ErrorMatch(err, `.*parsing "-4711": invalid syntax.*`)
-	ui, err = evt.PayloadUint("c")
+	ui, err = evt.Payload().Uint64("c")
 	assert.ErrorMatch(err, `.*parsing "true": invalid syntax.*`)
-	ui, err = evt.PayloadUint("d")
-	assert.ErrorMatch(err, `.*parsing "false": invalid syntax.*`)
+	ui, err = evt.Payload().Uint64("d")
+	assert.ErrorMatch(err, ".*ENOVAL.*")
+
+	// Next some time.
+	now := time.Now()
+	then := time.Date(2019, time.July, 23, 20, 0, 0, 0, time.UTC)
+	evt = event.New("topic", "a", now, "b", then.Format(time.RFC3339))
+
+	ta, err := evt.Payload().Time("a")
+	assert.NoError(err)
+	assert.Equal(ta, now)
+	tb, err := evt.Payload().Time("b")
+	assert.NoError(err)
+	assert.Equal(tb, then)
+
+	// And some duration.
+	fiveSecs := 5 * time.Second
+	evt = event.New("topic", "a", fiveSecs, "b", "5s")
+
+	da, err := evt.Payload().Duration("a")
+	assert.NoError(err)
+	assert.Equal(da, fiveSecs)
+	db, err := evt.Payload().Duration("b")
+	assert.NoError(err)
+	assert.Equal(db, fiveSecs)
 }
 
 // EOF
