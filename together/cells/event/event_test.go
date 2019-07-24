@@ -195,4 +195,25 @@ func TestPayloadConv(t *testing.T) {
 	assert.Equal(db, fiveSecs)
 }
 
+// TestPayloadClone verifies the converting of the string payloads
+// into wanted target values.
+func TestPayloadClone(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	pA := event.NewPayload("a", 1, "b", "two", "c", 3.0)
+
+	ia, err := pA.Int("a")
+	assert.NoError(err)
+	assert.Equal(ia, 1)
+	sb, err := pA.String("b")
+	assert.NoError(err)
+	assert.Equal(sb, "two")
+
+	pB := pA.Clone("a", "4711", "d", "foo")
+
+	ia, err = pB.Int("a")
+	assert.NoError(err)
+	assert.Equal(ia, 4711)
+	assert.Length(pB.Keys(), 4)
+}
+
 // EOF

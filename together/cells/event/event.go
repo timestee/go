@@ -72,6 +72,15 @@ func NewPayload(kvs ...interface{}) *Payload {
 	return p
 }
 
+// Keys returns the keys of the payload.
+func (p *Payload) Keys() []string {
+	var keys []string
+	for key := range p.values {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 // String tries to interpred the keyed payload as string.
 func (p *Payload) String(key string) (string, error) {
 	v, ok := p.values[key]
