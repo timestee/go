@@ -357,10 +357,14 @@ func (tb *TestBehavior) Terminate() error {
 	return nil
 }
 
-func (tb *TestBehavior) Process(evt *event.Event) {
+func (tb *TestBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case "add":
-		tb.datas = append(tb.datas, evt.Payload("x"))
+		x, err := evt.Payload().String("x")
+		if err != nil {
+			return err
+		}
+		tb.datas = append(tb.datas, x)
 	case "length":
 		tb.emitter.Emit(event.New(
 			"add",
@@ -370,6 +374,7 @@ func (tb *TestBehavior) Process(evt *event.Event) {
 		tb.dataC <- len(tb.datas)
 		tb.datas = nil
 	}
+	return nil
 }
 
 func (tb *TestBehavior) Recover(r interface{}) error {

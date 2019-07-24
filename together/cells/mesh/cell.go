@@ -49,15 +49,16 @@ func newCell(behavior Behavior) (*cell, error) {
 
 // Emit allows a behavior to emit events to its subsribers.
 func (c *cell) Emit(evt *event.Event) error {
+	var serrs []error
 	if aerr := c.act.DoAsync(func() error {
 		for _, subscriber := range c.subscribedCells {
-			subscriber.process(evt)
+			serrs = append(serrs, subscriber.process(evt))
 		}
 		return nil
 	}); aerr != nil {
 		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
 	}
-	return nil
+	return errors.Collect(serrs...)
 }
 
 // subscribers returns the subscriber IDs of the cell.
@@ -102,13 +103,14 @@ func (c *cell) unsubscribe(subscribers []*cell) error {
 
 // process lets the cell behavior process the event asynchronously.
 func (c *cell) process(evt *event.Event) error {
+	var berr error
 	if aerr := c.act.DoAsync(func() error {
-		c.behavior.Process(evt)
+		berr = c.behavior.Process(evt)
 		return nil
 	}); aerr != nil {
 		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
 	}
-	return nil
+	return berr
 }
 
 // stop terminates the cell and stops the actor.
@@ -147,7 +149,8 @@ func (db *dummyBehavior) Terminate() error {
 	return nil
 }
 
-func (db *dummyBehavior) Process(evt *event.Event) {
+func (db *dummyBehavior) Process(evt *event.Event) error {
+	return nil
 }
 
 func (db *dummyBehavior) Recover(r interface{}) error {

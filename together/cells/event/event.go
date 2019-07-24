@@ -20,11 +20,17 @@ import (
 )
 
 //--------------------
-// DEFAULTS
+// CONSTANTS
 //--------------------
 
 const (
+	// DefaultValue of a key-only entry into the payload.
 	DefaultValue = true
+
+	// Some standard topics.
+	TopicProcess = "process"
+	TopicResult  = "result"
+	TopicReset   = "reset"
 )
 
 var timeFormats = []string{
