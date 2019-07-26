@@ -26,33 +26,33 @@ import (
 // TESTS
 //--------------------
 
-// TestCollectorBehavior tests the collector behavior.
-func TestCollectorBehavior(t *testing.T) {
+// TestConditionBehavior tests the condition behavior.
+func TestConditionBehavior(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	generator := generators.New(generators.FixedRand())
 	sigc := asserts.MakeWaitChan()
 	msh := mesh.New()
 	defer msh.Stop()
 
-	processor := func(accessor event.SinkAccessor) (*event.Payload, error) {
-		sigc <- accessor.Len()
-		return nil, nil
+	tester := func(evt *event.Event) bool {
+		return evt.Topic() == "end"
+	}
+	processor := func(emitter mesh.Emitter, evt *event.Event) error {
+		sigc <- evt.Topic()
+		return nil
 	}
 
-	msh.SpawnCells(behaviors.NewCollectorBehavior("collector", 10, processor))
+	msh.SpawnCells(behaviors.NewConditionBehavior("condition", tester, processor))
 
-	// Don't care for words, we collect maximally 10 events.
-	for _, word := range generator.Words(25) {
-		msh.Emit("collector", event.New("collect", word))
-	}
+	topics := []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "end"}
+	go func() {
+		for i := 0; i < 50; i++ {
+			topic := generator.OneStringOf(topics...)
+			msh.Emit("condition", event.New(topic))
+		}
+	}()
 
-	msh.Emit("collector", event.New(event.TopicProcess))
-	assert.Wait(sigc, 10, time.Second)
-
-	msh.Emit("collector", event.New(event.TopicReset))
-
-	msh.Emit("collector", event.New(event.TopicProcess))
-	assert.Wait(sigc, 0, time.Second)
+	assert.Wait(sigc, "end", time.Second)
 }
 
 // EOF

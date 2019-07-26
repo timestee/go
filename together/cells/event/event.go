@@ -23,16 +23,31 @@ import (
 // CONSTANTS
 //--------------------
 
+// Standard topics.
 const (
-	// DefaultValue of a key-only entry into the payload.
-	DefaultValue = true
-
-	// Some standard topics.
-	TopicProcess = "process"
-	TopicResult  = "result"
-	TopicReset   = "reset"
+	TopicCollected = "collected"
+	TopicCounted   = "counted"
+	TopicProcess   = "process"
+	TopicProcessed = "processed"
+	TopicReset     = "reset"
+	TopicResult    = "result"
+	TopicStatus    = "status"
+	TopicTick      = "tick"
 )
 
+// Standard keys.
+const (
+	// Some standard keys.
+	KeyReply = "reply"
+)
+
+// Standard values.
+const (
+	DefaultValue = true
+)
+
+// Different formats for the parsing of strings
+// into times.
 var timeFormats = []string{
 	"Mon Jan 2 15:04:05 -0700 MST 2006",
 	"2006-01-02 15:04:05.999999999 -0700 MST",
@@ -54,6 +69,19 @@ var timeFormats = []string{
 }
 
 //--------------------
+// PAYLOAD CHANNEL
+//--------------------
+
+// PayloadChan is intended to be sent with an event as payload
+// so that a behavior can use it to answer a request.
+type PayloadChan chan *Payload
+
+// MakePayloadChan create a single buffered payload channel.
+func MakePayloadChan() PayloadChan {
+	return make(PayloadChan, 1)
+}
+
+//--------------------
 // PAYLOAD
 //--------------------
 
@@ -62,34 +90,36 @@ type Payload struct {
 	values map[string]interface{}
 }
 
+// NewPayload creates a new payload with the given pairs of
+// keys and values.
 func NewPayload(kvs ...interface{}) *Payload {
-	p := &Payload{
+	pl := &Payload{
 		values: map[string]interface{}{},
 	}
 	var key string
 	for i, kv := range kvs {
 		if i%2 == 0 {
 			key = fmt.Sprintf("%v", kv)
-			p.values[key] = DefaultValue
+			pl.values[key] = DefaultValue
 			continue
 		}
-		p.values[key] = kv
+		pl.values[key] = kv
 	}
-	return p
+	return pl
 }
 
 // Keys returns the keys of the payload.
-func (p *Payload) Keys() []string {
+func (pl *Payload) Keys() []string {
 	var keys []string
-	for key := range p.values {
+	for key := range pl.values {
 		keys = append(keys, key)
 	}
 	return keys
 }
 
 // String tries to interpred the keyed payload as string.
-func (p *Payload) String(key string) (string, error) {
-	v, ok := p.values[key]
+func (pl *Payload) String(key string) (string, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return "", errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -101,8 +131,8 @@ func (p *Payload) String(key string) (string, error) {
 }
 
 // Bool tries to interpred the keyed payload as bool.
-func (p *Payload) Bool(key string) (bool, error) {
-	v, ok := p.values[key]
+func (pl *Payload) Bool(key string) (bool, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return false, errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -118,8 +148,8 @@ func (p *Payload) Bool(key string) (bool, error) {
 }
 
 // Float64 tries to interpred the keyed payload as float64.
-func (p *Payload) Float64(key string) (float64, error) {
-	v, ok := p.values[key]
+func (pl *Payload) Float64(key string) (float64, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return 0.0, errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -135,8 +165,8 @@ func (p *Payload) Float64(key string) (float64, error) {
 }
 
 // Int tries to interpred the keyed payload as int.
-func (p *Payload) Int(key string) (int, error) {
-	v, ok := p.values[key]
+func (pl *Payload) Int(key string) (int, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return 0, errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -152,8 +182,8 @@ func (p *Payload) Int(key string) (int, error) {
 }
 
 // Int64 tries to interpred the keyed payload as int64.
-func (p *Payload) Int64(key string) (int64, error) {
-	v, ok := p.values[key]
+func (pl *Payload) Int64(key string) (int64, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return 0, errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -169,8 +199,8 @@ func (p *Payload) Int64(key string) (int64, error) {
 }
 
 // Uint64 tries to interpred the keyed payload as uint64.
-func (p *Payload) Uint64(key string) (uint64, error) {
-	v, ok := p.values[key]
+func (pl *Payload) Uint64(key string) (uint64, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return 0, errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -186,8 +216,8 @@ func (p *Payload) Uint64(key string) (uint64, error) {
 }
 
 // Time tries to interpred the keyed payload as time.Time.
-func (p *Payload) Time(key string) (time.Time, error) {
-	v, ok := p.values[key]
+func (pl *Payload) Time(key string) (time.Time, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return time.Time{}, errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -206,8 +236,8 @@ func (p *Payload) Time(key string) (time.Time, error) {
 }
 
 // Duration tries to interpred the keyed payload as time.Duration.
-func (p *Payload) Duration(key string) (time.Duration, error) {
-	v, ok := p.values[key]
+func (pl *Payload) Duration(key string) (time.Duration, error) {
+	v, ok := pl.values[key]
 	if !ok {
 		return 0, errors.New(ErrNoValue, msgNoValue, key)
 	}
@@ -222,25 +252,51 @@ func (p *Payload) Duration(key string) (time.Duration, error) {
 	return iv, nil
 }
 
+// Payload tries to interpred the keyed payload as nested payload.
+func (pl *Payload) Payload(key string) (*Payload, error) {
+	v, ok := pl.values[key]
+	if !ok {
+		return nil, errors.New(ErrNoValue, msgNoValue, key)
+	}
+	tv, ok := v.(*Payload)
+	if ok {
+		return tv, nil
+	}
+	return nil, errors.New(ErrConverting, msgConverting, key, "event.Payload")
+}
+
+// PayloadChan tries to interpred the keyed payload as payload channel.
+func (pl *Payload) PayloadChan(key string) (PayloadChan, error) {
+	v, ok := pl.values[key]
+	if !ok {
+		return nil, errors.New(ErrNoValue, msgNoValue, key)
+	}
+	tv, ok := v.(PayloadChan)
+	if ok {
+		return tv, nil
+	}
+	return nil, errors.New(ErrConverting, msgConverting, key, "event.PayloadChan")
+}
+
 // Clone creates a new payload with the content of the current one and
 // applies the given changes.
-func (p *Payload) Clone(kvs ...interface{}) *Payload {
-	cp := &Payload{
+func (pl *Payload) Clone(kvs ...interface{}) *Payload {
+	plc := &Payload{
 		values: map[string]interface{}{},
 	}
-	for key, value := range p.values {
-		cp.values[key] = value
+	for key, value := range pl.values {
+		plc.values[key] = value
 	}
 	var key string
 	for i, kv := range kvs {
 		if i%2 == 0 {
 			key = fmt.Sprintf("%v", kv)
-			cp.values[key] = DefaultValue
+			plc.values[key] = DefaultValue
 			continue
 		}
-		cp.values[key] = kv
+		plc.values[key] = kv
 	}
-	return cp
+	return plc
 }
 
 //--------------------
@@ -266,11 +322,11 @@ func New(topic string, kvs ...interface{}) *Event {
 }
 
 // WithPayload creates a new event with a given external payload.
-func WithPayload(topic string, p *Payload) *Event {
+func WithPayload(topic string, pl *Payload) *Event {
 	return &Event{
 		timestamp: time.Now(),
 		topic:     topic,
-		payload:   p,
+		payload:   pl,
 	}
 }
 
@@ -287,6 +343,18 @@ func (e *Event) Topic() string {
 // Payload returns the event payload.
 func (e *Event) Payload() *Payload {
 	return e.payload
+}
+
+//--------------------
+// USEFUL EVENT CREATOR
+//--------------------
+
+// NewStatusEvent creates an event containing the returned
+// payload channel for status requests to cells.
+func NewStatusEvent() (*Event, PayloadChan) {
+	plc := MakePayloadChan()
+	evt := New(TopicStatus, KeyReply, plc)
+	return evt, plc
 }
 
 // EOF

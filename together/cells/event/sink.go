@@ -17,6 +17,22 @@ import (
 )
 
 //--------------------
+// CONSTANTS
+//--------------------
+
+// CriterionMatch signals, how a criterion matches.
+type CriterionMatch int
+
+// List of criterion match signals.
+const (
+	CriterionDone CriterionMatch = iota + 1
+	CriterionKeep
+	CriterionDropFirst
+	CriterionDropLast
+	CriterionClear
+)
+
+//--------------------
 // EVENT SINK FUNCTION TYPES
 //--------------------
 

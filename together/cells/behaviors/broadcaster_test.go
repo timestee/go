@@ -25,39 +25,38 @@ import (
 // TESTS
 //--------------------
 
-// TestCallbackBehavior tests the callback behavior.
-func TestCallbackBehavior(t *testing.T) {
+// TestBroadcasterBehavior tests the broadcast behavior.
+func TestBroadcasterBehavior(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
+	sigc := asserts.MakeWaitChan()
 	msh := mesh.New()
 	defer msh.Stop()
 
-	cbdA := []string{}
-	cbfA := func(emitter mesh.Emitter, evt *event.Event) error {
-		cbdA = append(cbdA, evt.Topic())
-		return nil
-	}
-	cbdB := 0
-	cbfB := func(emitter mesh.Emitter, evt *event.Event) error {
-		cbdB++
-		return nil
-	}
-	sigc := asserts.MakeWaitChan()
-	cbfC := func(emitter mesh.Emitter, evt *event.Event) error {
-		if evt.Topic() == "baz" {
-			sigc <- true
+	mktester := func() behaviors.ConditionTester {
+		counter := 0
+		return func(evt *event.Event) bool {
+			counter++
+			return counter == 3
 		}
+	}
+	processor := func(emitter mesh.Emitter, evt *event.Event) error {
+		sigc <- true
 		return nil
 	}
 
-	msh.SpawnCells(behaviors.NewCallbackBehavior("callback", cbfA, cbfB, cbfC))
+	msh.SpawnCells(
+		behaviors.NewBroadcasterBehavior("broadcast"),
+		behaviors.NewConditionBehavior("test-a", mktester(), processor),
+		behaviors.NewConditionBehavior("test-b", mktester(), processor),
+	)
+	msh.Subscribe("broadcast", "test-a", "test-b")
 
-	msh.Emit("callback", event.New("foo"))
-	msh.Emit("callback", event.New("bar"))
-	msh.Emit("callback", event.New("baz"))
+	msh.Emit("broadcast", event.New("test"))
+	msh.Emit("broadcast", event.New("test"))
+	msh.Emit("broadcast", event.New("test"))
 
 	assert.Wait(sigc, true, time.Second)
-	assert.Equal(cbdA, []string{"foo", "bar", "baz"})
-	assert.Equal(cbdB, 3)
+	assert.Wait(sigc, true, time.Second)
 }
 
 // EOF

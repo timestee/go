@@ -47,16 +47,17 @@ func newCell(behavior Behavior) (*cell, error) {
 	return c, nil
 }
 
+// ID allows a behavior sub-component using an emitter to retrieve
+// the identifier of the cell. Can only be called inside event processing
+func (c *cell) ID() string {
+	return c.behavior.ID()
+}
+
 // Emit allows a behavior to emit events to its subsribers.
 func (c *cell) Emit(evt *event.Event) error {
 	var serrs []error
-	if aerr := c.act.DoAsync(func() error {
-		for _, subscriber := range c.subscribedCells {
-			serrs = append(serrs, subscriber.process(evt))
-		}
-		return nil
-	}); aerr != nil {
-		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+	for _, subscriber := range c.subscribedCells {
+		serrs = append(serrs, subscriber.process(evt))
 	}
 	return errors.Collect(serrs...)
 }
