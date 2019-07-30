@@ -37,6 +37,10 @@ func TestHere(t *testing.T) {
 	id := location.HereID(0)
 
 	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestHere:37)")
+
+	code := location.HereCode("E", 0)
+
+	assert.Equal(code, "ETGTLL41")
 }
 
 // TestOffset tests retrieving the location with an offset.
@@ -44,19 +48,19 @@ func TestOffset(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	id := there()
 
-	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:45)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:49)")
 
 	id = nestedThere()
 
-	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:49)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:53)")
 
 	id = nameless()
 
-	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:nameless.func1:93)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:nameless.func1:97)")
 
 	id = location.HereID(-5)
 
-	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:57)")
+	assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:TestOffset:61)")
 }
 
 // TestCache tests the caching of locations.
@@ -66,7 +70,7 @@ func TestCache(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		id := nameless()
 
-		assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:nameless.func1:93)")
+		assert.Equal(id, "(tideland.dev/go/trace/location_test:location_test.go:nameless.func1:97)")
 	}
 }
 

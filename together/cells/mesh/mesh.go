@@ -15,7 +15,7 @@ import (
 	"sync"
 
 	"tideland.dev/go/together/cells/event"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -87,7 +87,7 @@ func (m *Mesh) Subscribers(id string) ([]string, error) {
 	// Retrieve all needed cells.
 	entry, ok := m.cells[id]
 	if !ok {
-		return nil, errors.New(ErrCellNotFound, msgCellNotFound, id)
+		return nil, failure.New("cannot find cell %q", id)
 	}
 	return entry.cell.subscribers()
 }
@@ -113,7 +113,7 @@ func (m *Mesh) Emit(id string, evt *event.Event) error {
 	// Retrieve the needed cell.
 	entry, ok := m.cells[id]
 	if !ok {
-		return errors.New(ErrCellNotFound, msgCellNotFound, id)
+		return failure.New("cannot find cell %q", id)
 	}
 	return entry.cell.process(evt)
 }
@@ -130,7 +130,7 @@ func (m *Mesh) Broadcast(evt *event.Event) error {
 		idx++
 	}
 	// Return collected errors.
-	return errors.Collect(cerrs...)
+	return failure.Collect(cerrs...)
 }
 
 // Stop terminates the cells and cleans up.
@@ -146,7 +146,7 @@ func (m *Mesh) Stop() error {
 	}
 	m.cells = cellRegistry{}
 	// Return collected errors.
-	return errors.Collect(cerrs...)
+	return failure.Collect(cerrs...)
 }
 
 // EOF

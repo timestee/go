@@ -35,8 +35,8 @@ func TestFilterBehavior(t *testing.T) {
 	defer msh.Stop()
 
 	filter := func(evt *event.Event) (bool, error) {
-		payload, err := evt.Payload().String("test")
-		return evt.Topic() == payload, err
+		payload := evt.Payload().At("test").AsString("")
+		return evt.Topic() == payload, nil
 	}
 	selectConditioner := func(evt *event.Event) bool {
 		selects++

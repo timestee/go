@@ -38,10 +38,7 @@ func TestAggregatorBehavior(t *testing.T) {
 
 	aggregate := func(pl *event.Payload, evt *event.Event) (*event.Payload, error) {
 		topic := evt.Topic()
-		topics, err := pl.String("topics")
-		if err != nil {
-			topics = ""
-		}
+		topics := pl.At("topics").AsString("")
 		topics += "/" + topic
 		return event.NewPayload("topics", topics), nil
 	}
@@ -53,14 +50,14 @@ func TestAggregatorBehavior(t *testing.T) {
 		msh.Emit("aggregator", event.New(topic))
 	}
 
-	evt, plc := event.NewStatusEvent()
+	pl, plc := event.NewReplyPayload()
+	evt := event.WithPayload(event.TopicStatus, pl)
 
 	msh.Emit("aggregator", evt)
 
 	select {
 	case pl := <-plc:
-		topics, err := pl.String("topics")
-		assert.NoError(err)
+		topics := pl.At("topics").AsString("")
 		splitted := strings.Split(topics, "/")
 		assert.Length(splitted, 51)
 	case <-time.After(5 * time.Second):

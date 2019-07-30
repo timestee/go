@@ -64,11 +64,11 @@ func (b *collectorBehavior) Terminate() error {
 func (b *collectorBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case event.TopicProcess:
-		p, err := b.process(b.sink)
+		pl, err := b.process(b.sink)
 		if err != nil {
 			return err
 		}
-		return b.emitter.Emit(event.WithPayload(event.TopicResult, p))
+		return b.emitter.Emit(event.WithPayload(event.TopicResult, pl))
 	case event.TopicReset:
 		return b.sink.Clear()
 	default:

@@ -77,8 +77,8 @@ func TestComboBehavior(t *testing.T) {
 				return false, nil
 			}
 			for _, key := range pl.Keys() {
-				count, err := pl.Int(key)
-				if err != nil || count == 0 {
+				count := pl.At(key).AsInt(0)
+				if count == 0 {
 					return false, nil
 				}
 			}

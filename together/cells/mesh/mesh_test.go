@@ -360,10 +360,7 @@ func (tb *TestBehavior) Terminate() error {
 func (tb *TestBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case "add":
-		x, err := evt.Payload().String("x")
-		if err != nil {
-			return err
-		}
+		x := evt.Payload().At("x").AsString("-")
 		tb.datas = append(tb.datas, x)
 	case "length":
 		tb.emitter.Emit(event.New(

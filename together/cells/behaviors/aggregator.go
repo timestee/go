@@ -72,12 +72,7 @@ func (b *aggregatorBehavior) Terminate() error {
 func (b *aggregatorBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case event.TopicStatus:
-		plc, err := evt.Payload().PayloadChan(event.KeyReply)
-		if err != nil {
-			return err
-		}
-		plc <- b.payload
-		return nil
+		return evt.Payload().Reply(b.payload)
 	case event.TopicReset:
 		b.payload = nil
 		return nil

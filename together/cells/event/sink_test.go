@@ -12,7 +12,7 @@ package event_test // import "tideland.dev/go/together/cells/event"
 //--------------------
 
 import (
-	stderr "errors"
+	"errors"
 	"sort"
 	"testing"
 	"time"
@@ -82,17 +82,15 @@ func TestSinkIteration(t *testing.T) {
 
 	err := sink.Do(func(index int, evt *event.Event) error {
 		assert.Contents(evt.Topic(), topicData)
-		payload, err := evt.Payload().Bool("bool")
-		assert.NoError(err)
-		assert.True(payload)
+		v := evt.Payload().At("bool").AsBool(false)
+		assert.True(v)
 		return nil
 	})
 	assert.NoError(err)
 
 	ok, err := event.NewSinkAnalyzer(sink).Match(func(index int, evt *event.Event) (bool, error) {
 		topicOK := contains(evt.Topic(), topicData)
-		payloadOK, err := evt.Payload().Bool("bool")
-		assert.NoError(err)
+		payloadOK := evt.Payload().At("bool").AsBool(false)
 		return topicOK && payloadOK, nil
 	})
 	assert.NoError(err)
@@ -107,12 +105,12 @@ func TestSinkIterationError(t *testing.T) {
 	addEvents(assert, 10, sink)
 
 	err := sink.Do(func(index int, event *event.Event) error {
-		return stderr.New("ouch")
+		return errors.New("ouch")
 	})
 	assert.ErrorMatch(err, "ouch")
 	ok, err := event.NewSinkAnalyzer(sink).Match(func(index int, event *event.Event) (bool, error) {
 		// The bool true won't be passed to outside.
-		return true, stderr.New("ouch")
+		return true, errors.New("ouch")
 	})
 	assert.False(ok)
 	assert.ErrorMatch(err, "ouch")
@@ -183,7 +181,7 @@ func TestSinkAnalyzer(t *testing.T) {
 		return false, nil
 	}
 	ferrchecker := func(index int, event *event.Event) (bool, error) {
-		return false, stderr.New("ouch")
+		return false, errors.New("ouch")
 	}
 	filterSink, err := analyzer.Filter(threechecker)
 	assert.NoError(err)
@@ -205,22 +203,18 @@ func TestSinkAnalyzer(t *testing.T) {
 	threefolder := func(index int, acc *event.Payload, evt *event.Event) (*event.Payload, error) {
 		if evt.Topic() == "three" {
 			testCount++
-			count, err := acc.Int("count")
-			if err != nil {
-				return nil, err
-			}
+			count := acc.At("count").AsInt(0)
 			return event.NewPayload("count", count+1), nil
 		}
 		return acc, nil
 	}
 	ferrfolder := func(index int, acc *event.Payload, evt *event.Event) (*event.Payload, error) {
-		return nil, stderr.New("ouch")
+		return nil, errors.New("ouch")
 	}
 	pl := event.NewPayload("count", 0)
 	pl, err = analyzer.Fold(pl, threefolder)
 	assert.NoError(err)
-	count, err := pl.Int("count")
-	assert.NoError(err)
+	count := pl.At("count").AsInt(0)
 	assert.Equal(count, testCount, "accumulator has been updated correctly")
 	pl, err = analyzer.Fold(pl, ferrfolder)
 	assert.ErrorMatch(err, "ouch", "error is returned correctly")
@@ -277,22 +271,18 @@ func TestSinkAnalyzer(t *testing.T) {
 		if acc == nil {
 			return event.NewPayload(), nil
 		}
-		count, err := acc.Int("count")
-		if err != nil {
-			return event.NewPayload("count", 1), nil
-		}
-		return event.NewPayload("count", count+1), nil
+		count := acc.At("count").AsInt(1)
+		return acc.Clone("count", count+1), nil
 	}
 	terrfolder := func(index int, acc *event.Payload, evt *event.Event) (*event.Payload, error) {
-		return nil, stderr.New("ouch")
+		return nil, errors.New("ouch")
 	}
 	payloads, err := analyzer.TopicFolds(tfolder)
 	assert.NoError(err)
 	assert.Length(quantities, len(topicData))
 	for topic, payload := range payloads {
 		assert.Contents(topic, topicData, "topic is one of the topics")
-		count, err := payload.Int("count")
-		assert.NoError(err)
+		count := payload.At("count").AsInt(-1)
 		assert.Range(count, 1, 100, "quantity is in range")
 	}
 	payloads, err = analyzer.TopicFolds(terrfolder)

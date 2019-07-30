@@ -82,11 +82,11 @@ func (b *comboBehavior) Process(evt *event.Event) error {
 		b.sink.Clear()
 	default:
 		b.sink.Push(evt)
-		matches, payload := b.matches(b.sink)
+		matches, pl := b.matches(b.sink)
 		switch matches {
 		case event.CriterionDone:
 			// All done, emit and start over.
-			b.emitter.Emit(event.WithPayload(TopicComboComplete, payload))
+			b.emitter.Emit(event.WithPayload(TopicComboComplete, pl))
 			b.sink = event.NewSink(0)
 		case event.CriterionKeep:
 			// So far ok.
