@@ -317,6 +317,30 @@ func NewReplyPayload(kvs ...interface{}) (*Payload, PayloadChan) {
 	return pl, pl.replyc
 }
 
+// NewPayloadFromStringMap creates a payload with the values of a
+// string/string map.
+func NewPayloadFromStringMap(smap map[string]string) *Payload {
+	pl := &Payload{
+		values: map[string]interface{}{},
+	}
+	for key, value := range smap {
+		pl.values[key] = value
+	}
+	return pl
+}
+
+// NewPayloadFromIntMap creates a payload with the values of a
+// string/int map.
+func NewPayloadFromIntMap(imap map[string]int) *Payload {
+	pl := &Payload{
+		values: map[string]interface{}{},
+	}
+	for key, value := range imap {
+		pl.values[key] = value
+	}
+	return pl
+}
+
 // setKeyValues iterates over the key/value values and adds
 // them to the payloads values.
 func (pl *Payload) setKeyValues(kvs ...interface{}) {

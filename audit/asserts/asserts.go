@@ -433,6 +433,15 @@ func MakeWaitChan() chan interface{} {
 	return make(chan interface{}, 1)
 }
 
+// MakeMultiWaitChan is a simple one-liner to create a sized buffered signal
+// channel for the wait assertion.
+func MakeMultiWaitChan(size int) chan interface{} {
+	if size < 1 {
+		size = 1
+	}
+	return make(chan interface{}, size)
+}
+
 //--------------------
 // HELPER
 //--------------------

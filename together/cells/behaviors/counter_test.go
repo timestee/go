@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"tideland.dev/go/audit/asserts"
-	"tideland.dev/go/audit/generators"
 	"tideland.dev/go/together/cells/behaviors"
 	"tideland.dev/go/together/cells/event"
 	"tideland.dev/go/together/cells/mesh"
@@ -26,33 +25,39 @@ import (
 // TESTS
 //--------------------
 
-// TestConditionBehavior tests the condition behavior.
-func TestConditionBehavior(t *testing.T) {
+// TestCounterBehavior tests the counting of events.
+func TestCounterBehavior(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	generator := generators.New(generators.FixedRand())
-	size := 1000
-	sigc := asserts.MakeMultiWaitChan(size)
+	sigc := asserts.MakeWaitChan()
 	msh := mesh.New()
 	defer msh.Stop()
 
+	counters := func(evt *event.Event) []string {
+		return evt.Payload().Keys()
+	}
 	tester := func(evt *event.Event) bool {
-		return evt.Topic() == "end"
+		a := evt.Payload().At("a").AsInt(0)
+		b := evt.Payload().At("b").AsInt(0)
+		c := evt.Payload().At("c").AsInt(0)
+		d := evt.Payload().At("d").AsInt(0)
+		return a == 3 && b == 1 && c == 1 && d == 2
 	}
 	processor := func(emitter mesh.Emitter, evt *event.Event) error {
-		sigc <- evt.Topic()
+		sigc <- true
 		return nil
 	}
 
-	msh.SpawnCells(behaviors.NewConditionBehavior("condition", tester, processor))
+	msh.SpawnCells(
+		behaviors.NewCounterBehavior("counter", counters),
+		behaviors.NewConditionBehavior("conditioner", tester, processor),
+	)
+	msh.Subscribe("counter", "conditioner")
 
-	topics := []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "end"}
+	msh.Emit("counter", event.New("count", "a", 1, "b", 1))
+	msh.Emit("counter", event.New("count", "a", 1, "c", 1, "d", 1))
+	msh.Emit("counter", event.New("count", "a", 1, "d", 1))
 
-	for i := 0; i < size; i++ {
-		topic := generator.OneStringOf(topics...)
-		msh.Emit("condition", event.New(topic))
-	}
-
-	assert.Wait(sigc, "end", time.Second)
+	assert.Wait(sigc, true, time.Second)
 }
 
 // EOF

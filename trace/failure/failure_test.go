@@ -31,7 +31,7 @@ func TestIsError(t *testing.T) {
 	err := failure.New(emsg, 1)
 
 	assert.True(failure.IsValid(err))
-	assert.Equal(err.Error(), "(tideland.dev/go/trace/failure_test:failure_test.go:TestIsError:31) [ETGTFF31] test error 1")
+	assert.Equal(err.Error(), "(tideland.dev/go/trace/failure_test:failure_test.go:TestIsError:31) test error 1")
 
 	err = testError("test error 2")
 
@@ -62,7 +62,7 @@ func TestValidation(t *testing.T) {
 	assert.False(failure.IsValid(err))
 
 	hereID, lerr = failure.Location(err)
-	assert.Equal(lerr.Error(), "(tideland.dev/go/trace/failure:failure.go:Location:124) [ETGTFF124] passed error has invalid type: ouch")
+	assert.Equal(lerr.Error(), "(tideland.dev/go/trace/failure:failure.go:Location:122) passed error has invalid type: ouch")
 	assert.Empty(hereID)
 }
 

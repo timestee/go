@@ -25,7 +25,6 @@ import (
 // failure encapsulates an error.
 type failure struct {
 	err    error
-	code   string
 	msg    string
 	hereID string
 }
@@ -34,7 +33,6 @@ type failure struct {
 func newFailure(err error, msg string, args ...interface{}) *failure {
 	return &failure{
 		err:    err,
-		code:   location.HereCode("E", 2),
 		msg:    fmt.Sprintf(msg, args...),
 		hereID: location.HereID(2),
 	}
@@ -43,9 +41,9 @@ func newFailure(err error, msg string, args ...interface{}) *failure {
 // Error implements the error interface.
 func (f *failure) Error() string {
 	if f.err != nil {
-		return fmt.Sprintf("%s [%s] %s: %v", f.hereID, f.code, f.msg, f.err)
+		return fmt.Sprintf("%s %s: %v", f.hereID, f.msg, f.err)
 	}
-	return fmt.Sprintf("%s [%s] %s", f.hereID, f.code, f.msg)
+	return fmt.Sprintf("%s %s", f.hereID, f.msg)
 }
 
 //--------------------
