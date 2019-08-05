@@ -80,6 +80,29 @@ func TestNestedPayloads(t *testing.T) {
 	assert.Equal(vcb, 200)
 }
 
+// TestNestedMapValues
+func TestNestedMapValues(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	ma := map[int]string{
+		1: "foo",
+		2: "bar",
+	}
+	mb := map[string]interface{}{
+		"a": 12.34,
+		"b": ma,
+	}
+	pl := event.NewPayload("a", 1, "b", mb)
+
+	va := pl.At("a").AsInt(0)
+	assert.Equal(va, 1)
+	vba := pl.At("b/a").AsFloat64(0.0)
+	assert.Equal(vba, 12.34)
+	vbb1 := pl.At("b/b/1").AsString("")
+	assert.Equal(vbb1, "foo")
+	vbb2 := pl.At("b/b/2").AsString("")
+	assert.Equal(vbb2, "bar")
+}
+
 // TestPayloadClone verifies the cloning of payloads together with
 // modification of individual ones.
 func TestPayloadClone(t *testing.T) {

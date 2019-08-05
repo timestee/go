@@ -104,14 +104,16 @@ func (c *cell) unsubscribe(subscribers []*cell) error {
 
 // process lets the cell behavior process the event asynchronously.
 func (c *cell) process(evt *event.Event) error {
-	var berr error
 	if aerr := c.act.DoAsync(func() error {
-		berr = c.behavior.Process(evt)
+		perr := c.behavior.Process(evt)
+		if perr != nil {
+			return c.behavior.Recover(perr)
+		}
 		return nil
 	}); aerr != nil {
 		return failure.Annotate(aerr, "backend failure of cell %q", c.behavior.ID())
 	}
-	return berr
+	return nil
 }
 
 // stop terminates the cell and stops the actor.

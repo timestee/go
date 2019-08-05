@@ -36,10 +36,10 @@ func TestCounterBehavior(t *testing.T) {
 		return evt.Payload().Keys()
 	}
 	tester := func(evt *event.Event) bool {
-		a := evt.Payload().At("a").AsInt(0)
-		b := evt.Payload().At("b").AsInt(0)
-		c := evt.Payload().At("c").AsInt(0)
-		d := evt.Payload().At("d").AsInt(0)
+		a := evt.Payload().At("counter/a").AsInt(0)
+		b := evt.Payload().At("counter/b").AsInt(0)
+		c := evt.Payload().At("counter/c").AsInt(0)
+		d := evt.Payload().At("counter/d").AsInt(0)
 		return a == 3 && b == 1 && c == 1 && d == 2
 	}
 	processor := func(emitter mesh.Emitter, evt *event.Event) error {

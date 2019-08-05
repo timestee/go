@@ -265,13 +265,13 @@ func TestInvalidSubscriptions(t *testing.T) {
 	assert.NoError(err)
 
 	err = msh.Subscribe("foo", "bar", "baz")
-	assert.ErrorMatch(err, ".*ENOTFOUND.*")
+	assert.ErrorMatch(err, ".*cannot find cell.*")
 
 	err = msh.Subscribe("foo", "bar")
 	assert.NoError(err)
 
 	err = msh.Unsubscribe("foo", "bar", "baz")
-	assert.ErrorMatch(err, ".*ENOTFOUND.*")
+	assert.ErrorMatch(err, ".*cannot find cell.*")
 
 	err = msh.Unsubscribe("foo", "bar")
 	assert.NoError(err)

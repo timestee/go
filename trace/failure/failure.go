@@ -24,26 +24,28 @@ import (
 
 // failure encapsulates an error.
 type failure struct {
-	err    error
-	msg    string
-	hereID string
+	err      error
+	msg      string
+	hereCode string
+	hereID   string
 }
 
 // newFailure creates an initialized failure.
 func newFailure(err error, msg string, args ...interface{}) *failure {
 	return &failure{
-		err:    err,
-		msg:    fmt.Sprintf(msg, args...),
-		hereID: location.HereID(2),
+		err:      err,
+		msg:      fmt.Sprintf(msg, args...),
+		hereCode: location.HereCode("E", 2),
+		hereID:   location.HereID(2),
 	}
 }
 
 // Error implements the error interface.
 func (f *failure) Error() string {
 	if f.err != nil {
-		return fmt.Sprintf("%s %s: %v", f.hereID, f.msg, f.err)
+		return fmt.Sprintf("[%s] %s: %v", f.hereCode, f.msg, f.err)
 	}
-	return fmt.Sprintf("%s %s", f.hereID, f.msg)
+	return fmt.Sprintf("[%s] %s", f.hereCode, f.msg)
 }
 
 //--------------------

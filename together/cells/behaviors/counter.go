@@ -65,7 +65,7 @@ func (b *counterBehavior) Terminate() error {
 func (b *counterBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case event.TopicStatus:
-		return evt.Payload().Reply(event.NewPayloadFromIntMap(b.values))
+		return evt.Payload().Reply(event.NewPayload("counter", b.values))
 	case event.TopicReset:
 		b.values = map[string]int{}
 	default:
@@ -76,7 +76,7 @@ func (b *counterBehavior) Process(evt *event.Event) error {
 		return b.emitter.Emit(
 			event.WithPayload(
 				event.TopicCounted,
-				event.NewPayloadFromIntMap(b.values),
+				event.NewPayload("counter", b.values),
 			),
 		)
 	}

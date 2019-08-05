@@ -13,6 +13,7 @@ package event // import "tideland.dev/go/together/cells/event"
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -317,30 +318,6 @@ func NewReplyPayload(kvs ...interface{}) (*Payload, PayloadChan) {
 	return pl, pl.replyc
 }
 
-// NewPayloadFromStringMap creates a payload with the values of a
-// string/string map.
-func NewPayloadFromStringMap(smap map[string]string) *Payload {
-	pl := &Payload{
-		values: map[string]interface{}{},
-	}
-	for key, value := range smap {
-		pl.values[key] = value
-	}
-	return pl
-}
-
-// NewPayloadFromIntMap creates a payload with the values of a
-// string/int map.
-func NewPayloadFromIntMap(imap map[string]int) *Payload {
-	pl := &Payload{
-		values: map[string]interface{}{},
-	}
-	for key, value := range imap {
-		pl.values[key] = value
-	}
-	return pl
-}
-
 // setKeyValues iterates over the key/value values and adds
 // them to the payloads values.
 func (pl *Payload) setKeyValues(kvs ...interface{}) {
@@ -352,16 +329,35 @@ func (pl *Payload) setKeyValues(kvs ...interface{}) {
 			pl.values[key] = DefaultValue
 			continue
 		}
-		plkv, ok := kv.(*Payload)
-		if !ok {
-			// It's a non-payload value.
-			pl.values[key] = kv
+		plv, ok := kv.(*Payload)
+		if ok {
+			// It's a payload value. Add all with joined keys.
+			pl.nestMap(key, plv.values)
 			continue
 		}
-		// It's a payload value. Add them with joined keys.
-		for plkvKey, plkvValue := range plkv.values {
-			pl.values[key+"/"+plkvKey] = plkvValue
+		if reflect.TypeOf(kv).Kind() == reflect.Map {
+			// It's a map value. Add all with joined keys.
+			pl.nestMap(key, kv)
+			continue
 		}
+		// It's a standard non-payload value.
+		pl.values[key] = kv
+	}
+}
+
+// nestMap recursively nests a map with joined keys.
+func (pl *Payload) nestMap(key string, value interface{}) {
+	iter := reflect.ValueOf(value).MapRange()
+	for iter.Next() {
+		rvKey := iter.Key()
+		rvKeyStr := fmt.Sprintf("%v", rvKey.Interface())
+		rvValue := iter.Value()
+		rvKind := reflect.TypeOf(rvValue.Interface()).Kind()
+		if rvKind == reflect.Map {
+			pl.nestMap(key+"/"+rvKeyStr, rvValue.Interface())
+			return
+		}
+		pl.values[key+"/"+rvKeyStr] = rvValue.Interface()
 	}
 }
 
