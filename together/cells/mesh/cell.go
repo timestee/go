@@ -47,12 +47,6 @@ func newCell(behavior Behavior) (*cell, error) {
 	return c, nil
 }
 
-// ID allows a behavior sub-component using an emitter to retrieve
-// the identifier of the cell. Can only be called inside event processing
-func (c *cell) ID() string {
-	return c.behavior.ID()
-}
-
 // Emit allows a behavior to emit events to its subsribers.
 func (c *cell) Emit(evt *event.Event) error {
 	var serrs []error
@@ -60,6 +54,11 @@ func (c *cell) Emit(evt *event.Event) error {
 		serrs = append(serrs, subscriber.process(evt))
 	}
 	return failure.Collect(serrs...)
+}
+
+// Self allows a behavior to emit events back to itself.
+func (c *cell) Self(evt *event.Event) error {
+	return c.process(evt)
 }
 
 // subscribers returns the subscriber IDs of the cell.

@@ -24,6 +24,9 @@ import (
 type Emitter interface {
 	// Emit allows to emit events to subscribers.
 	Emit(evt *event.Event) error
+
+	// Self allows to emit events back to the cell itself.
+	Self(evt *event.Event) error
 }
 
 //--------------------
