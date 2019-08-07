@@ -35,17 +35,6 @@ const (
 // the passed event matches a criterion for rate measuring.
 type RateCriterion func(evt *event.Event) (bool, error)
 
-// Rate describes the rate of events matching the given criterion. It
-// contains the matching time, the duration from the last match to this
-// one, and the highest, lowest, and avaerage duration between matches.
-type Rate struct {
-	Time     time.Time
-	Duration time.Duration
-	High     time.Duration
-	Low      time.Duration
-	Average  time.Duration
-}
-
 // rateBehavior calculates the average rate of events matching a criterion.
 type rateBehavior struct {
 	id        string

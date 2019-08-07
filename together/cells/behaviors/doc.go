@@ -54,7 +54,8 @@
 // Rate Window checks if a number of events in a given timespan matches
 // a given criterion.
 //
-// Round Robin distributes events round robin to its subscribers.
+// Router allows to create a list of cell IDs where the received event
+// is then routed to.
 //
 // Sequence checks the event stream for a defined sequence of events
 // discovered by a user-defined criterion.
