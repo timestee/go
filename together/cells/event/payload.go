@@ -79,7 +79,8 @@ func (v *Value) IsUndefined() bool {
 // AsString returns the value as string, dv is taken as default value.
 func (v *Value) AsString(dv string) string {
 	if v.IsUndefined() {
-		return dv
+		// return dv
+		return "<undefined>"
 	}
 	switch tv := v.raw.(type) {
 	case string:
@@ -318,49 +319,6 @@ func NewReplyPayload(kvs ...interface{}) (*Payload, PayloadChan) {
 	return pl, pl.replyc
 }
 
-// setKeyValues iterates over the key/value values and adds
-// them to the payloads values.
-func (pl *Payload) setKeyValues(kvs ...interface{}) {
-	var key string
-	for i, kv := range kvs {
-		if i%2 == 0 {
-			// Talking about a key.
-			key = fmt.Sprintf("%v", kv)
-			pl.values[key] = DefaultValue
-			continue
-		}
-		plv, ok := kv.(*Payload)
-		if ok {
-			// It's a payload value. Add all with joined keys.
-			pl.nestMap(key, plv.values)
-			continue
-		}
-		if reflect.TypeOf(kv).Kind() == reflect.Map {
-			// It's a map value. Add all with joined keys.
-			pl.nestMap(key, kv)
-			continue
-		}
-		// It's a standard non-payload value.
-		pl.values[key] = kv
-	}
-}
-
-// nestMap recursively nests a map with joined keys.
-func (pl *Payload) nestMap(key string, value interface{}) {
-	iter := reflect.ValueOf(value).MapRange()
-	for iter.Next() {
-		rvKey := iter.Key()
-		rvKeyStr := fmt.Sprintf("%v", rvKey.Interface())
-		rvValue := iter.Value()
-		rvKind := reflect.TypeOf(rvValue.Interface()).Kind()
-		if rvKind == reflect.Map {
-			pl.nestMap(key+"/"+rvKeyStr, rvValue.Interface())
-			return
-		}
-		pl.values[key+"/"+rvKeyStr] = rvValue.Interface()
-	}
-}
-
 // Keys returns the keys of the payload.
 func (pl *Payload) Keys() []string {
 	var keys []string
@@ -406,16 +364,51 @@ func (pl *Payload) Clone(kvs ...interface{}) *Payload {
 	for key, value := range pl.values {
 		plc.values[key] = value
 	}
+	plc.setKeyValues(kvs...)
+	return plc
+}
+
+// setKeyValues iterates over the key/value values and adds
+// them to the payloads values.
+func (pl *Payload) setKeyValues(kvs ...interface{}) {
 	var key string
 	for i, kv := range kvs {
 		if i%2 == 0 {
+			// Talking about a key.
 			key = fmt.Sprintf("%v", kv)
-			plc.values[key] = DefaultValue
+			pl.values[key] = DefaultValue
 			continue
 		}
-		plc.values[key] = kv
+		plv, ok := kv.(*Payload)
+		if ok {
+			// It's a payload value. Add all with joined keys.
+			pl.nestMap(key, plv.values)
+			continue
+		}
+		if reflect.TypeOf(kv).Kind() == reflect.Map {
+			// It's a map value. Add all with joined keys.
+			pl.nestMap(key, kv)
+			continue
+		}
+		// It's a standard non-payload value.
+		pl.values[key] = kv
 	}
-	return plc
+}
+
+// nestMap recursively nests a map with joined keys.
+func (pl *Payload) nestMap(key string, value interface{}) {
+	iter := reflect.ValueOf(value).MapRange()
+	for iter.Next() {
+		rvKey := iter.Key()
+		rvKeyStr := fmt.Sprintf("%v", rvKey.Interface())
+		rvValue := iter.Value()
+		rvKind := reflect.TypeOf(rvValue.Interface()).Kind()
+		if rvKind == reflect.Map {
+			pl.nestMap(key+"/"+rvKeyStr, rvValue.Interface())
+			return
+		}
+		pl.values[key+"/"+rvKeyStr] = rvValue.Interface()
+	}
 }
 
 // EOF

@@ -385,8 +385,8 @@ func (g *Generator) Name() (first, middle, last string) {
 	return g.MaleName()
 }
 
-// NameSet generates a set of names to be used in other generators.
-func (g *Generator) NameSet(count int) []string {
+// Names generates a set of names to be used in other generators.
+func (g *Generator) Names(count int) []string {
 	var names []string
 	for i := 0; i < count; i++ {
 		first, middle, last := g.Name()

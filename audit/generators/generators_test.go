@@ -224,7 +224,7 @@ func TestPattern(t *testing.T) {
 func TestText(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
-	names := gen.NameSet(4)
+	names := gen.Names(4)
 
 	for i := 0; i < 10000; i++ {
 		s := gen.Sentence()
@@ -285,7 +285,7 @@ func TestName(t *testing.T) {
 		assert.Match(last, `[A-Z]['a-zA-Z]+`)
 
 		count := gen.Int(0, 5)
-		names := gen.NameSet(count)
+		names := gen.Names(count)
 
 		assert.Length(names, count)
 		for _, name := range names {
