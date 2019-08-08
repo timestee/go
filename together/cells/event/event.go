@@ -53,15 +53,6 @@ func New(topic string, kvs ...interface{}) *Event {
 	}
 }
 
-// WithPayload creates a new event with a given external payload.
-func WithPayload(topic string, pl *Payload) *Event {
-	return &Event{
-		timestamp: time.Now(),
-		topic:     topic,
-		payload:   pl,
-	}
-}
-
 // Timestamp returns the event timestamp.
 func (e *Event) Timestamp() time.Time {
 	return e.timestamp

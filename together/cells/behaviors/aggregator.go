@@ -82,7 +82,7 @@ func (b *aggregatorBehavior) Process(evt *event.Event) error {
 			return err
 		}
 		b.payload = pl
-		return b.emitter.Emit(event.WithPayload(TopicAggregated, pl))
+		return b.emitter.Emit(event.New(TopicAggregated, pl))
 	}
 }
 

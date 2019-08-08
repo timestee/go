@@ -49,8 +49,8 @@ func TestKeyValues(t *testing.T) {
 // and an external created payload.
 func TestWithPayload(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	p := event.NewPayload("a", 1, "b", "2")
-	evt := event.WithPayload("topic", p)
+	pl := event.NewPayload("a", 1, "b", "2")
+	evt := event.New("topic", pl)
 
 	assert.Equal(evt.Topic(), "topic")
 	va := evt.Payload().At("a").AsInt(0)

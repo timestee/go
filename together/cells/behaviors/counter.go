@@ -73,12 +73,7 @@ func (b *counterBehavior) Process(evt *event.Event) error {
 		for _, counter := range counters {
 			b.values[counter]++
 		}
-		return b.emitter.Emit(
-			event.WithPayload(
-				event.TopicCounted,
-				event.NewPayload("counter", b.values),
-			),
-		)
+		return b.emitter.Emit(event.New(event.TopicCounted, b.values))
 	}
 	return nil
 }

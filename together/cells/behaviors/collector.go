@@ -68,7 +68,7 @@ func (b *collectorBehavior) Process(evt *event.Event) error {
 		if err != nil {
 			return err
 		}
-		return b.emitter.Emit(event.WithPayload(event.TopicResult, pl))
+		return b.emitter.Emit(event.New(event.TopicResult, pl))
 	case event.TopicReset:
 		return b.sink.Clear()
 	default:

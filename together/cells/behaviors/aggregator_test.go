@@ -51,7 +51,7 @@ func TestAggregatorBehavior(t *testing.T) {
 	}
 
 	pl, plc := event.NewReplyPayload()
-	evt := event.WithPayload(event.TopicStatus, pl)
+	evt := event.New(event.TopicStatus, pl)
 
 	msh.Emit("aggregator", evt)
 

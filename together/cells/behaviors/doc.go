@@ -6,11 +6,11 @@
 // by the new BSD license.
 
 // Package behaviors provides several generic and always useful
-// standard behaviors for the Tideland Go Cells. They are simply
-// created by calling NewXyzBehavior(). Their configuration
-// is done by constructor arguments. Additionally some of them take
-// functions or implementations of interfaces to control their
-// processing. These behaviors are:
+// standard behaviors for the Tideland Go Library Cells. They are
+// simply created by calling NewXyzBehavior(). Their configuration
+// is done using constructor arguments. Some of them take functions
+// implementations of interfaces to control their processing. These
+// behaviors are:
 //
 // Aggregator aggregates events and emits each aggregated value.
 //
@@ -25,7 +25,8 @@
 // Condition tests events for conditions using a tester function
 // and calls a processor then.
 //
-// Countdown ...
+// Countdown counts a defined number of events down and processes
+// the collected ones at zero.
 //
 // Counter counts events, the counters can be retrieved.
 //
@@ -35,8 +36,6 @@
 // Filter emits received events based on a user-defined filter.
 //
 // Finite State Machine allows to build finite state machines for events.
-//
-// Key/Value collects and emits payloads grouped by topics.
 //
 // Logger logs received events with level INFO.
 //
@@ -63,11 +62,10 @@
 // Simple Processor allows to not implement a behavior but only use
 // one function for event processing.
 //
-// Status receives and processes status events by other behaviors.
-// Those have to emit it when receiving the topic "status" with a status
-// cell ID as payload.
-//
 // Ticker emits tick events in a defined interval.
+//
+// Topic/Payloads collects the payloads of events by topics, processes
+// those, and emits the processed result.
 package behaviors // import "tideland.dev/go/together/cells/behaviors"
 
 // EOF

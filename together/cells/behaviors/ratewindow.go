@@ -108,7 +108,7 @@ func (b *rateWindowBehavior) Process(evt *event.Event) error {
 				if err != nil {
 					return err
 				}
-				b.emitter.Emit(event.WithPayload(TopicRateWindow, pl))
+				b.emitter.Emit(event.New(TopicRateWindow, pl))
 			}
 			b.sink.PullFirst()
 		}

@@ -72,16 +72,52 @@ func TestNestedPayloads(t *testing.T) {
 
 	vaa := pla.At("aa").AsInt(0)
 	assert.Equal(vaa, 1)
-	vba := pla.At("ab/ba").AsInt(0)
+	vba := pla.At("ab").AsPayload().At("ba").AsInt(0)
 	assert.Equal(vba, 10)
-	vca := pla.At("ab/bb/ca").AsInt(0)
+	vca := pla.At("ab").AsPayload().At("bb").AsPayload().At("ca").AsInt(0)
 	assert.Equal(vca, 100)
-	vcb := pla.At("ab/bb/cb").AsInt(0)
+	vcb := pla.At("ab").AsPayload().At("bb").AsPayload().At("cb").AsInt(0)
 	assert.Equal(vcb, 200)
 }
 
-// TestNestedMapValues
-func TestNestedMapValues(t *testing.T) {
+// TestPayloadValue verifies merging of payloads as values.
+func TestPayloadValue(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	pla := event.NewPayload("a", 1, "b", 2)
+	plb := event.NewPayload(pla)
+
+	va := plb.At("a").AsInt(0)
+	assert.Equal(va, 1)
+	vb := plb.At("b").AsInt(0)
+	assert.Equal(vb, 2)
+}
+
+// TestMapKeys tests the treating of map keys.
+func TestMapKeys(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	ma := map[int]string{
+		1: "foo",
+		2: "bar",
+	}
+	mb := map[string]interface{}{
+		"a": 12.34,
+		"b": ma,
+	}
+	pl := event.NewPayload("c", true, mb)
+
+	va := pl.At("a").AsFloat64(0.0)
+	assert.Equal(va, 12.34)
+	vb1 := pl.At("b").AsPayloadAt("1").AsString("")
+	assert.Equal(vb1, "foo")
+	vb2 := pl.At("b").AsPayloadAt("2").AsString("")
+	assert.Equal(vb2, "bar")
+	vc := pl.At("c").AsBool(false)
+	assert.True(vc)
+}
+
+// TestMapValues tests the treating of map values as nested
+// payloads.
+func TestMapValues(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	ma := map[int]string{
 		1: "foo",
@@ -95,11 +131,11 @@ func TestNestedMapValues(t *testing.T) {
 
 	va := pl.At("a").AsInt(0)
 	assert.Equal(va, 1)
-	vba := pl.At("b/a").AsFloat64(0.0)
+	vba := pl.At("b").AsPayload().At("a").AsFloat64(0.0)
 	assert.Equal(vba, 12.34)
-	vbb1 := pl.At("b/b/1").AsString("")
+	vbb1 := pl.At("b").AsPayloadAt("b").AsPayloadAt("1").AsString("")
 	assert.Equal(vbb1, "foo")
-	vbb2 := pl.At("b/b/2").AsString("")
+	vbb2 := pl.At("b").AsPayloadAt("b").AsPayloadAt("2").AsString("")
 	assert.Equal(vbb2, "bar")
 }
 
