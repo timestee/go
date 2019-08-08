@@ -33,12 +33,6 @@ const (
 // TICKER BEHAVIOR
 //--------------------
 
-// Tick contains one tick of the ticker behavior.
-type Tick struct {
-	ID   string
-	Time time.Time
-}
-
 // tickerBehavior chronologically emits events.
 type tickerBehavior struct {
 	id       string
