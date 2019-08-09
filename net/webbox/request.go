@@ -48,6 +48,20 @@ func PathField(r *http.Request, n int) (string, bool) {
 	return fields[n], true
 }
 
+// PathAt returns the nth part of the given request path and true if
+// it exists. Otherwise an empty string and false. This way users of
+// the nested handlers can retrieve an entity ID out of the path.
+func PathAt(p string, n int) (string, bool) {
+	if n < 0 {
+		panic("webbox: illegal path index")
+	}
+	parts := strings.Split(p[1:], "/")
+	if len(parts) < n+1 || parts[n] == "" {
+		return "", false
+	}
+	return parts[n], true
+}
+
 // AcceptsContentType checks if the requestor accepts a given content type.
 func AcceptsContentType(r *http.Request, contentType string) bool {
 	return strings.Contains(r.Header.Get(HeaderAccept), contentType)

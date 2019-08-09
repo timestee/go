@@ -22,7 +22,11 @@ import (
 // Emitter describes a behavior to emit events to subscribers. An instance
 // is passed during initialization.
 type Emitter interface {
+	// Emit allows to emit events to subscribers.
 	Emit(evt *event.Event) error
+
+	// Self allows to emit events back to the cell itself.
+	Self(evt *event.Event) error
 }
 
 //--------------------
@@ -45,13 +49,13 @@ type Behavior interface {
 	Terminate() error
 
 	// Process is called to process the given event.
-	Process(evt *event.Event)
+	Process(evt *event.Event) error
 
 	// Recover is called in case of an error or panic during the processing
 	// of an event. Here the behavior can check if it can recover and establish
 	// a valid state. If it's not possible the implementation has to return
 	// an error documenting the reason.
-	Recover(r interface{}) error
+	Recover(err interface{}) error
 }
 
 // EOF

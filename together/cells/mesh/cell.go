@@ -14,7 +14,7 @@ package mesh // import "tideland.dev/go/together/cells/mesh"
 import (
 	"tideland.dev/go/together/actor"
 	"tideland.dev/go/together/cells/event"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -42,22 +42,23 @@ func newCell(behavior Behavior) (*cell, error) {
 	err := c.behavior.Init(c)
 	if err != nil {
 		// Stop the actor with the annotated error.
-		return nil, c.act.Stop(errors.Annotate(err, ErrCellInit, msgCellInit, behavior.ID()))
+		return nil, c.act.Stop(failure.Annotate(err, "cannot init cell %q", behavior.ID()))
 	}
 	return c, nil
 }
 
 // Emit allows a behavior to emit events to its subsribers.
 func (c *cell) Emit(evt *event.Event) error {
-	if aerr := c.act.DoAsync(func() error {
-		for _, subscriber := range c.subscribedCells {
-			subscriber.process(evt)
-		}
-		return nil
-	}); aerr != nil {
-		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+	var serrs []error
+	for _, subscriber := range c.subscribedCells {
+		serrs = append(serrs, subscriber.process(evt))
 	}
-	return nil
+	return failure.Collect(serrs...)
+}
+
+// Self allows a behavior to emit events back to itself.
+func (c *cell) Self(evt *event.Event) error {
+	return c.process(evt)
 }
 
 // subscribers returns the subscriber IDs of the cell.
@@ -69,7 +70,7 @@ func (c *cell) subscribers() ([]string, error) {
 		}
 		return nil
 	}); aerr != nil {
-		return nil, errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+		return nil, failure.Annotate(aerr, "backend failure of cell %q", c.behavior.ID())
 	}
 	return subscriberIDs, nil
 }
@@ -82,7 +83,7 @@ func (c *cell) subscribe(subscribers []*cell) error {
 		}
 		return nil
 	}); aerr != nil {
-		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+		return failure.Annotate(aerr, "backend failure of cell %q", c.behavior.ID())
 	}
 	return nil
 }
@@ -95,7 +96,7 @@ func (c *cell) unsubscribe(subscribers []*cell) error {
 		}
 		return nil
 	}); aerr != nil {
-		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+		return failure.Annotate(aerr, "backend failure of cell %q", c.behavior.ID())
 	}
 	return nil
 }
@@ -103,10 +104,13 @@ func (c *cell) unsubscribe(subscribers []*cell) error {
 // process lets the cell behavior process the event asynchronously.
 func (c *cell) process(evt *event.Event) error {
 	if aerr := c.act.DoAsync(func() error {
-		c.behavior.Process(evt)
+		perr := c.behavior.Process(evt)
+		if perr != nil {
+			return c.behavior.Recover(perr)
+		}
 		return nil
 	}); aerr != nil {
-		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+		return failure.Annotate(aerr, "backend failure of cell %q", c.behavior.ID())
 	}
 	return nil
 }
@@ -120,7 +124,7 @@ func (c *cell) stop() error {
 		c.subscribedCells = map[string]*cell{}
 		return nil
 	}); aerr != nil {
-		return errors.Annotate(aerr, ErrCellBackend, msgCellBackend, c.behavior.ID())
+		return failure.Annotate(aerr, "backend failure of cell %q", c.behavior.ID())
 	}
 	// Stop actor with cell or given error.
 	return c.act.Stop(cerr)
@@ -147,7 +151,8 @@ func (db *dummyBehavior) Terminate() error {
 	return nil
 }
 
-func (db *dummyBehavior) Process(evt *event.Event) {
+func (db *dummyBehavior) Process(evt *event.Event) error {
+	return nil
 }
 
 func (db *dummyBehavior) Recover(r interface{}) error {

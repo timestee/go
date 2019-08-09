@@ -12,7 +12,7 @@ package mesh // import "tideland.dev/go/together/cells/mesh"
 //--------------------
 
 import (
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -81,7 +81,7 @@ func (cr cellRegistry) cells(ids []string) ([]*cell, error) {
 	for _, id := range ids {
 		entry, ok := cr[id]
 		if !ok {
-			return nil, errors.New(ErrCellNotFound, msgCellNotFound, id)
+			return nil, failure.New("cannot find cell %q", id)
 		}
 		cells = append(cells, entry.cell)
 	}
@@ -94,13 +94,13 @@ func (cr cellRegistry) subscribe(id string, subscriberIDs []string) error {
 	// Retrieve cells.
 	entry, ok := cr[id]
 	if !ok {
-		return errors.New(ErrCellNotFound, msgCellNotFound, id)
+		return failure.New("cannot find cell %q", id)
 	}
 	var subscribers []*cell
 	for _, subscriberID := range subscriberIDs {
 		subscriber, ok := cr[subscriberID]
 		if !ok {
-			return errors.New(ErrCellNotFound, msgCellNotFound, subscriberID)
+			return failure.New("cannot find cell %q", subscriberID)
 		}
 		subscribers = append(subscribers, subscriber.cell)
 	}
@@ -121,13 +121,13 @@ func (cr cellRegistry) unsubscribe(id string, unsubscriberIDs []string) error {
 	// Retrieve cells.
 	entry, ok := cr[id]
 	if !ok {
-		return errors.New(ErrCellNotFound, msgCellNotFound, id)
+		return failure.New("cannot find cell %q", id)
 	}
 	var unsubscribers []*cell
 	for _, unsubscriberID := range unsubscriberIDs {
 		unsubscriber, ok := cr[unsubscriberID]
 		if !ok {
-			return errors.New(ErrCellNotFound, msgCellNotFound, unsubscriberID)
+			return failure.New("cannot find cell %q", unsubscriberID)
 		}
 		unsubscribers = append(unsubscribers, unsubscriber.cell)
 	}

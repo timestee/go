@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -33,6 +34,18 @@ func Here(offset int) (string, string, string, int) {
 func HereID(offset int) string {
 	l := here(offset)
 	return l.id
+}
+
+// HereCode returns returns a code based on the given offset.
+func HereCode(prefix string, offset int) string {
+	l := here(offset)
+	pparts := strings.Split(l.pkg, "/")
+	for _, ppart := range pparts {
+		prefix += ppart[0:1]
+	}
+	prefix += l.file[0:1]
+	prefix += strconv.Itoa(l.line)
+	return strings.ToUpper(prefix)
 }
 
 //--------------------

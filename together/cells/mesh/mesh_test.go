@@ -265,13 +265,13 @@ func TestInvalidSubscriptions(t *testing.T) {
 	assert.NoError(err)
 
 	err = msh.Subscribe("foo", "bar", "baz")
-	assert.ErrorMatch(err, ".*ENOTFOUND.*")
+	assert.ErrorMatch(err, ".*cannot find cell.*")
 
 	err = msh.Subscribe("foo", "bar")
 	assert.NoError(err)
 
 	err = msh.Unsubscribe("foo", "bar", "baz")
-	assert.ErrorMatch(err, ".*ENOTFOUND.*")
+	assert.ErrorMatch(err, ".*cannot find cell.*")
 
 	err = msh.Unsubscribe("foo", "bar")
 	assert.NoError(err)
@@ -357,10 +357,11 @@ func (tb *TestBehavior) Terminate() error {
 	return nil
 }
 
-func (tb *TestBehavior) Process(evt *event.Event) {
+func (tb *TestBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case "add":
-		tb.datas = append(tb.datas, evt.Payload("x"))
+		x := evt.Payload().At("x").AsString("-")
+		tb.datas = append(tb.datas, x)
 	case "length":
 		tb.emitter.Emit(event.New(
 			"add",
@@ -370,6 +371,7 @@ func (tb *TestBehavior) Process(evt *event.Event) {
 		tb.dataC <- len(tb.datas)
 		tb.datas = nil
 	}
+	return nil
 }
 
 func (tb *TestBehavior) Recover(r interface{}) error {
