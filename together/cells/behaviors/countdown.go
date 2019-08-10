@@ -87,7 +87,7 @@ func (b *countdownBehavior) Process(evt *event.Event) error {
 			}
 			b.sink.Clear()
 			b.t = t
-			return b.emitter.EmitAll(zevt)
+			return b.emitter.Broadcast(zevt)
 		}
 	}
 	return nil

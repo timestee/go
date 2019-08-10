@@ -89,12 +89,12 @@ func (b *filterBehavior) Process(evt *event.Event) error {
 	case selectFilter:
 		// Select those who match.
 		if ok {
-			return b.emitter.EmitAll(evt)
+			return b.emitter.Broadcast(evt)
 		}
 	case excludeFilter:
 		// Select those who don't match.
 		if !ok {
-			return b.emitter.EmitAll(evt)
+			return b.emitter.Broadcast(evt)
 		}
 	}
 	return nil

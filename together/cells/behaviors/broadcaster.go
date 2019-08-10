@@ -53,7 +53,7 @@ func (b *broadcasterBehavior) Terminate() error {
 
 // Process emits the event to all subscribers.
 func (b *broadcasterBehavior) Process(evt *event.Event) error {
-	b.emitter.EmitAll(evt)
+	b.emitter.Broadcast(evt)
 	return nil
 }
 

@@ -47,8 +47,19 @@ func newCell(behavior Behavior) (*cell, error) {
 	return c, nil
 }
 
-// // EmitAll emits the given event to all subscribers.
-func (c *cell) EmitAll(evt *event.Event) error {
+// Subscribers is part of the emitter interface and returns the
+// the IDs of the subscriber cells.
+func (c *cell) Subscribers() []string {
+	var subscriberIDs []string
+	for subscriberID := range c.subscribedCells {
+		subscriberIDs = append(subscriberIDs, subscriberID)
+	}
+	return subscriberIDs
+}
+
+// Broadcast is part of Emitter interface and emits the given
+// event to all subscribers.
+func (c *cell) Broadcast(evt *event.Event) error {
 	var serrs []error
 	for _, subscriber := range c.subscribedCells {
 		serrs = append(serrs, subscriber.process(evt))
@@ -56,7 +67,8 @@ func (c *cell) EmitAll(evt *event.Event) error {
 	return failure.Collect(serrs...)
 }
 
-// Self emits the given event back to the cell itself.
+// Self is part of Emitter interface and emits the given event
+// back to the cell itself.
 func (c *cell) Self(evt *event.Event) error {
 	return c.process(evt)
 }
@@ -65,9 +77,7 @@ func (c *cell) Self(evt *event.Event) error {
 func (c *cell) subscribers() ([]string, error) {
 	var subscriberIDs []string
 	if aerr := c.act.DoSync(func() error {
-		for subscriberID := range c.subscribedCells {
-			subscriberIDs = append(subscriberIDs, subscriberID)
-		}
+		subscriberIDs = c.Subscribers()
 		return nil
 	}); aerr != nil {
 		return nil, failure.Annotate(aerr, "backend failure of cell %q", c.behavior.ID())

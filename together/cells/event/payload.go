@@ -14,6 +14,7 @@ package event // import "tideland.dev/go/together/cells/event"
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"tideland.dev/go/trace/failure"
 )
@@ -25,6 +26,19 @@ import (
 // PayloadChan is intended to be sent with an event as payload
 // so that a behavior can use it to answer a request.
 type PayloadChan chan *Payload
+
+// Wait waits for a returned payload until receiving or timeout.
+func (plc PayloadChan) Wait(timeout time.Duration) (*Payload, error) {
+	select {
+	case pl, ok := <-plc:
+		if !ok {
+			return nil, failure.New("payload channel has been closed")
+		}
+		return pl, nil
+	case <-time.After(timeout):
+		return nil, failure.New("no returned payload until timeout")
+	}
+}
 
 //--------------------
 // PAYLOAD

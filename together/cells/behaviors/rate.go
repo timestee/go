@@ -108,7 +108,7 @@ func (b *rateBehavior) Process(evt *event.Event) error {
 				}
 			}
 			avg := total / time.Duration(len(b.durations))
-			return b.emitter.EmitAll(event.New(
+			return b.emitter.Broadcast(event.New(
 				TopicRate,
 				"time", current,
 				"duration", duration,

@@ -62,7 +62,7 @@ func (b *mapperBehavior) Process(evt *event.Event) error {
 		return err
 	}
 	if mapped != nil {
-		b.emitter.EmitAll(mapped)
+		b.emitter.Broadcast(mapped)
 	}
 	return nil
 }

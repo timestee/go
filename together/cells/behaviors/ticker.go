@@ -70,7 +70,7 @@ func (b *tickerBehavior) Terminate() error {
 // Process emits a ticker event each time the defined duration elapsed.
 func (b *tickerBehavior) Process(evt *event.Event) error {
 	if evt.Topic() == TopicTick {
-		b.emitter.EmitAll(event.New(TopicTick, "id", b.id))
+		b.emitter.Broadcast(event.New(TopicTick, "id", b.id))
 	}
 	return nil
 }

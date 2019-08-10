@@ -119,7 +119,7 @@ func (b *pairBehavior) Recover(err interface{}) error {
 
 // emitPair emits the event for a successful pair.
 func (b *pairBehavior) emitPair(timestamp time.Time) {
-	b.emitter.EmitAll(event.New(
+	b.emitter.Broadcast(event.New(
 		TopicPair,
 		"first", *b.matched,
 		"second", timestamp,
@@ -131,7 +131,7 @@ func (b *pairBehavior) emitPair(timestamp time.Time) {
 
 // emitTimeout emits the event for a pairing timeout.
 func (b *pairBehavior) emitTimeout(timeout time.Time) {
-	b.emitter.EmitAll(event.New(
+	b.emitter.Broadcast(event.New(
 		TopicPairTimeout,
 		"payload", b.payload,
 		"timeout", timeout,

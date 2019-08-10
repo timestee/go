@@ -12,8 +12,6 @@ package mesh_test // import "tideland.dev/go/together/cells/mesh"
 //--------------------
 
 import (
-	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -26,7 +24,7 @@ import (
 // CONSTANTS
 //--------------------
 
-const waitTimeout = 20 * time.Millisecond
+const waitTimeout = time.Second
 
 //--------------------
 // TESTS
@@ -39,9 +37,9 @@ func TestSpawnCells(t *testing.T) {
 	msh := mesh.New()
 
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", nil),
-		NewTestBehavior("bar", nil),
-		NewTestBehavior("baz", nil),
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
+		NewTestBehavior("baz"),
 	)
 	assert.NoError(err)
 
@@ -62,9 +60,9 @@ func TestStopCells(t *testing.T) {
 
 	// Initial environment with subscriptions.
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", nil),
-		NewTestBehavior("bar", nil),
-		NewTestBehavior("baz", nil),
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
+		NewTestBehavior("baz"),
 	)
 	assert.NoError(err)
 
@@ -102,20 +100,25 @@ func TestStopCells(t *testing.T) {
 // TestEmitEvents verifies emitting some events to a node.
 func TestEmitEvents(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	threeTest := mkLenTest(assert, 3)
 	msh := mesh.New()
 
-	fooC := asserts.MakeWaitChan()
-
-	err := msh.SpawnCells(NewTestBehavior("foo", fooC))
+	err := msh.SpawnCells(NewTestBehavior("foo"))
 	assert.NoError(err)
 
-	msh.Emit("foo", event.New("add", "x", "a"))
-	msh.Emit("foo", event.New("add", "x", "b"))
-	msh.Emit("foo", event.New("add", "x", "c"))
-	msh.Emit("foo", event.New("send"))
+	msh.Emit("foo", event.New("set", "a", 1))
+	msh.Emit("foo", event.New("set", "b", 2))
+	msh.Emit("foo", event.New("set", "c", 3))
 
-	assert.WaitTested(fooC, threeTest, waitTimeout)
+	pl, plc := event.NewReplyPayload()
+
+	msh.Emit("foo", event.New("send", pl))
+
+	plr, err := plc.Wait(waitTimeout)
+
+	assert.NoError(err)
+	assert.Equal(plr.At("a").AsInt(0), 1)
+	assert.Equal(plr.At("b").AsInt(0), 2)
+	assert.Equal(plr.At("c").AsInt(0), 3)
 
 	err = msh.Stop()
 	assert.NoError(err)
@@ -124,28 +127,32 @@ func TestEmitEvents(t *testing.T) {
 // TestBroadcastEvents verifies broadcasting some events to a node.
 func TestBroadcastEvents(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	threeTest := mkLenTest(assert, 3)
 	msh := mesh.New()
+	assertData := func(id string) {
+		pl, plc := event.NewReplyPayload()
 
-	fooC := asserts.MakeWaitChan()
-	barC := asserts.MakeWaitChan()
-	bazC := asserts.MakeWaitChan()
+		msh.Emit(id, event.New("send", pl))
+
+		plr, err := plc.Wait(waitTimeout)
+
+		assert.NoError(err)
+		assert.Equal(plr.At("a").AsInt(0), 1)
+		assert.Equal(plr.At("b").AsInt(0), 2)
+		assert.Equal(plr.At("c").AsInt(0), 3)
+	}
 
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", fooC),
-		NewTestBehavior("bar", barC),
-		NewTestBehavior("baz", bazC),
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
+		NewTestBehavior("baz"),
 	)
 	assert.NoError(err)
 
-	msh.Broadcast(event.New("add", "x", "a"))
-	msh.Broadcast(event.New("add", "x", "b"))
-	msh.Broadcast(event.New("add", "x", "c"))
-	msh.Broadcast(event.New("send"))
+	msh.Broadcast(event.New("set", "a", 1, "b", 2, "c", 3))
 
-	assert.WaitTested(fooC, threeTest, waitTimeout)
-	assert.WaitTested(barC, threeTest, waitTimeout)
-	assert.WaitTested(bazC, threeTest, waitTimeout)
+	assertData("foo")
+	assertData("bar")
+	assertData("baz")
 
 	err = msh.Stop()
 	assert.NoError(err)
@@ -154,39 +161,45 @@ func TestBroadcastEvents(t *testing.T) {
 // TestSubscribe verifies the subscription of cells.
 func TestSubscribe(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	oneTest := mkLenTest(assert, 1)
 	msh := mesh.New()
 
-	fooC := asserts.MakeWaitChan()
-	barC := asserts.MakeWaitChan()
-	bazC := asserts.MakeWaitChan()
-
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", fooC),
-		NewTestBehavior("bar", barC),
-		NewTestBehavior("baz", bazC),
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
+		NewTestBehavior("baz"),
 	)
 	assert.NoError(err)
 
-	msh.Subscribe("foo", "bar")
-	msh.Subscribe("bar", "baz")
+	msh.Subscribe("foo", "bar", "baz")
 
 	fooS, err := msh.Subscribers("foo")
 	assert.NoError(err)
-	assert.Length(fooS, 1)
+	assert.Length(fooS, 2)
 	assert.Contains(fooS, "bar")
+	assert.Contains(fooS, "baz")
 
-	msh.Emit("foo", event.New("add", "x"))
+	msh.Emit("foo", event.New("subscribers"))
+
+	pl, plc := event.NewReplyPayload()
+	msh.Emit("foo", event.New("send", pl))
+	plr, err := plc.Wait(waitTimeout)
+	assert.NoError(err)
+	assert.Equal(plr.At("bar").AsInt(0), 1)
+	assert.Equal(plr.At("baz").AsInt(0), 1)
+
+	msh.Emit("foo", event.New("set", "a", 1, "b", 1234))
 	msh.Emit("foo", event.New("length"))
-	msh.Emit("foo", event.New("send"))
-	assert.WaitTested(fooC, oneTest, waitTimeout)
 
-	msh.Emit("bar", event.New("length"))
-	msh.Emit("bar", event.New("send"))
-	assert.WaitTested(barC, oneTest, waitTimeout)
+	msh.Emit("foo", event.New("send", pl))
+	plr, err = plc.Wait(waitTimeout)
+	assert.NoError(err)
+	assert.Equal(plr.At("a").AsInt(0), 1)
+	assert.Equal(plr.At("b").AsInt(0), 1234)
 
-	msh.Emit("baz", event.New("send"))
-	assert.WaitTested(bazC, oneTest, waitTimeout)
+	msh.Emit("bar", event.New("send", pl))
+	plr, err = plc.Wait(waitTimeout)
+	assert.NoError(err)
+	assert.Equal(plr.At("length").AsInt(0), 2)
 
 	err = msh.Stop()
 	assert.NoError(err)
@@ -195,18 +208,12 @@ func TestSubscribe(t *testing.T) {
 // TestUnsubscribe verifies the unsubscription of cells.
 func TestUnsubscribe(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	zeroTest := mkLenTest(assert, 0)
-	oneTest := mkLenTest(assert, 1)
 	msh := mesh.New()
 
-	fooC := asserts.MakeWaitChan()
-	barC := asserts.MakeWaitChan()
-	bazC := asserts.MakeWaitChan()
-
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", fooC),
-		NewTestBehavior("bar", barC),
-		NewTestBehavior("baz", bazC),
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
+		NewTestBehavior("baz"),
 	)
 	assert.NoError(err)
 
@@ -219,35 +226,13 @@ func TestUnsubscribe(t *testing.T) {
 	assert.Contains(fooS, "bar")
 	assert.Contains(fooS, "baz")
 
-	msh.Emit("foo", event.New("add", "x"))
-	msh.Emit("foo", event.New("length"))
-	msh.Emit("foo", event.New("send"))
-	assert.WaitTested(fooC, oneTest, waitTimeout)
-
-	msh.Emit("bar", event.New("send"))
-	assert.WaitTested(barC, oneTest, waitTimeout)
-
-	msh.Emit("baz", event.New("send"))
-	assert.WaitTested(bazC, oneTest, waitTimeout)
-
-	// Unsubscribe baz, test both, expect zero in baz.
+	// Unsubscribe baz.
 	msh.Unsubscribe("foo", "baz")
 
 	fooS, err = msh.Subscribers("foo")
 	assert.NoError(err)
 	assert.Length(fooS, 1)
 	assert.Contains(fooS, "bar")
-
-	msh.Emit("foo", event.New("add", "x"))
-	msh.Emit("foo", event.New("length"))
-	msh.Emit("foo", event.New("send"))
-	assert.WaitTested(fooC, oneTest, waitTimeout)
-
-	msh.Emit("bar", event.New("send"))
-	assert.WaitTested(barC, oneTest, waitTimeout)
-
-	msh.Emit("baz", event.New("send"))
-	assert.WaitTested(bazC, zeroTest, waitTimeout)
 
 	err = msh.Stop()
 	assert.NoError(err)
@@ -259,8 +244,8 @@ func TestInvalidSubscriptions(t *testing.T) {
 	msh := mesh.New()
 
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", nil),
-		NewTestBehavior("bar", nil),
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
 	)
 	assert.NoError(err)
 
@@ -289,9 +274,9 @@ func TestSubscriberIDs(t *testing.T) {
 	msh := mesh.New()
 
 	err := msh.SpawnCells(
-		NewTestBehavior("foo", nil),
-		NewTestBehavior("bar", nil),
-		NewTestBehavior("baz", nil),
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
+		NewTestBehavior("baz"),
 	)
 	assert.NoError(err)
 
@@ -321,26 +306,16 @@ func TestSubscriberIDs(t *testing.T) {
 // HELPERS
 //--------------------
 
-func mkLenTest(assert *asserts.Asserts, l int) func(interface{}) error {
-	return func(data interface{}) error {
-		if !assert.Equal(data, l) {
-			return errors.New("not 3")
-		}
-		return nil
-	}
-}
-
 type TestBehavior struct {
 	id      string
-	datas   []interface{}
-	dataC   chan interface{}
 	emitter mesh.Emitter
+	datas   map[string]int
 }
 
-func NewTestBehavior(id string, dataC chan interface{}) *TestBehavior {
+func NewTestBehavior(id string) *TestBehavior {
 	return &TestBehavior{
 		id:    id,
-		dataC: dataC,
+		datas: make(map[string]int),
 	}
 }
 
@@ -359,17 +334,21 @@ func (tb *TestBehavior) Terminate() error {
 
 func (tb *TestBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
-	case "add":
-		x := evt.Payload().At("x").AsString("-")
-		tb.datas = append(tb.datas, x)
+	case "set":
+		return evt.Payload().Do(func(key string, value *event.Value) error {
+			tb.datas[key] = value.AsInt(-1)
+			return nil
+		})
+	case "subscribers":
+		ids := tb.emitter.Subscribers()
+		for _, id := range ids {
+			tb.datas[id] = 1
+		}
 	case "length":
-		tb.emitter.EmitAll(event.New(
-			"add",
-			"x", fmt.Sprintf("length %q = %d", tb.id, len(tb.datas)),
-		))
+		return tb.emitter.Broadcast(event.New("set", "length", len(tb.datas)))
 	case "send":
-		tb.dataC <- len(tb.datas)
-		tb.datas = nil
+		evt.Payload().Reply(event.NewPayload(tb.datas))
+		tb.datas = make(map[string]int)
 	}
 	return nil
 }

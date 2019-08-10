@@ -86,7 +86,7 @@ func (b *comboBehavior) Process(evt *event.Event) error {
 		switch matches {
 		case event.CriterionDone:
 			// All done, emit and start over.
-			b.emitter.EmitAll(event.New(TopicComboComplete, pl))
+			b.emitter.Broadcast(event.New(TopicComboComplete, pl))
 			b.sink = event.NewSink(0)
 		case event.CriterionKeep:
 			// So far ok.

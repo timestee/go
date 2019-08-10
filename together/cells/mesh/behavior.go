@@ -22,8 +22,11 @@ import (
 // Emitter describes a behavior to emit events to subscribers. An instance
 // is passed during initialization.
 type Emitter interface {
-	// EmitAll emits the given event to all subscribers.
-	EmitAll(evt *event.Event) error
+	// Subscribers returns the the IDs of the subscriber cells.
+	Subscribers() []string
+
+	// Broadcast emits the given event to all subscribers.
+	Broadcast(evt *event.Event) error
 
 	// Self emits the given event back to the cell itself.
 	Self(evt *event.Event) error

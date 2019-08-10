@@ -88,7 +88,7 @@ func (b *sequenceBehavior) Process(evt *event.Event) error {
 			if err != nil {
 				return err
 			}
-			b.emitter.EmitAll(event.New(TopicSequence, pl))
+			b.emitter.Broadcast(event.New(TopicSequence, pl))
 			b.sink = event.NewSink(0)
 		case event.CriterionKeep:
 			// So far ok.

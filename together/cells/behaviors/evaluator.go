@@ -119,7 +119,7 @@ func (b *evaluatorBehavior) Process(evt *event.Event) error {
 		}
 		// Evaluate ratings.
 		b.evaluateRatings()
-		b.emitter.EmitAll(event.New(
+		b.emitter.Broadcast(event.New(
 			TopicEvaluation,
 			"count", b.evaluation.count,
 			"min-rating", b.evaluation.minRating,

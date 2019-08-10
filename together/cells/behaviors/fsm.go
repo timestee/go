@@ -99,7 +99,7 @@ func (b *fsmBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case TopicFSMStatus:
 		// Emit information.
-		b.emitter.EmitAll(event.New(
+		b.emitter.Broadcast(event.New(
 			event.TopicStatus,
 			"info", b.status.Info,
 			"done", b.status.Done(),
