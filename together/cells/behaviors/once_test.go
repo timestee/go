@@ -35,7 +35,7 @@ func TestOnceBehavior(t *testing.T) {
 	oneTimer := func(emitter mesh.Emitter, evt *event.Event) error {
 		topic := evt.Topic()
 		sigc <- topic
-		return emitter.Emit(event.New(topic + "/" + topic))
+		return emitter.EmitAll(event.New(topic + "/" + topic))
 	}
 	msh.SpawnCells(
 		behaviors.NewOnceBehavior("first", oneTimer),

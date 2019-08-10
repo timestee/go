@@ -363,7 +363,7 @@ func (tb *TestBehavior) Process(evt *event.Event) error {
 		x := evt.Payload().At("x").AsString("-")
 		tb.datas = append(tb.datas, x)
 	case "length":
-		tb.emitter.Emit(event.New(
+		tb.emitter.EmitAll(event.New(
 			"add",
 			"x", fmt.Sprintf("length %q = %d", tb.id, len(tb.datas)),
 		))

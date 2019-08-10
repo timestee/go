@@ -75,7 +75,7 @@ func (b *topicPayloadsBehavior) Process(evt *event.Event) error {
 	if err != nil {
 		return err
 	}
-	return b.emitter.Emit(event.New(topic, pl))
+	return b.emitter.EmitAll(event.New(topic, pl))
 }
 
 // Recover from an error.

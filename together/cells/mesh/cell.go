@@ -47,8 +47,8 @@ func newCell(behavior Behavior) (*cell, error) {
 	return c, nil
 }
 
-// Emit allows a behavior to emit events to its subsribers.
-func (c *cell) Emit(evt *event.Event) error {
+// // EmitAll emits the given event to all subscribers.
+func (c *cell) EmitAll(evt *event.Event) error {
 	var serrs []error
 	for _, subscriber := range c.subscribedCells {
 		serrs = append(serrs, subscriber.process(evt))
@@ -56,7 +56,7 @@ func (c *cell) Emit(evt *event.Event) error {
 	return failure.Collect(serrs...)
 }
 
-// Self allows a behavior to emit events back to itself.
+// Self emits the given event back to the cell itself.
 func (c *cell) Self(evt *event.Event) error {
 	return c.process(evt)
 }
