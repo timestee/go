@@ -25,6 +25,9 @@ type Emitter interface {
 	// Subscribers returns the the IDs of the subscriber cells.
 	Subscribers() []string
 
+	// Emit emits the given event to the given subscriber if it exists.
+	Emit(id string, evt *event.Event) error
+
 	// Broadcast emits the given event to all subscribers.
 	Broadcast(evt *event.Event) error
 

@@ -158,6 +158,36 @@ func TestBroadcastEvents(t *testing.T) {
 	assert.NoError(err)
 }
 
+// TestBehaviorEmit verifies the emitting to individual subscribers.
+func TestBehaviorEmit(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	msh := mesh.New()
+
+	err := msh.SpawnCells(
+		NewTestBehavior("foo"),
+		NewTestBehavior("bar"),
+		NewTestBehavior("baz"),
+	)
+	assert.NoError(err)
+
+	msh.Subscribe("foo", "bar", "baz")
+
+	msh.Emit("foo", event.New("emit", "to", "bar", "value", 1234))
+	msh.Emit("foo", event.New("emit", "to", "baz", "value", 4321))
+
+	assertSend := func(id string, value int) {
+		pl, plc := event.NewReplyPayload()
+		msh.Emit(id, event.New("send", pl))
+		plr, err := plc.Wait(waitTimeout)
+		assert.NoError(err)
+		assert.Equal(plr.At("value").AsInt(0), value)
+	}
+
+	waitEvents(assert, msh, "foo")
+	assertSend("bar", 1234)
+	assertSend("baz", 4321)
+}
+
 // TestSubscribe verifies the subscription of cells.
 func TestSubscribe(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
@@ -172,14 +202,15 @@ func TestSubscribe(t *testing.T) {
 
 	msh.Subscribe("foo", "bar", "baz")
 
+	// Directly ask mesh.
 	fooS, err := msh.Subscribers("foo")
 	assert.NoError(err)
 	assert.Length(fooS, 2)
 	assert.Contains(fooS, "bar")
 	assert.Contains(fooS, "baz")
 
+	// Send event to store subscribers
 	msh.Emit("foo", event.New("subscribers"))
-
 	pl, plc := event.NewReplyPayload()
 	msh.Emit("foo", event.New("send", pl))
 	plr, err := plc.Wait(waitTimeout)
@@ -187,19 +218,16 @@ func TestSubscribe(t *testing.T) {
 	assert.Equal(plr.At("bar").AsInt(0), 1)
 	assert.Equal(plr.At("baz").AsInt(0), 1)
 
+	// Set additional values and let emit length.
 	msh.Emit("foo", event.New("set", "a", 1, "b", 1234))
 	msh.Emit("foo", event.New("length"))
+	waitEvents(assert, msh, "foo")
 
-	msh.Emit("foo", event.New("send", pl))
-	plr, err = plc.Wait(waitTimeout)
-	assert.NoError(err)
-	assert.Equal(plr.At("a").AsInt(0), 1)
-	assert.Equal(plr.At("b").AsInt(0), 1234)
-
+	// Ask bar for received length.
 	msh.Emit("bar", event.New("send", pl))
 	plr, err = plc.Wait(waitTimeout)
 	assert.NoError(err)
-	assert.Equal(plr.At("length").AsInt(0), 2)
+	assert.Equal(plr.At("length").AsInt(0), 4)
 
 	err = msh.Stop()
 	assert.NoError(err)
@@ -306,6 +334,13 @@ func TestSubscriberIDs(t *testing.T) {
 // HELPERS
 //--------------------
 
+func waitEvents(assert *asserts.Asserts, msh *mesh.Mesh, id string) {
+	pl, plc := event.NewReplyPayload()
+	msh.Emit(id, event.New("send", pl))
+	_, err := plc.Wait(waitTimeout)
+	assert.NoError(err)
+}
+
 type TestBehavior struct {
 	id      string
 	emitter mesh.Emitter
@@ -339,15 +374,20 @@ func (tb *TestBehavior) Process(evt *event.Event) error {
 			tb.datas[key] = value.AsInt(-1)
 			return nil
 		})
+	case "emit":
+		to := evt.Payload().At("to").AsString("<unknown>")
+		value := evt.Payload().At("value").AsInt(-1)
+		tb.emitter.Emit(to, event.New("set", "value", value))
 	case "subscribers":
 		ids := tb.emitter.Subscribers()
 		for _, id := range ids {
 			tb.datas[id] = 1
 		}
 	case "length":
-		return tb.emitter.Broadcast(event.New("set", "length", len(tb.datas)))
+		tb.emitter.Broadcast(event.New("set", "length", len(tb.datas)))
 	case "send":
 		evt.Payload().Reply(event.NewPayload(tb.datas))
+	case "clear":
 		tb.datas = make(map[string]int)
 	}
 	return nil

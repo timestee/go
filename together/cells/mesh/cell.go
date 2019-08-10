@@ -57,6 +57,16 @@ func (c *cell) Subscribers() []string {
 	return subscriberIDs
 }
 
+// Emit is part of Emitter interface and emits the given event
+// to the given subscriber if it exists.
+func (c *cell) Emit(id string, evt *event.Event) error {
+	subscriber, ok := c.subscribedCells[id]
+	if !ok {
+		return failure.New("cell %q is no subscriber", id)
+	}
+	return subscriber.process(evt)
+}
+
 // Broadcast is part of Emitter interface and emits the given
 // event to all subscribers.
 func (c *cell) Broadcast(evt *event.Event) error {
