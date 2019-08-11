@@ -14,6 +14,7 @@ package event // import "tideland.dev/go/together/cells/event"
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	"tideland.dev/go/trace/failure"
@@ -50,11 +51,11 @@ type Payload struct {
 	replyc PayloadChan
 }
 
-// NewPayload creates a new payload with the given pairs of
-// keys and values. In case of payloads as values their keys
-// will be joined with their higher level keys by a slash
-// and so later can be accessed by "{key}/{payload-key}", even
-// multiple levels deep.
+// NewPayload creates a payload with the given pairs of keys
+// and values. In case of payloads or maps as keys thos will
+// be merged, in case of arrays or slices those will be merged
+// with the index as string. In case of those as values they
+// will all be nested payload values.
 func NewPayload(kvs ...interface{}) *Payload {
 	pl := &Payload{
 		values: map[string]interface{}{},
@@ -148,9 +149,14 @@ func (pl *Payload) setKeyValues(kvs ...interface{}) {
 				pl.replyc = plk.replyc
 				continue
 			}
-			if reflect.TypeOf(kv).Kind() == reflect.Map {
+			switch reflect.TypeOf(kv).Kind() {
+			case reflect.Map:
 				// A map, merge it.
 				pl.mergeMap(kv)
+				continue
+			case reflect.Array, reflect.Slice:
+				// An iteratable, merge it.
+				pl.mergeIteratable(kv)
 				continue
 			}
 			// Any other key.
@@ -159,13 +165,14 @@ func (pl *Payload) setKeyValues(kvs ...interface{}) {
 			continue
 		}
 		// Talking about a value.
-		if reflect.TypeOf(kv).Kind() == reflect.Map {
-			// It's a map, take it as nested payload.
+		switch reflect.TypeOf(kv).Kind() {
+		case reflect.Map, reflect.Array, reflect.Slice:
+			// Nest it.
 			pl.values[key] = NewPayload(kv)
-			continue
+		default:
+			// Add it.
+			pl.values[key] = kv
 		}
-		// Any other value.
-		pl.values[key] = kv
 	}
 }
 
@@ -176,6 +183,20 @@ func (pl *Payload) mergeMap(m interface{}) {
 	for iter.Next() {
 		key := iter.Key().Interface()
 		value := iter.Value().Interface()
+		kvs = append(kvs, key, value)
+	}
+	pl.setKeyValues(kvs...)
+}
+
+// mergeIteratable maps arrays and slices into the
+// own values.
+func (pl *Payload) mergeIteratable(i interface{}) {
+	var kvs []interface{}
+	v := reflect.ValueOf(i)
+	l := v.Len()
+	for i := 0; i < l; i++ {
+		key := strconv.Itoa(i)
+		value := v.Index(i).Interface()
 		kvs = append(kvs, key, value)
 	}
 	pl.setKeyValues(kvs...)
