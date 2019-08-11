@@ -37,17 +37,17 @@ const (
 //--------------------
 
 // SinkDoer performs an operation on an event.
-type SinkDoer func(index int, event *Event) error
+type SinkDoer func(index int, evt *Event) error
 
 // SinkProcessor can be used as a checker function but also inside of
 // behaviors to process the content of an event sink and return a new payload.
 type SinkProcessor func(accessor SinkAccessor) (*Payload, error)
 
 // SinkFilter checks if an event matches a criterium.
-type SinkFilter func(index int, event *Event) (bool, error)
+type SinkFilter func(index int, evt *Event) (bool, error)
 
 // SinkFolder allows to reduce (fold) events.
-type SinkFolder func(index int, acc *Payload, event *Event) (*Payload, error)
+type SinkFolder func(index int, acc *Payload, evt *Event) (*Payload, error)
 
 //--------------------
 // EVENT SINK ACCESSOR
@@ -102,9 +102,9 @@ func NewCheckedSink(max int, checker SinkProcessor) *Sink {
 }
 
 // Push adds a new event to the sink.
-func (s *Sink) Push(event *Event) (int, error) {
+func (s *Sink) Push(evt *Event) (int, error) {
 	s.mu.Lock()
-	s.events = append(s.events, event)
+	s.events = append(s.events, evt)
 	if s.max > 0 && len(s.events) > s.max {
 		s.events = s.events[1:]
 	}
@@ -114,26 +114,26 @@ func (s *Sink) Push(event *Event) (int, error) {
 
 // PullFirst returns and removed the first event of the sink.
 func (s *Sink) PullFirst() (*Event, error) {
-	var event *Event
+	var evt *Event
 	s.mu.Lock()
 	if len(s.events) > 0 {
-		event = s.events[0]
+		evt = s.events[0]
 		s.events = s.events[1:]
 	}
 	s.mu.Unlock()
-	return event, s.performCheck()
+	return evt, s.performCheck()
 }
 
 // PullLast returns and removed the last event of the sink.
 func (s *Sink) PullLast() (*Event, error) {
-	var event *Event
+	var evt *Event
 	s.mu.Lock()
 	if len(s.events) > 0 {
-		event = s.events[len(s.events)-1]
+		evt = s.events[len(s.events)-1]
 		s.events = s.events[:len(s.events)-1]
 	}
 	s.mu.Unlock()
-	return event, s.performCheck()
+	return evt, s.performCheck()
 }
 
 // Clear removes all collected events.
@@ -185,8 +185,8 @@ func (s *Sink) PeekAt(index int) (*Event, bool) {
 func (s *Sink) Do(doer SinkDoer) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	for index, event := range s.events {
-		if err := doer(index, event); err != nil {
+	for index, evt := range s.events {
+		if err := doer(index, evt); err != nil {
 			return err
 		}
 	}
@@ -224,14 +224,14 @@ func NewSinkAnalyzer(accessor SinkAccessor) *SinkAnalyzer {
 // Filter creates a new accessor containing only the filtered events.
 func (sa *SinkAnalyzer) Filter(filter SinkFilter) (SinkAccessor, error) {
 	accessor := NewSink(sa.accessor.Len())
-	doer := func(index int, event *Event) error {
-		ok, err := filter(index, event)
+	doer := func(index int, evt *Event) error {
+		ok, err := filter(index, evt)
 		if err != nil {
 			accessor = nil
 			return err
 		}
 		if ok {
-			accessor.Push(event)
+			accessor.Push(evt)
 		}
 		return nil
 	}
@@ -242,8 +242,8 @@ func (sa *SinkAnalyzer) Filter(filter SinkFilter) (SinkAccessor, error) {
 // Match checks if all events match the passed criterion.
 func (sa *SinkAnalyzer) Match(matcher SinkFilter) (bool, error) {
 	match := true
-	doer := func(index int, event *Event) error {
-		ok, err := matcher(index, event)
+	doer := func(index int, evt *Event) error {
+		ok, err := matcher(index, evt)
 		if err != nil {
 			match = false
 			return err
@@ -258,8 +258,8 @@ func (sa *SinkAnalyzer) Match(matcher SinkFilter) (bool, error) {
 // Fold reduces (folds) the events of the sink.
 func (sa *SinkAnalyzer) Fold(inject *Payload, folder SinkFolder) (*Payload, error) {
 	acc := inject
-	doer := func(index int, event *Event) error {
-		facc, err := folder(index, acc, event)
+	doer := func(index int, evt *Event) error {
+		facc, err := folder(index, acc, evt)
 		if err != nil {
 			acc = nil
 			return err
@@ -287,9 +287,9 @@ func (sa *SinkAnalyzer) MinMaxDuration() (time.Duration, time.Duration) {
 	minDuration := sa.TotalDuration()
 	maxDuration := 0 * time.Nanosecond
 	lastTimestamp := time.Time{}
-	doer := func(index int, event *Event) error {
+	doer := func(index int, evt *Event) error {
 		if index > 0 {
-			duration := event.Timestamp().Sub(lastTimestamp)
+			duration := evt.Timestamp().Sub(lastTimestamp)
 			if duration < minDuration {
 				minDuration = duration
 			}
@@ -297,7 +297,7 @@ func (sa *SinkAnalyzer) MinMaxDuration() (time.Duration, time.Duration) {
 				maxDuration = duration
 			}
 		}
-		lastTimestamp = event.Timestamp()
+		lastTimestamp = evt.Timestamp()
 		return nil
 	}
 	sa.accessor.Do(doer)
@@ -307,8 +307,8 @@ func (sa *SinkAnalyzer) MinMaxDuration() (time.Duration, time.Duration) {
 // TopicQuantities returns a map of collected topics and their quantity.
 func (sa *SinkAnalyzer) TopicQuantities() map[string]int {
 	topics := map[string]int{}
-	doer := func(index int, event *Event) error {
-		topics[event.Topic()] = topics[event.Topic()] + 1
+	doer := func(index int, evt *Event) error {
+		topics[evt.Topic()] = topics[evt.Topic()] + 1
 		return nil
 	}
 	sa.accessor.Do(doer)
@@ -318,13 +318,13 @@ func (sa *SinkAnalyzer) TopicQuantities() map[string]int {
 // TopicFolds reduces the events per topic.
 func (sa *SinkAnalyzer) TopicFolds(folder SinkFolder) (map[string]*Payload, error) {
 	folds := map[string]*Payload{}
-	doer := func(index int, event *Event) error {
-		facc, err := folder(index, folds[event.Topic()], event)
+	doer := func(index int, evt *Event) error {
+		facc, err := folder(index, folds[evt.Topic()], evt)
 		if err != nil {
 			folds = nil
 			return err
 		}
-		folds[event.Topic()] = facc
+		folds[evt.Topic()] = facc
 		return nil
 	}
 	err := sa.accessor.Do(doer)

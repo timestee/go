@@ -23,7 +23,7 @@ import (
 // filterMode describes if the filter works selecting or excluding.
 type filterMode int
 
-// Flags for the filt
+// Flags for the filter.
 const (
 	selectFilter filterMode = iota
 	excludeFilter
