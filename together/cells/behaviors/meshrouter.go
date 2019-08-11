@@ -18,57 +18,57 @@ import (
 )
 
 //--------------------
-// ROUTER BEHAVIOR
+// MESH ROUTER BEHAVIOR
 //--------------------
 
-// Router is a function type determining which subscriber cells shall get the event.
-type Router func(evt *event.Event) []string
+// MeshRouter is a function type determining which cells shall get the event.
+type MeshRouter func(evt *event.Event) []string
 
-// routerBehavior check for each received event which subscriber will
+// meshRouterBehavior check for each received event which cell will
 // get it based on the router function.
-type routerBehavior struct {
+type meshRouterBehavior struct {
 	id      string
-	emitter mesh.Emitter
-	routeTo Router
+	routeTo MeshRouter
+	msh     *mesh.Mesh
 }
 
-// NewRouterBehavior creates a mesh router behavior using the passed function
-// to determine to which subscriber cells the received event shall be re-emitted.
-func NewRouterBehavior(id string, router Router) mesh.Behavior {
-	return &routerBehavior{
+// NewMeshRouterBehavior creates a mesh router behavior using the passed function
+// to determine to which cells the received event shall be re-emitted.
+func NewMeshRouterBehavior(id string, router MeshRouter, msh *mesh.Mesh) mesh.Behavior {
+	return &meshRouterBehavior{
 		id:      id,
 		routeTo: router,
+		msh:     msh,
 	}
 }
 
 // ID returns the individual identifier of a behavior instance.
-func (b *routerBehavior) ID() string {
+func (b *meshRouterBehavior) ID() string {
 	return b.id
 }
 
 // Init the behavior.
-func (b *routerBehavior) Init(emitter mesh.Emitter) error {
-	b.emitter = emitter
+func (b *meshRouterBehavior) Init(emitter mesh.Emitter) error {
 	return nil
 }
 
 // Terminate the behavior.
-func (b *routerBehavior) Terminate() error {
+func (b *meshRouterBehavior) Terminate() error {
 	return nil
 }
 
 // Process emits the event to those ids returned by the router function.
-func (b *routerBehavior) Process(evt *event.Event) error {
+func (b *meshRouterBehavior) Process(evt *event.Event) error {
 	ids := b.routeTo(evt)
 	var errs []error
 	for _, id := range ids {
-		errs = append(errs, b.emitter.Emit(id, evt))
+		errs = append(errs, b.msh.Emit(id, evt))
 	}
 	return failure.Collect(errs...)
 }
 
 // Recover from an error.
-func (b *routerBehavior) Recover(err interface{}) error {
+func (b *meshRouterBehavior) Recover(err interface{}) error {
 	return nil
 }
 

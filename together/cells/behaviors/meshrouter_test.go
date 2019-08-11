@@ -26,8 +26,8 @@ import (
 // TESTS
 //--------------------
 
-// TestRouterBehavior tests the router behavior.
-func TestRouterBehavior(t *testing.T) {
+// TestMeshRouterBehavior tests the mesh router behavior.
+func TestMeshRouterBehavior(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	sigc := asserts.MakeWaitChan()
 	msh := mesh.New()
@@ -49,7 +49,6 @@ func TestRouterBehavior(t *testing.T) {
 		behaviors.NewCollectorBehavior("test-4", 10, processor),
 		behaviors.NewCollectorBehavior("test-5", 10, processor),
 	)
-	msh.Subscribe("router", "test-1", "test-2", "test-3", "test-4", "test-5")
 
 	msh.Emit("router", event.New("route-it", "ids", "test-1/test-2"))
 	msh.Emit("router", event.New("route-it", "ids", "test-1/test-2/test-3"))

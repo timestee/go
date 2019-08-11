@@ -68,12 +68,12 @@ func (b *collectorBehavior) Process(evt *event.Event) error {
 		if err != nil {
 			return err
 		}
-		return b.emitter.Emit(event.New(event.TopicResult, pl))
+		return b.emitter.Broadcast(event.New(event.TopicResult, pl))
 	case event.TopicReset:
 		return b.sink.Clear()
 	default:
 		b.sink.Push(evt)
-		return b.emitter.Emit(evt)
+		return b.emitter.Broadcast(evt)
 	}
 }
 

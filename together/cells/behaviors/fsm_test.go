@@ -127,13 +127,13 @@ type lockMachine struct {
 func (m *lockMachine) Locked(emitter mesh.Emitter, evt *event.Event) behaviors.FSMStatus {
 	switch evt.Topic() {
 	case "check-cents":
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"cents-checked",
 			"id", m.id,
 			"cents", m.cents,
 		))
 	case "info":
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"status",
 			"id", m.id,
 			"status", "locked",
@@ -147,7 +147,7 @@ func (m *lockMachine) Locked(emitter mesh.Emitter, evt *event.Event) behaviors.F
 		m.cents += cents
 		if m.cents > 100 {
 			m.cents -= 100
-			emitter.Emit(event.New(
+			emitter.Broadcast(event.New(
 				"unlocked",
 				"id", m.id,
 				"status", "unlocked",
@@ -156,7 +156,7 @@ func (m *lockMachine) Locked(emitter mesh.Emitter, evt *event.Event) behaviors.F
 		}
 	case "press-button":
 		if m.cents > 0 {
-			emitter.Emit(event.New(
+			emitter.Broadcast(event.New(
 				"coins-dropped",
 				"id", m.id,
 				"cents", m.cents,
@@ -164,13 +164,13 @@ func (m *lockMachine) Locked(emitter mesh.Emitter, evt *event.Event) behaviors.F
 			m.cents = 0
 		}
 	case "screwdriver":
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"error",
 			"id", m.id,
 		))
 		return behaviors.FSMStatus{evt.Topic(), nil, fmt.Errorf("don't try to break me")}
 	default:
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"dunno",
 			"id", m.id,
 		))
@@ -182,13 +182,13 @@ func (m *lockMachine) Locked(emitter mesh.Emitter, evt *event.Event) behaviors.F
 func (m *lockMachine) Unlocked(emitter mesh.Emitter, evt *event.Event) behaviors.FSMStatus {
 	switch evt.Topic() {
 	case "check-cents":
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"cents-checked",
 			"id", m.id,
 			"cents", m.cents,
 		))
 	case "info":
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"status",
 			"id", m.id,
 			"status", "unlocked",
@@ -196,14 +196,14 @@ func (m *lockMachine) Unlocked(emitter mesh.Emitter, evt *event.Event) behaviors
 		))
 	case "coin":
 		cents := payloadCents(evt)
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"coins-returned",
 			"id", m.id,
 			"cents", cents,
 		))
 	case "press-button":
 		if m.cents > 0 {
-			emitter.Emit(event.New(
+			emitter.Broadcast(event.New(
 				"coins-dropped",
 				"id", m.id,
 				"cents", m.cents,
@@ -212,7 +212,7 @@ func (m *lockMachine) Unlocked(emitter mesh.Emitter, evt *event.Event) behaviors
 		}
 		return behaviors.FSMStatus{"locked", m.Locked, nil}
 	default:
-		emitter.Emit(event.New(
+		emitter.Broadcast(event.New(
 			"dunno",
 			"id", m.id,
 		))
@@ -250,7 +250,7 @@ func (b *restorerBehavior) Terminate() error {
 func (b *restorerBehavior) Process(evt *event.Event) error {
 	switch evt.Topic() {
 	case "grab-coins":
-		b.emitter.Emit(event.New("cents", "cents", b.cents))
+		b.emitter.Broadcast(event.New("cents", "cents", b.cents))
 		b.cents = 0
 	case "drop-coins":
 		b.cents += payloadCents(evt)

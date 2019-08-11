@@ -22,10 +22,16 @@ import (
 // Emitter describes a behavior to emit events to subscribers. An instance
 // is passed during initialization.
 type Emitter interface {
-	// Emit allows to emit events to subscribers.
-	Emit(evt *event.Event) error
+	// Subscribers returns the the IDs of the subscriber cells.
+	Subscribers() []string
 
-	// Self allows to emit events back to the cell itself.
+	// Emit emits the given event to the given subscriber if it exists.
+	Emit(id string, evt *event.Event) error
+
+	// Broadcast emits the given event to all subscribers.
+	Broadcast(evt *event.Event) error
+
+	// Self emits the given event back to the cell itself.
 	Self(evt *event.Event) error
 }
 
@@ -42,7 +48,7 @@ type Behavior interface {
 	ID() string
 
 	// Init is called by the cells to initialize the behavior.
-	// Events can be sent to subscribers by emitter.Emit().
+	// The passed emitter is for emitting events to subscribers.
 	Init(emitter Emitter) error
 
 	// Terminate is called when a cell is stopped.
