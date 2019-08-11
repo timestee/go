@@ -107,12 +107,37 @@ func TestMapKeys(t *testing.T) {
 
 	va := pl.At("a").AsFloat64(0.0)
 	assert.Equal(va, 12.34)
-	vb1 := pl.At("b").AsPayloadAt("1").AsString("")
+	vb1 := pl.At("b").AsPayloadAt("1").AsString("-")
 	assert.Equal(vb1, "foo")
-	vb2 := pl.At("b").AsPayloadAt("2").AsString("")
+	vb2 := pl.At("b").AsPayloadAt("2").AsString("-")
 	assert.Equal(vb2, "bar")
 	vc := pl.At("c").AsBool(false)
 	assert.True(vc)
+}
+
+// TestIteratableKeys tests the treating of iteratable keys.
+func TestIteratableKeys(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	kas := []string{"a", "b", "c"}
+	kbs := [3]int{1, 2, 3}
+	pl := event.NewPayload(
+		"a", event.NewPayload(kas),
+		"b", event.NewPayload(kbs),
+	)
+
+	va0 := pl.At("a").AsPayloadAt("0").AsString("-")
+	assert.Equal(va0, "a")
+	va1 := pl.At("a").AsPayloadAt("1").AsString("-")
+	assert.Equal(va1, "b")
+	va2 := pl.At("a").AsPayloadAt("2").AsString("-")
+	assert.Equal(va2, "c")
+
+	vb0 := pl.At("b").AsPayloadAt("0").AsInt(0)
+	assert.Equal(vb0, 1)
+	vb1 := pl.At("b").AsPayloadAt("1").AsInt(0)
+	assert.Equal(vb1, 2)
+	vb2 := pl.At("b").AsPayloadAt("2").AsInt(0)
+	assert.Equal(vb2, 3)
 }
 
 // TestMapValues tests the treating of map values as nested
@@ -137,6 +162,29 @@ func TestMapValues(t *testing.T) {
 	assert.Equal(vbb1, "foo")
 	vbb2 := pl.At("b").AsPayloadAt("b").AsPayloadAt("2").AsString("")
 	assert.Equal(vbb2, "bar")
+}
+
+// TestIteratableValues tests the treating of array and slice values
+// as nested payloads.
+func TestIteratableValues(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	kas := []string{"a", "b", "c"}
+	kbs := [3]int{1, 2, 3}
+	pl := event.NewPayload("a", kas, "b", kbs)
+
+	va0 := pl.At("a").AsPayloadAt("0").AsString("-")
+	assert.Equal(va0, "a")
+	va1 := pl.At("a").AsPayloadAt("1").AsString("-")
+	assert.Equal(va1, "b")
+	va2 := pl.At("a").AsPayloadAt("2").AsString("-")
+	assert.Equal(va2, "c")
+
+	vb0 := pl.At("b").AsPayloadAt("0").AsInt(0)
+	assert.Equal(vb0, 1)
+	vb1 := pl.At("b").AsPayloadAt("1").AsInt(0)
+	assert.Equal(vb1, 2)
+	vb2 := pl.At("b").AsPayloadAt("2").AsInt(0)
+	assert.Equal(vb2, 3)
 }
 
 // TestPayloadClone verifies the cloning of payloads together with
