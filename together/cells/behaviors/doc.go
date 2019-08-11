@@ -42,6 +42,9 @@
 // Mapper maps received events based on a user-defined function to
 // new events.
 //
+// Mesh Router allows to create a list of cell IDs where the received
+// event is then routed to.
+//
 // Once calls the once function only for the first event it receives.
 //
 // Pair checks if the event stream contains two matching ones based on a
@@ -53,8 +56,11 @@
 // Rate Window checks if a number of events in a given timespan matches
 // a given criterion.
 //
-// Router allows to create a list of cell IDs where the received event
-// is then routed to.
+// Round Robin distribtes the received events round robin to the subscribed
+// cells.
+//
+// Router allows to create a list of subscriber cell IDs where the received
+// event is then routed to.
 //
 // Sequence checks the event stream for a defined sequence of events
 // discovered by a user-defined criterion.
