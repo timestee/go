@@ -86,15 +86,31 @@ func (pl *Payload) Keys() []string {
 
 // At returns the value at the given key. This value may
 // be empty.
-func (pl *Payload) At(key string) *Value {
-	v, ok := pl.values[key]
-	if !ok {
+func (pl *Payload) At(keys ...string) *Value {
+	accessError := func(msg string, vs ...interface{}) *Value {
 		return &Value{
-			err: failure.New("no payload value at key %q", key),
+			err: failure.New(msg, vs...),
 		}
 	}
-	return &Value{
-		raw: v,
+	// Analyse values at keys.
+	switch len(keys) {
+	case 0:
+		return accessError("no key passed")
+	case 1:
+		if v, ok := pl.values[keys[0]]; ok {
+			return &Value{
+				raw: v,
+			}
+		}
+		return accessError("no payload value at key %q", keys[0])
+	default:
+		if _, ok := pl.values[keys[0]]; ok {
+			if npl, ok := pl.values[keys[0]].(*Payload); ok {
+				return npl.At(keys[1:]...)
+			}
+			return accessError("value at key %q is no payload", keys[0])
+		}
+		return accessError("no payload value at key %q", keys[0])
 	}
 }
 
