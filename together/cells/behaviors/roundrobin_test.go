@@ -56,6 +56,7 @@ func TestRoundRobinBehavior(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	for i := 1; i < 6; i++ {
+		id := fmt.Sprintf("round-robin-%d", i)
 		msh.Emit(id, event.New(event.TopicProcess))
 		assert.Logf("testing %q", id)
 		assert.Wait(sigc, 5, time.Second)
