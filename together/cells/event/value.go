@@ -74,6 +74,15 @@ func (v *Value) IsUndefined() bool {
 	return v.raw == nil
 }
 
+// IsPayload returns true if the value is a payload.
+func (v *Value) IsPayload() bool {
+	if v.raw == nil {
+		return false
+	}
+	_, ok := v.raw.(*Payload)
+	return ok
+}
+
 // AsString returns the value as string, dv is taken as default value.
 func (v *Value) AsString(dv string) string {
 	if v.IsUndefined() {
@@ -267,13 +276,6 @@ func (v *Value) AsPayload() *Payload {
 			},
 		}
 	}
-}
-
-// AsPayloadAt treats the value as payload and returns the
-// value at the given key. It's a shorthand for nested
-// payloads.
-func (v *Value) AsPayloadAt(key string) *Value {
-	return v.AsPayload().At(key)
 }
 
 // AsPayloadChan returns the value as payload channel.

@@ -60,9 +60,9 @@ func TestNestedPayloads(t *testing.T) {
 	pla := event.NewPayload("aa", 1, "ab", plb)
 
 	assert.Equal(pla.At("aa").AsInt(0), 1)
-	assert.Equal(pla.At("ab").AsPayload().At("ba").AsInt(0), 10)
-	assert.Equal(pla.At("ab").AsPayload().At("bb").AsPayload().At("ca").AsInt(0), 100)
-	assert.Equal(pla.At("ab").AsPayload().At("bb").AsPayload().At("cb").AsInt(0), 200)
+	assert.Equal(pla.At("ab", "ba").AsInt(0), 10)
+	assert.Equal(pla.At("ab", "bb", "ca").AsInt(0), 100)
+	assert.Equal(pla.At("ab", "bb", "cb").AsInt(0), 200)
 }
 
 // TestPayloadValue verifies merging of payloads as values.
@@ -89,8 +89,8 @@ func TestMapKeys(t *testing.T) {
 	pl := event.NewPayload("c", true, mb)
 
 	assert.Equal(pl.At("a").AsFloat64(0.0), 12.34)
-	assert.Equal(pl.At("b").AsPayloadAt("1").AsString("-"), "foo")
-	assert.Equal(pl.At("b").AsPayloadAt("2").AsString("-"), "bar")
+	assert.Equal(pl.At("b", "1").AsString("-"), "foo")
+	assert.Equal(pl.At("b", "2").AsString("-"), "bar")
 	assert.True(pl.At("c").AsBool(false))
 }
 
@@ -104,13 +104,13 @@ func TestIteratableKeys(t *testing.T) {
 		"b", event.NewPayload(kbs),
 	)
 
-	assert.Equal(pl.At("a").AsPayloadAt("0").AsString("-"), "a")
-	assert.Equal(pl.At("a").AsPayloadAt("1").AsString("-"), "b")
-	assert.Equal(pl.At("a").AsPayloadAt("2").AsString("-"), "c")
+	assert.Equal(pl.At("a", "0").AsString("-"), "a")
+	assert.Equal(pl.At("a", "1").AsString("-"), "b")
+	assert.Equal(pl.At("a", "2").AsString("-"), "c")
 
-	assert.Equal(pl.At("b").AsPayloadAt("0").AsInt(0), 1)
-	assert.Equal(pl.At("b").AsPayloadAt("1").AsInt(0), 2)
-	assert.Equal(pl.At("b").AsPayloadAt("2").AsInt(0), 3)
+	assert.Equal(pl.At("b", "0").AsInt(0), 1)
+	assert.Equal(pl.At("b", "1").AsInt(0), 2)
+	assert.Equal(pl.At("b", "2").AsInt(0), 3)
 }
 
 // TestMapValues tests the treating of map values as nested
@@ -128,9 +128,9 @@ func TestMapValues(t *testing.T) {
 	pl := event.NewPayload("a", 1, "b", mb)
 
 	assert.Equal(pl.At("a").AsInt(0), 1)
-	assert.Equal(pl.At("b").AsPayload().At("a").AsFloat64(0.0), 12.34)
-	assert.Equal(pl.At("b").AsPayloadAt("b").AsPayloadAt("1").AsString(""), "foo")
-	assert.Equal(pl.At("b").AsPayloadAt("b").AsPayloadAt("2").AsString(""), "bar")
+	assert.Equal(pl.At("b", "a").AsFloat64(0.0), 12.34)
+	assert.Equal(pl.At("b", "b", "1").AsString(""), "foo")
+	assert.Equal(pl.At("b", "b", "2").AsString(""), "bar")
 }
 
 // TestIteratableValues tests the treating of array and slice values
@@ -141,13 +141,13 @@ func TestIteratableValues(t *testing.T) {
 	vbs := [3]int{1, 2, 3}
 	pl := event.NewPayload("a", vas, "b", vbs)
 
-	assert.Equal(pl.At("a").AsPayloadAt("0").AsString("-"), "a")
-	assert.Equal(pl.At("a").AsPayloadAt("1").AsString("-"), "b")
-	assert.Equal(pl.At("a").AsPayloadAt("2").AsString("-"), "c")
+	assert.Equal(pl.At("a", "0").AsString("-"), "a")
+	assert.Equal(pl.At("a", "1").AsString("-"), "b")
+	assert.Equal(pl.At("a", "2").AsString("-"), "c")
 
-	assert.Equal(pl.At("b").AsPayloadAt("0").AsInt(0), 1)
-	assert.Equal(pl.At("b").AsPayloadAt("1").AsInt(0), 2)
-	assert.Equal(pl.At("b").AsPayloadAt("2").AsInt(0), 3)
+	assert.Equal(pl.At("b", "0").AsInt(0), 1)
+	assert.Equal(pl.At("b", "1").AsInt(0), 2)
+	assert.Equal(pl.At("b", "2").AsInt(0), 3)
 }
 
 // TestPayloadClone verifies the cloning of payloads together with
