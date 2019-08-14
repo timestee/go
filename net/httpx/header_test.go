@@ -62,6 +62,16 @@ func TestUnmarshalBody(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal(dIn, dJSONOut)
 
+	var dJSONOutI interface{}
+
+	rc = ioutil.NopCloser(bytes.NewBuffer(b))
+	err = httpx.UnmarshalBody(rc, h, &dJSONOutI)
+	assert.NoError(err)
+	dJSONOutIM, ok := dJSONOutI.(map[string]interface{})
+	assert.True(ok)
+	assert.Equal(dJSONOutIM["Number"], 1234.0)
+	assert.Equal(dJSONOutIM["Name"], "Test")
+
 	// Second run: XML.
 	b, err = xml.Marshal(dIn)
 	assert.NoError(err)
@@ -99,7 +109,6 @@ func TestUnmarshalBody(t *testing.T) {
 	assert.Equal(dHTML, dHTMLOut)
 
 	// Final run: anything else in BASE64.
-
 	dBASE64 := "VEVTVFZBTFVF"
 	b = []byte{'T', 'E', 'S', 'T', 'V', 'A', 'L', 'U', 'E'}
 	h.Set("Content-Type", "application/x-tideland-testing")
@@ -110,6 +119,13 @@ func TestUnmarshalBody(t *testing.T) {
 	err = httpx.UnmarshalBody(rc, h, &dBASE64Out)
 	assert.NoError(err)
 	assert.Equal(dBASE64, dBASE64Out)
+
+	var dBASE64OutI interface{}
+
+	rc = ioutil.NopCloser(bytes.NewBuffer(b))
+	err = httpx.UnmarshalBody(rc, h, &dBASE64OutI)
+	assert.NoError(err)
+	assert.Equal(dBASE64, dBASE64OutI)
 }
 
 //--------------------

@@ -48,11 +48,15 @@ func UnmarshalBody(body io.ReadCloser, h http.Header, v interface{}) error {
 	}
 	switch {
 	case ContainsContentType(h, contentTypesText):
-		if vs, ok := v.(*string); ok {
-			*vs = string(data)
-			return nil
+		switch tv := v.(type) {
+		case *string:
+			*tv = string(data)
+		case *interface{}:
+			*tv = string(data)
+		default:
+			return failure.New("invalid value argument for text or HTML body;,want string or empty interface")
 		}
-		return failure.New("invalid value argument for text or HTML body, want string")
+		return nil
 	case ContainsContentType(h, ContentTypeJSON):
 		if err = json.Unmarshal(data, &v); err != nil {
 			return failure.Annotate(err, "cannot unmarshal JSON body")
@@ -64,11 +68,16 @@ func UnmarshalBody(body io.ReadCloser, h http.Header, v interface{}) error {
 		}
 		return nil
 	default:
-		if vs, ok := v.(*string); ok {
-			*vs = base64.StdEncoding.EncodeToString(data)
-			return nil
+		sd := base64.StdEncoding.EncodeToString(data)
+		switch tv := v.(type) {
+		case *string:
+			*tv = sd
+		case *interface{}:
+			*tv = sd
+		default:
+			return failure.New("invalid value argument for text or HTML body;,want string or empty interface")
 		}
-		return failure.New("invalid value argument for BASE64 encoded body, want string")
+		return nil
 	}
 }
 
