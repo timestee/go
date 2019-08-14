@@ -17,15 +17,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicSequence signals a complete sequence based on the criterion.
-	TopicSequence = "sequence"
-)
-
-//--------------------
 // SEQUENCE BEHAVIOR
 //--------------------
 

@@ -25,36 +25,42 @@ import (
 // TESTS
 //--------------------
 
-// TestCronjobBehavior tests the cronjob behavior.
-func TestCronjobBehavior(t *testing.T) {
+// TestHTTPClientBehaviorGet tests the HTTP client behavior, here
+// the GET method.
+func TestHTTPClientBehaviorGet(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	sigc := asserts.MakeWaitChan()
+	url := "https://api.github.com/repos/tideland/go/events"
 	msh := mesh.New()
 	defer msh.Stop()
 
-	cronjob := func(emitter mesh.Emitter) {
-		emitter.Broadcast(event.New("action"))
-	}
 	processor := func(accessor event.SinkAccessor) (*event.Payload, error) {
-		sigc <- accessor.Len()
+		ghEventTypes := []string{}
 		accessor.Do(func(index int, evt *event.Event) error {
-			assert.Equal(evt.Topic(), "action")
-			return nil
+			return evt.Payload().At("data").AsPayload().Do(func(key string, value *event.Value) error {
+				ghEventType := value.AsPayload().At("Type").AsString("<unknown>")
+				ghEventTypes = append(ghEventTypes, key+"/"+ghEventType)
+				return nil
+			})
 		})
+		sigc <- ghEventTypes
 		return nil, nil
 	}
 
 	msh.SpawnCells(
-		behaviors.NewCronjobBehavior("cronjob", 50*time.Millisecond, cronjob),
+		behaviors.NewHTTPClientBehavior("github"),
 		behaviors.NewCollectorBehavior("collector", 10, processor),
 	)
-	err := msh.Subscribe("cronjob", "collector")
-	assert.NoError(err)
 
-	time.Sleep(550 * time.Millisecond)
+	msh.Emit("", event.New(behaviors.TopicHTTPGet, "id", "test", "url", url))
 
-	msh.Emit("collector", event.New(event.TopicProcess))
-	assert.Wait(sigc, 10, time.Minute)
+	assert.WaitTested(sigc, func(v interface{}) error {
+		ghEventTypes := v.([]string)
+		for i, ghEventType := range ghEventTypes {
+			assert.Logf("%d) %s", i, ghEventType)
+		}
+		return nil
+	}, time.Second)
 }
 
 // EOF

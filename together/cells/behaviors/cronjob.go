@@ -25,7 +25,7 @@ import (
 //--------------------
 
 // Cronjob dynamically returns the event to be emitted by the cronjob behavior.
-type Cronjob func() *event.Event
+type Cronjob func(emitter mesh.Emitter)
 
 // cronjobBehavior chronologically emits events.
 type cronjobBehavior struct {
@@ -66,7 +66,7 @@ func (b *cronjobBehavior) Terminate() error {
 // Process emits a ticker event each time the defined duration elapsed.
 func (b *cronjobBehavior) Process(evt *event.Event) error {
 	if evt.Topic() == TopicTick {
-		b.emitter.Broadcast(b.cronjob())
+		b.cronjob(b.emitter)
 	}
 	return nil
 }

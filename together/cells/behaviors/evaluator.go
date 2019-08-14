@@ -19,15 +19,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicEvaluation labes an event as emitted evaluation.
-	TopicEvaluation = "evaluation"
-)
-
-//--------------------
 // EVALUATOR BEHAVIOR
 //--------------------
 

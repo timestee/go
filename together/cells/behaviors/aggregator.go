@@ -17,15 +17,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicAggregated is used for events emitted by the aggregator behavior.
-	TopicAggregated = "aggregated"
-)
-
-//--------------------
 // AGGREGATOR BEHAVIOR
 //--------------------
 

@@ -17,15 +17,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicFSMStatus is used to make the FSM emit its current status.
-	TopicFSMStatus = "fsm-status"
-)
-
-//--------------------
 // FSM BEHAVIOR
 //--------------------
 

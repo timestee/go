@@ -21,15 +21,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicTick signals a tick event.
-	TopicTick = "tick"
-)
-
-//--------------------
 // TICKER BEHAVIOR
 //--------------------
 
