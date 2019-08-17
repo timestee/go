@@ -72,36 +72,41 @@ func (b *httpClientBehavior) processGet(evt *event.Event) error {
 	id := evt.Payload().At("id").AsString("<none>")
 	url := evt.Payload().At("url").AsString("")
 	resp, err := http.Get(url)
-	if err != nil {
-		b.emitter.Broadcast(event.New(
-			TopicHTTPGetReply,
-			"id", id,
-			"url", url,
-			"code", resp.StatusCode,
-			"error", err,
-		))
-		return nil
-	}
-	var data interface{}
-	err = httpx.UnmarshalBody(resp.Body, resp.Header, &data)
-	if err != nil {
-		b.emitter.Broadcast(event.New(
-			TopicHTTPGetReply,
-			"id", id,
-			"url", url,
-			"error", err,
-		))
-		return nil
-	}
-	b.emitter.Broadcast(event.New(
-		TopicHTTPGetReply,
-		"id", id,
-		"url", url,
-		"code", resp.StatusCode,
-		"type", resp.Header[httpx.HeaderContentType],
-		"data", data,
-	))
+	b.broadcastReply(TopicHTTPGetReply, id, url, resp, err)
 	return nil
+}
+
+// broadcastReply reads the reply and broadcasts it.
+func (b *httpClientBehavior) broadcastReply(topic, id, url string, resp *http.Response, err error) {
+	headerToPayload := func() *event.Payload {
+		var hplvs []interface{}
+		for key := range resp.Header {
+			hplvs = append(hplvs, key, resp.Header.Get(key))
+		}
+		return event.NewPayload(hplvs...)
+	}
+
+	var plvs []interface{}
+
+	plvs = append(plvs, "id", id)
+	plvs = append(plvs, "url", url)
+
+	if err != nil {
+		plvs = append(plvs, "error", err)
+	} else {
+		var data interface{}
+		err = httpx.UnmarshalBody(resp.Body, resp.Header, &data)
+		if err != nil {
+			plvs = append(plvs, "status-code", resp.StatusCode)
+			plvs = append(plvs, "header", headerToPayload())
+			plvs = append(plvs, "error", err)
+		} else {
+			plvs = append(plvs, "status-code", resp.StatusCode)
+			plvs = append(plvs, "header", headerToPayload())
+			plvs = append(plvs, "data", data)
+		}
+	}
+	b.emitter.Broadcast(event.New(topic, plvs...))
 }
 
 // EOF

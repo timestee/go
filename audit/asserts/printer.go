@@ -196,8 +196,8 @@ func (p *bufferedPrinter) Flush() []string {
 // HELPER
 //--------------------
 
-// ValueDescription returns a description of a value as string.
-func ValueDescription(value interface{}) string {
+// valueDescription returns a description of a value as string.
+func valueDescription(value interface{}) string {
 	rvalue := reflect.ValueOf(value)
 	kind := rvalue.Kind()
 	switch kind {
@@ -209,9 +209,20 @@ func ValueDescription(value interface{}) string {
 		return kind.String() + " " + rvalue.Type().Name()
 	case reflect.Ptr:
 		return kind.String() + " to " + rvalue.Type().Elem().String()
+	default:
+		return kind.String()
 	}
-	// Default.
-	return kind.String()
+}
+
+// typedValue returns a value including its type.
+func typedValue(value interface{}) string {
+	kind := reflect.ValueOf(value).Kind()
+	switch kind {
+	case reflect.String:
+		return fmt.Sprintf("%q (string)", value)
+	default:
+		return fmt.Sprintf("%v (%s)", value, kind.String())
+	}
 }
 
 // EOF

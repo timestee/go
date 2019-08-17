@@ -47,7 +47,7 @@ func (m *Mesh) SpawnCells(behaviors ...Behavior) error {
 			// No double deployment.
 			continue
 		}
-		cell, err := newCell(behavior)
+		cell, err := newCell(m, behavior)
 		if err != nil {
 			return err
 		}

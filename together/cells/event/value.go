@@ -101,6 +101,8 @@ func (v *Value) AsString(dv string) string {
 		return tv.Format(time.RFC3339Nano)
 	case time.Duration:
 		return tv.String()
+	case *Payload:
+		return tv.String()
 	}
 	return dv
 }

@@ -21,24 +21,20 @@ import (
 // MESH ROUTER BEHAVIOR
 //--------------------
 
-// MeshRouter is a function type determining which cells shall get the event.
-type MeshRouter func(evt *event.Event) []string
-
 // meshRouterBehavior check for each received event which cell will
 // get it based on the router function.
 type meshRouterBehavior struct {
 	id      string
-	routeTo MeshRouter
-	msh     *mesh.Mesh
+	emitter mesh.Emitter
+	routeTo Router
 }
 
 // NewMeshRouterBehavior creates a mesh router behavior using the passed function
 // to determine to which cells the received event shall be re-emitted.
-func NewMeshRouterBehavior(id string, router MeshRouter, msh *mesh.Mesh) mesh.Behavior {
+func NewMeshRouterBehavior(id string, router Router) mesh.Behavior {
 	return &meshRouterBehavior{
 		id:      id,
 		routeTo: router,
-		msh:     msh,
 	}
 }
 
@@ -49,6 +45,7 @@ func (b *meshRouterBehavior) ID() string {
 
 // Init the behavior.
 func (b *meshRouterBehavior) Init(emitter mesh.Emitter) error {
+	b.emitter = emitter
 	return nil
 }
 
@@ -62,7 +59,7 @@ func (b *meshRouterBehavior) Process(evt *event.Event) error {
 	ids := b.routeTo(evt)
 	var errs []error
 	for _, id := range ids {
-		errs = append(errs, b.msh.Emit(id, evt))
+		errs = append(errs, b.emitter.Mesh().Emit(id, evt))
 	}
 	return failure.Collect(errs...)
 }
