@@ -209,9 +209,20 @@ func ValueDescription(value interface{}) string {
 		return kind.String() + " " + rvalue.Type().Name()
 	case reflect.Ptr:
 		return kind.String() + " to " + rvalue.Type().Elem().String()
+	default:
+		return kind.String()
 	}
-	// Default.
-	return kind.String()
+}
+
+// TypedValue returns a value including its type.
+func TypedValue(value interface{}) string {
+	kind := reflect.ValueOf(value).Kind()
+	switch kind {
+	case reflect.String:
+		return fmt.Sprintf("%q (string)", value)
+	default:
+		return fmt.Sprintf("%v (%s)", value, kind.String())
+	}
 }
 
 // EOF

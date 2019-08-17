@@ -30,6 +30,8 @@
 //
 // Counter counts events, the counters can be retrieved.
 //
+// Cronjob performs a given function with an emitter every given duration.
+//
 // Evaluator evaluates events based on a user-defined function which
 // returns a rating.
 //

@@ -19,19 +19,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicPair signals a detected pair of events.
-	TopicPair = "pair"
-
-	// TopicPairTimeout signals a timeout during waiting for a
-	// pair of events.
-	TopicPairTimeout = "pair-timeout"
-)
-
-//--------------------
 // PAIR BEHAVIOR
 //--------------------
 

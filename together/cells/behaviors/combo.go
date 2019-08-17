@@ -17,16 +17,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicComboComplete is used for events emitted by the combo in
-	// case of a complete combination.
-	TopicComboComplete = "combo-complete"
-)
-
-//--------------------
 // SEQUENCE BEHAVIOR
 //--------------------
 

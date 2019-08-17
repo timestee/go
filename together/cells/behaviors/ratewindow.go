@@ -19,15 +19,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicRateWindow signals a detected event rate window.
-	TopicRateWindow = "rate-window"
-)
-
-//--------------------
 // RATE BEHAVIOR
 //--------------------
 

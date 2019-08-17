@@ -21,59 +21,64 @@ import (
 )
 
 //--------------------
-// TICKER BEHAVIOR
+// CRONJOB BEHAVIOR
 //--------------------
 
-// tickerBehavior chronologically emits events.
-type tickerBehavior struct {
+// Cronjob dynamically returns the event to be emitted by the cronjob behavior.
+type Cronjob func(emitter mesh.Emitter)
+
+// cronjobBehavior chronologically emits events.
+type cronjobBehavior struct {
 	id       string
 	emitter  mesh.Emitter
 	duration time.Duration
+	cronjob  Cronjob
 	loop     *loop.Loop
 }
 
-// NewTickerBehavior creates a ticker behavior for the emitting of
+// NewCronjobBehavior creates a ticker behavior for the emitting of
 // "tick" events every given duration.
-func NewTickerBehavior(id string, duration time.Duration) mesh.Behavior {
-	return &tickerBehavior{
+func NewCronjobBehavior(id string, duration time.Duration, cronjob Cronjob) mesh.Behavior {
+	return &cronjobBehavior{
 		id:       id,
 		duration: duration,
+		cronjob:  cronjob,
 	}
 }
 
 // ID returns the individual identifier of a behavior instance.
-func (b *tickerBehavior) ID() string {
+func (b *cronjobBehavior) ID() string {
 	return b.id
 }
 
 // Init the behavior.
-func (b *tickerBehavior) Init(emitter mesh.Emitter) error {
+func (b *cronjobBehavior) Init(emitter mesh.Emitter) error {
 	b.emitter = emitter
 	b.loop = loop.New(b.tickerLoop).Go()
 	return nil
 }
 
 // Terminate the behavior.
-func (b *tickerBehavior) Terminate() error {
+func (b *cronjobBehavior) Terminate() error {
 	return b.loop.Stop(nil)
 }
 
 // Process emits a ticker event each time the defined duration elapsed.
-func (b *tickerBehavior) Process(evt *event.Event) error {
+func (b *cronjobBehavior) Process(evt *event.Event) error {
 	if evt.Topic() == TopicTick {
-		b.emitter.Broadcast(event.New(TopicTick, "id", b.id))
+		b.cronjob(b.emitter)
 	}
 	return nil
 }
 
 // Recover from an error. Counter will be set back to the initial counter.
-func (b *tickerBehavior) Recover(err interface{}) error {
+func (b *cronjobBehavior) Recover(err interface{}) error {
 	return nil
 }
 
 // tickerLoop is the sending a tick event to itself. It acts there to
 // avoid races when subscribers are updated.
-func (b *tickerBehavior) tickerLoop(c *notifier.Closer) error {
+func (b *cronjobBehavior) tickerLoop(c *notifier.Closer) error {
 	ticker := time.NewTicker(b.duration)
 	defer ticker.Stop()
 	for {

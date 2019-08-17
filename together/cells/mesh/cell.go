@@ -24,14 +24,16 @@ import (
 // cell runs a behavior for the processing of events and emitting of
 // resulting events.
 type cell struct {
+	msh             *Mesh
 	behavior        Behavior
 	subscribedCells map[string]*cell
 	act             *actor.Actor
 }
 
 // newCell creates a new cell running the given behavior in a goroutine.
-func newCell(behavior Behavior) (*cell, error) {
+func newCell(msh *Mesh, behavior Behavior) (*cell, error) {
 	c := &cell{
+		msh:             msh,
 		behavior:        behavior,
 		subscribedCells: map[string]*cell{},
 		act: actor.New(
@@ -45,6 +47,11 @@ func newCell(behavior Behavior) (*cell, error) {
 		return nil, c.act.Stop(failure.Annotate(err, "cannot init cell %q", behavior.ID()))
 	}
 	return c, nil
+}
+
+// Mesh is part of the emitter interface and returns the mesh of the emitter.
+func (c *cell) Mesh() *Mesh {
+	return c.msh
 }
 
 // Subscribers is part of the emitter interface and returns the

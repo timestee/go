@@ -19,15 +19,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// TopicRate signals the rate of detected matching events.
-	TopicRate = "rate"
-)
-
-//--------------------
 // RATE BEHAVIOR
 //--------------------
 

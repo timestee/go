@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"tideland.dev/go/trace/failure"
@@ -152,6 +153,20 @@ func (pl *Payload) Clone(kvs ...interface{}) *Payload {
 	return plc
 }
 
+// Len returns the number of values of the payload.
+func (pl *Payload) Len() int {
+	return len(pl.values)
+}
+
+// String implements fmt.Stringer.
+func (pl *Payload) String() string {
+	var kvs []string
+	for key, value := range pl.values {
+		kvs = append(kvs, fmt.Sprintf("%s:%v", key, value))
+	}
+	return fmt.Sprintf("Payload[%s]", strings.Join(kvs, " "))
+}
+
 // setKeyValues iterates over the key/value values and adds
 // them to the payloads values.
 func (pl *Payload) setKeyValues(kvs ...interface{}) {
@@ -169,15 +184,14 @@ func (pl *Payload) setKeyValues(kvs ...interface{}) {
 			case reflect.Map:
 				// A map, merge it.
 				pl.mergeMap(kv)
-				continue
 			case reflect.Array, reflect.Slice:
 				// An iteratable, merge it.
 				pl.mergeIteratable(kv)
-				continue
+			default:
+				// Any other key.
+				key = fmt.Sprintf("%v", kv)
+				pl.values[key] = DefaultValue
 			}
-			// Any other key.
-			key = fmt.Sprintf("%v", kv)
-			pl.values[key] = DefaultValue
 			continue
 		}
 		// Talking about a value.

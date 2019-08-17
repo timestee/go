@@ -354,7 +354,7 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 		}
 	case Fail:
 	default:
-		fmt.Fprintf(buffer, "got: %v, want: %v", obtained, expected)
+		fmt.Fprintf(buffer, "got: %v, want: %v", TypedValue(obtained), TypedValue(expected))
 	}
 	if len(msgs) > 0 {
 		if buffer.Bytes()[buffer.Len()-1] != byte('{') {

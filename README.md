@@ -26,6 +26,7 @@
     + `timex` helps working with times
     + `version` helps managing semantic versioning
 - `net` groups the work with the network
+	+ `httpx` adds useful functions to the standard HTTP package
     + `jwt` implements a complete JSON Web Token plus caching
     + `webbox` enhances the standard HTTP multiplexing of request to handlers and functions
 - `text` simplifies life with text data
