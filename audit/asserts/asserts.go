@@ -270,7 +270,7 @@ func (a *Asserts) Unassignable(obtained, expected interface{}, msgs ...string) b
 func (a *Asserts) Empty(obtained interface{}, msgs ...string) bool {
 	length, err := a.Len(obtained)
 	if err != nil {
-		return a.failer.Fail(Empty, valueDescription(obtained), 0, err.Error())
+		return a.failer.Fail(Empty, ValueDescription(obtained), 0, err.Error())
 	}
 	if length > 0 {
 		return a.failer.Fail(Empty, length, 0, msgs...)
@@ -284,7 +284,7 @@ func (a *Asserts) Empty(obtained interface{}, msgs ...string) bool {
 func (a *Asserts) NotEmpty(obtained interface{}, msgs ...string) bool {
 	length, err := a.Len(obtained)
 	if err != nil {
-		return a.failer.Fail(NotEmpty, valueDescription(obtained), 0, err.Error())
+		return a.failer.Fail(NotEmpty, ValueDescription(obtained), 0, err.Error())
 	}
 	if length == 0 {
 		return a.failer.Fail(NotEmpty, length, 0, msgs...)
@@ -298,7 +298,7 @@ func (a *Asserts) NotEmpty(obtained interface{}, msgs ...string) bool {
 func (a *Asserts) Length(obtained interface{}, expected int, msgs ...string) bool {
 	length, err := a.Len(obtained)
 	if err != nil {
-		return a.failer.Fail(Length, valueDescription(obtained), expected, err.Error())
+		return a.failer.Fail(Length, ValueDescription(obtained), expected, err.Error())
 	}
 	if length != expected {
 		return a.failer.Fail(Length, length, expected, msgs...)
@@ -309,7 +309,7 @@ func (a *Asserts) Length(obtained interface{}, expected int, msgs ...string) boo
 // Panics checks if the passed function panics.
 func (a *Asserts) Panics(pf func(), msgs ...string) bool {
 	if !a.HasPanic(pf) {
-		return a.failer.Fail(Panics, valueDescription(pf), nil, msgs...)
+		return a.failer.Fail(Panics, ValueDescription(pf), nil, msgs...)
 	}
 	return true
 }
@@ -464,7 +464,7 @@ func obexString(test Test, obtained, expected interface{}) string {
 	case True, False, Nil, NotNil, Empty, NotEmpty:
 		return fmt.Sprintf("'%v'", obtained)
 	case Implementor, Assignable, Unassignable:
-		return fmt.Sprintf("'%v' <> '%v'", valueDescription(obtained), valueDescription(expected))
+		return fmt.Sprintf("'%v' <> '%v'", ValueDescription(obtained), ValueDescription(expected))
 	case Range:
 		lh := expected.(*lowHigh)
 		return fmt.Sprintf("not '%v' <= '%v' <= '%v'", lh.low, obtained, lh.high)

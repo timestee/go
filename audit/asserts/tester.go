@@ -228,7 +228,7 @@ func (t Tester) Len(obtained interface{}) (int, error) {
 	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
 		return obtainedValue.Len(), nil
 	default:
-		descr := valueDescription(obtained)
+		descr := ValueDescription(obtained)
 		return 0, fmt.Errorf("obtained %s is no array, chan, map, slice, string or understands Len()", descr)
 	}
 }

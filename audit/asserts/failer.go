@@ -344,7 +344,7 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 	case True, False, Nil, NotNil, NoError, Empty, NotEmpty, Panics:
 		fmt.Fprintf(buffer, "got: %v", obtained)
 	case Implementor, Assignable, Unassignable:
-		fmt.Fprintf(buffer, "got: %v, want: %v", valueDescription(obtained), valueDescription(expected))
+		fmt.Fprintf(buffer, "got: %v, want: %v", ValueDescription(obtained), ValueDescription(expected))
 	case Contents:
 		switch typedObtained := obtained.(type) {
 		case string:
@@ -354,7 +354,7 @@ func (f *testingFailer) Fail(test Test, obtained, expected interface{}, msgs ...
 		}
 	case Fail:
 	default:
-		fmt.Fprintf(buffer, "got: %v, want: %v", typedValue(obtained), typedValue(expected))
+		fmt.Fprintf(buffer, "got: %v, want: %v", TypedValue(obtained), TypedValue(expected))
 	}
 	if len(msgs) > 0 {
 		if buffer.Bytes()[buffer.Len()-1] != byte('{') {
