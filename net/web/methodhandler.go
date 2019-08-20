@@ -13,6 +13,8 @@ package web // import "tideland.dev/go/net/web"
 
 import (
 	"net/http"
+
+	"tideland.dev/go/net/httpx"
 )
 
 //--------------------
@@ -42,12 +44,24 @@ func NewMethodHandler() *MethodHandler {
 
 // Handle adds the handler based on the method.
 func (mh *MethodHandler) Handle(method string, handler http.Handler) {
+	if !httpx.IsValidMethod(method) {
+		panic("invalid HTTP method")
+	}
+	if handler == nil {
+		panic("need handler")
+	}
+	if _, exist := mh.handlers[method]; exist {
+		panic("multiple registrations for " + method)
+	}
 	mh.handlers[method] = handler
 }
 
 // HandleFunc adds the handler function based on the method.
 func (mh *MethodHandler) HandleFunc(method string, hf func(http.ResponseWriter, *http.Request)) {
-	mh.handlers[method] = http.HandlerFunc(hf)
+	if hf == nil {
+		panic("need handler function")
+	}
+	mh.Handle(method, http.HandlerFunc(hf))
 }
 
 // ServeHTTP implements http.Handler.
@@ -56,7 +70,7 @@ func (mh *MethodHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		handler, ok = mh.handlers[MethodAll]
 		if !ok {
-			http.Error(w, "cannot handle request", http.StatusMethodNotAllowed)
+			http.Error(w, "no matching method handler found", http.StatusMethodNotAllowed)
 			return
 		}
 	}

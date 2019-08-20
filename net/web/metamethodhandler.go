@@ -85,6 +85,9 @@ type MetaMethodHandler struct {
 
 // NewMetaMethodHandler creates a meta HTTP method handler.
 func NewMetaMethodHandler(handler http.Handler) *MetaMethodHandler {
+	if handler == nil {
+		panic("need handler")
+	}
 	return &MetaMethodHandler{
 		handler: handler,
 	}

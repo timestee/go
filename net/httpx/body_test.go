@@ -124,21 +124,54 @@ func TestMarshalBody(t *testing.T) {
 		Tags:   []string{"json", "xml", "testing"},
 	}
 	h := http.Header{}
-	b := []byte{}
 
 	// First run: JSON.
 	h.Set("Content-Type", "application/json; charset=ISO-8859-1")
 
-	buf := bytes.NewBuffer(b)
-	err := httpx.MarshalBody(buf, h, &dOut)
+	buf := bytes.NewBuffer([]byte{})
+	err := httpx.MarshalBody(buf, h, dOut)
 	assert.NoError(err)
 
 	var dJSONIn data
 
 	err = json.Unmarshal(buf.Bytes(), &dJSONIn)
 	assert.NoError(err)
-
 	assert.Equal(dOut, dJSONIn)
+
+	// Second run: XML.
+	h.Set("Content-Type", "application/xml; charset=UTF-8")
+
+	buf = bytes.NewBuffer([]byte{})
+	err = httpx.MarshalBody(buf, h, dOut)
+	assert.NoError(err)
+
+	var dXMLIn data
+
+	err = xml.Unmarshal(buf.Bytes(), &dXMLIn)
+	assert.NoError(err)
+	assert.Equal(dOut, dXMLIn)
+
+	// Third run: plain text.
+	h.Set("Content-Type", "text/plain")
+
+	dTextOut := "This is a test!"
+	buf = bytes.NewBuffer([]byte{})
+	err = httpx.MarshalBody(buf, h, dTextOut)
+	assert.NoError(err)
+
+	dTextIn := buf.String()
+	assert.Equal(dTextOut, dTextIn)
+
+	// Final run: HTML.
+	h.Set("Content-Type", "text/html")
+
+	dHTMLOut := "<html><head><title>Test</title></head><body><p>Hello, World!</p></body></html>"
+	buf = bytes.NewBuffer([]byte{})
+	err = httpx.MarshalBody(buf, h, dHTMLOut)
+	assert.NoError(err)
+
+	dHTMLIn := buf.String()
+	assert.Equal(dHTMLOut, dHTMLIn)
 }
 
 //--------------------
