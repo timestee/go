@@ -28,7 +28,7 @@
 - `net` groups the work with the network
 	+ `httpx` adds useful functions to the standard HTTP package
     + `jwt` implements a complete JSON Web Token plus caching
-    + `webbox` enhances the standard HTTP multiplexing of request to handlers and functions
+    + `web` provides some useful handlers for multiplexing and JWT authorization
 - `text` simplifies life with text data
     + `etc` manages configurations including internel references to environment variables, cross references, and extraction of subtrees for using types; syntax is `sml` (see below)
     + `gjp` is the generic JSON processing without static type marshalling
