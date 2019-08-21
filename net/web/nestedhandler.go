@@ -47,29 +47,20 @@ func (nh *NestedHandler) AppendHandlerFunc(id string, hf func(http.ResponseWrite
 
 // ServeHTTP implements http.Handler.
 func (nh *NestedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	handler, ok := nh.handler(r.URL.Path)
-	if !ok {
-		http.Error(w, "cannot handle request", http.StatusRequestURITooLong)
-		return
-	}
+	handler := nh.handler(r.URL.Path)
 	handler.ServeHTTP(w, r)
 }
 
 // handler retrieves the correct handler from the stack.
-func (nh *NestedHandler) handler(path string) (http.Handler, bool) {
-	if strings.HasSuffix(path, "/") {
-		path = strings.TrimSuffix(path, "/")
-	}
+func (nh *NestedHandler) handler(path string) http.Handler {
+	path = strings.Trim(path, "/")
 	fields := strings.Split(path, "/")
 	fieldsLen := len(fields)
 	index := (fieldsLen - 1) / 2
-	if index > nh.handlersLen-1 {
-		return nil, false
+	if (fieldsLen == 1 && fields[0] == "") || index >= nh.handlersLen {
+		return http.NotFoundHandler()
 	}
-	if nh.handlerIDs[index] != fields[index*2] {
-		return nil, false
-	}
-	return nh.handlers[index], true
+	return nh.handlers[index]
 }
 
 // EOF

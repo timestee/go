@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package httpx_test // import "tideland.dev/go/net/httpx"
+package httpx_test // import "tideland.dev/go/net/httpx_test"
 
 //--------------------
 // IMPORTS
