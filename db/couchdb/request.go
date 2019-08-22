@@ -19,7 +19,7 @@ import (
 	"net/url"
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 	"tideland.dev/go/trace/logger"
 )
 
@@ -143,14 +143,14 @@ func (req *Request) do(method string) *ResultSet {
 	if req.doc != nil {
 		marshalled, err := json.Marshal(req.doc)
 		if err != nil {
-			return newResultSet(nil, errors.Annotate(err, ErrEncoding, msgEncoding))
+			return newResultSet(nil, failure.Annotate(err, "cannot marshal into database document"))
 		}
 		req.docReader = bytes.NewBuffer(marshalled)
 	}
 	// Prepare HTTP request.
 	httpReq, err := http.NewRequest(method, u.String(), req.docReader)
 	if err != nil {
-		return newResultSet(nil, errors.Annotate(err, ErrPreparingRequest, msgPreparingRequest))
+		return newResultSet(nil, failure.Annotate(err, "cannot prepare request"))
 	}
 	httpReq.Close = true
 	if len(req.header) > 0 {
@@ -165,7 +165,7 @@ func (req *Request) do(method string) *ResultSet {
 	// Perform HTTP request.
 	httpResp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		return newResultSet(nil, errors.Annotate(err, ErrPerformingRequest, msgPerformingRequest))
+		return newResultSet(nil, failure.Annotate(err, "cannot perform request"))
 	}
 	return newResultSet(httpResp, nil)
 }

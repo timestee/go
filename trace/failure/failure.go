@@ -106,6 +106,11 @@ func IsValid(err error) bool {
 	return ok
 }
 
+// Contains returns true if the given error contains a given string.
+func Contains(err error, substr string) bool {
+	return strings.Contains(err.Error(), substr)
+}
+
 // Annotated returns the possibly annotated error. In case of
 // a different error an invalid type error is returned.
 func Annotated(err error) error {

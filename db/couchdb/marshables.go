@@ -14,7 +14,7 @@ package couchdb // import "tideland.dev/go/db/couchdb"
 import (
 	"encoding/json"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -64,7 +64,7 @@ func (u *Unmarshable) Raw() []byte {
 func (u *Unmarshable) Unmarshal(doc interface{}) error {
 	err := json.Unmarshal(u.message, doc)
 	if err != nil {
-		return errors.Annotate(err, ErrDecoding, msgDecoding)
+		return failure.Annotate(err, "cannot unmarshal database document")
 	}
 	return nil
 }
