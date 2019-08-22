@@ -1,11 +1,11 @@
-// Tideland Go Library - Network - Web Toolbox
+// Tideland Go Library - Network - HTTP Extensions
 //
 // Copyright (C) 2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package webbox // import "tideland.dev/go/net/webbox"
+package httpx // import "tideland.dev/go/net/httpx"
 
 //--------------------
 // IMPORTS
@@ -19,7 +19,7 @@ import (
 // CONSTANTS
 //--------------------
 
-// httpMethods contains all HTTP methods.
+// httpMethods contains all valid HTTP methods.
 var httpMethods = map[string]struct{}{
 	http.MethodGet:     {},
 	http.MethodHead:    {},
@@ -33,11 +33,11 @@ var httpMethods = map[string]struct{}{
 }
 
 //--------------------
-// METHOD RELATED FUNCTIONS
+// METHOD TOOLS
 //--------------------
 
-// ValidMethod returns true if the passed method is valid.
-func ValidMethod(method string) bool {
+// IsValidMethod returns true if the passed method is valid.
+func IsValidMethod(method string) bool {
 	_, valid := httpMethods[method]
 	return valid
 }

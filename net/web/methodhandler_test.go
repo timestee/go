@@ -1,11 +1,11 @@
-// Tideland Go Library - Network - Web Toolbox - Unit Tests
+// Tideland Go Library - Network - Web - Unit Tests
 //
 // Copyright (C) 2019 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package webbox_test // import "tideland.dev/go/net/webbox"
+package web_test // import "tideland.dev/go/net/web_test"
 
 //--------------------
 // IMPORTS
@@ -16,51 +16,51 @@ import (
 	"testing"
 
 	"tideland.dev/go/audit/asserts"
-	"tideland.dev/go/net/webbox"
+	"tideland.dev/go/net/web"
 )
 
 //--------------------
 // TESTS
 //--------------------
 
-// TestInvalidMethodMultiplexer tests the panics for invalid values
-// passed to a MethodMux.
-func TestInvalidMethodMultiplexer(t *testing.T) {
+// TestInvalidMethodHandler tests the panics for invalid values
+// passed to a MethodHandler.
+func TestInvalidMethodHandler(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
-	mmux := webbox.NewMethodMux()
+	mh := web.NewMethodHandler()
 
 	assert.Panics(func() {
-		mmux.HandleFunc("", makeMethodEcho(assert))
-	}, "webbox: invalid method")
+		mh.HandleFunc("", makeMethodEcho(assert))
+	}, "invalid HTTP method")
 
 	assert.Panics(func() {
-		mmux.HandleFunc("DO-SOMETHING", makeMethodEcho(assert))
-	}, "webbox: invalid method")
+		mh.HandleFunc("DO-SOMETHING", makeMethodEcho(assert))
+	}, "invalid HTTP method")
 
 	assert.Panics(func() {
-		mmux.HandleFunc(http.MethodGet, nil)
-	}, "webbox: nil handler")
+		mh.HandleFunc(http.MethodGet, nil)
+	}, "need handler function")
 
-	mmux.HandleFunc(http.MethodGet, makeMethodEcho(assert))
+	mh.HandleFunc(http.MethodGet, makeMethodEcho(assert))
 
 	assert.Panics(func() {
-		mmux.HandleFunc(http.MethodGet, makeMethodEcho(assert))
-	}, "webbox: multiple registrations for GET")
+		mh.HandleFunc(http.MethodGet, makeMethodEcho(assert))
+	}, "multiple registrations for GET")
 }
 
-// TestMethodMultiplexer tests the multiplexing of methods to different handler.
-func TestMethodMultiplexer(t *testing.T) {
+// TestMethodHandler tests the multiplexing of methods to different handler.
+func TestMethodHandler(t *testing.T) {
 	assert := asserts.NewTesting(t, asserts.FailStop)
 	wa := startWebAsserter(assert)
 	defer wa.Close()
 
-	mmux := webbox.NewMethodMux()
+	mh := web.NewMethodHandler()
 
-	mmux.HandleFunc(http.MethodGet, makeMethodEcho(assert))
-	mmux.HandleFunc(http.MethodPatch, makeMethodEcho(assert))
-	mmux.HandleFunc(http.MethodOptions, makeMethodEcho(assert))
+	mh.HandleFunc(http.MethodGet, makeMethodEcho(assert))
+	mh.HandleFunc(http.MethodPatch, makeMethodEcho(assert))
+	mh.HandleFunc(http.MethodOptions, makeMethodEcho(assert))
 
-	wa.Handle("/mmux/", mmux)
+	wa.Handle("/mh/", mh)
 
 	tests := []struct {
 		method     string
@@ -107,7 +107,7 @@ func TestMethodMultiplexer(t *testing.T) {
 	}
 	for i, test := range tests {
 		assert.Logf("test case #%d: %s", i, test.method)
-		wreq := wa.CreateRequest(test.method, "/mmux/")
+		wreq := wa.CreateRequest(test.method, "/mh/")
 		wresp := wreq.Do()
 		wresp.AssertStatusCodeEquals(test.statusCode)
 		wresp.AssertBodyMatches(test.body)
