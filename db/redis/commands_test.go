@@ -17,7 +17,7 @@ import (
 
 	"tideland.dev/go/audit/asserts"
 	"tideland.dev/go/db/redis"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -375,7 +375,7 @@ func TestTransactionConnection(t *testing.T) {
 	conn.Do("set", "tx:i", 6)
 	<-sig
 	_, err = conn.Do("exec")
-	assert.True(errors.IsError(err, redis.ErrTimeout))
+	assert.True(failure.Contains(err, "timeout"))
 	valueH, err := conn.DoInt("get", "tx:h")
 	assert.Nil(err)
 	assert.Equal(valueH, 99)
@@ -440,7 +440,7 @@ func TestTransactionPipelineWatch(t *testing.T) {
 	<-waitc
 	fgConn.Do("exec")
 	_, err = fgConn.Collect()
-	assert.True(errors.IsError(err, redis.ErrTimeout))
+	assert.True(failure.Contains(err, "timeout"))
 	valueB, err := bgConn.DoInt("get", "watch:b")
 	assert.Nil(err)
 	assert.Equal(valueB, 99)
@@ -491,7 +491,7 @@ func TestPubSub(t *testing.T) {
 	defer subRestore()
 
 	_, err := conn.Do("subscribe", "pubsub")
-	assert.True(errors.IsError(err, redis.ErrUseSubscription))
+	assert.True(failure.Contains(err, "subscription"))
 
 	err = sub.Subscribe("pubsub")
 	assert.Nil(err)
