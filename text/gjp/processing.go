@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"tideland.dev/go/text/stringex"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -74,7 +74,7 @@ func valueAt(node interface{}, parts []string) (interface{}, error) {
 		// JSON object.
 		field, ok := o[head]
 		if !ok {
-			return nil, errors.New(ErrInvalidPart, "invalid path part: '%s'", head)
+			return nil, failure.New("invalid path part: '%s'", head)
 		}
 		return valueAt(field, tail)
 	}
@@ -82,12 +82,12 @@ func valueAt(node interface{}, parts []string) (interface{}, error) {
 		// JSON array.
 		index, err := strconv.Atoi(head)
 		if err != nil || index >= len(a) {
-			return nil, errors.Annotate(err, ErrInvalidPart, "invalid path part: '%s'", head)
+			return nil, failure.Annotate(err, "invalid path part: '%s'", head)
 		}
 		return valueAt(a[index], tail)
 	}
 	// Parts left but field value.
-	return nil, errors.New(ErrPathTooLong, "path is too long")
+	return nil, failure.New("path is too long")
 }
 
 // setValueAt sets the value at the path parts.
@@ -120,9 +120,9 @@ func setNodeValueAt(node, value interface{}, head string, tail []string) (interf
 		_, ok := isValue(o[head])
 		switch {
 		case !ok && len(tail) == 0:
-			return nil, errors.New(ErrCorruptingDocument, "setting value corrupts document")
+			return nil, failure.New("setting value corrupts document")
 		case ok && o[head] != nil && len(tail) > 0:
-			return nil, errors.New(ErrCorruptingDocument, "setting value corrupts document")
+			return nil, failure.New("setting value corrupts document")
 		case ok && len(tail) == 0:
 			o[head] = value
 		default:
@@ -139,15 +139,15 @@ func setNodeValueAt(node, value interface{}, head string, tail []string) (interf
 		// JSON array.
 		index, err := strconv.Atoi(head)
 		if err != nil {
-			return nil, errors.New(ErrInvalidPart, "invalid path part: '%s'", head)
+			return nil, failure.New("invalid path part: '%s'", head)
 		}
 		a = ensureArray(a, index+1)
 		_, ok := isValue(a[index])
 		switch {
 		case !ok && len(tail) == 0:
-			return nil, errors.New(ErrCorruptingDocument, "setting value corrupts document")
+			return nil, failure.New("setting value corrupts document")
 		case ok && a[index] != nil && len(tail) > 0:
-			return nil, errors.New(ErrCorruptingDocument, "setting value corrupts document")
+			return nil, failure.New("setting value corrupts document")
 		case ok && len(tail) == 0:
 			a[index] = value
 		default:
@@ -160,7 +160,7 @@ func setNodeValueAt(node, value interface{}, head string, tail []string) (interf
 		}
 		return a, nil
 	}
-	return nil, errors.New(ErrInvalidPath, "invalid path part: '%s'", head)
+	return nil, failure.New("invalid path part: '%s'", head)
 }
 
 // addNodeValueAt is used recursively by setValueAt().
@@ -213,7 +213,7 @@ func ensureArray(a []interface{}, l int) []interface{} {
 // process processes node recursively.
 func process(node interface{}, parts []string, separator string, processor ValueProcessor) error {
 	mkerr := func(err error, ps []string) error {
-		return errors.Annotate(err, ErrProcessing, "cannot process '%s'", pathify(ps, separator))
+		return failure.Annotate(err, "cannot process '%s'", pathify(ps, separator))
 	}
 	// First check objects and arrays.
 	if o, ok := isObject(node); ok {
