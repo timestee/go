@@ -20,7 +20,7 @@ import (
 
 	"tideland.dev/go/together/loop"
 	"tideland.dev/go/together/notifier"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -56,7 +56,7 @@ type Option func(s *Scroller) error
 func Skip(l int) Option {
 	return func(s *Scroller) error {
 		if l < 0 {
-			return errors.New(ErrNegativeLines, "negative number of lines to skip are not allowed: %d", l)
+			return failure.New("negative number of lines to skip are not allowed: %d", l)
 		}
 		s.skip = l
 		return nil
@@ -117,10 +117,10 @@ type Scroller struct {
 // size and the poll time.
 func NewScroller(source io.ReadSeeker, target io.Writer, options ...Option) (*Scroller, error) {
 	if source == nil {
-		return nil, errors.New(ErrNoSource, "cannot scroll: no source")
+		return nil, failure.New("cannot scroll: no source")
 	}
 	if target == nil {
-		return nil, errors.New(ErrNoTarget, "cannot scroll: no target")
+		return nil, failure.New("cannot scroll: no target")
 	}
 	s := &Scroller{
 		source:     source,
