@@ -116,7 +116,7 @@ func TestTimeout(t *testing.T) {
 		return nil
 	}, 500*time.Millisecond)
 
-	assert.True(actor.IsTimedOut(err))
+	assert.ErrorMatch(err, ".*timed out.*")
 }
 
 // TestAsyncWithQueueLen tests running multiple calls asynchronously.
@@ -181,7 +181,7 @@ func TestRecovery(t *testing.T) {
 		print(counter / (counter - 1))
 		return nil
 	}, time.Second)
-	assert.True(actor.IsTimedOut(err))
+	assert.ErrorMatch(err, ".*timed out.*")
 	<-doneC
 	assert.True(recovered)
 	err = act.DoSync(func() error {
