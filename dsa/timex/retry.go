@@ -14,7 +14,7 @@ package timex
 import (
 	"time"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -76,12 +76,12 @@ func Retry(f func() (bool, error), rs RetryStrategy) error {
 			return nil
 		}
 		if time.Now().After(timeout) {
-			return errors.New(ErrRetriedTooLong, msgRetriedTooLong, rs.Timeout)
+			return failure.New("retried longer than %v", rs.Timeout)
 		}
 		time.Sleep(sleep)
 		sleep += rs.BreakIncrement
 	}
-	return errors.New(ErrRetriedTooOften, msgRetriedTooOften, rs.Count)
+	return failure.New("retried more than %d times", rs.Count)
 }
 
 // EOF
