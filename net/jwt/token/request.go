@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -50,11 +50,11 @@ func decode(req *http.Request, key Key) (*JWT, error) {
 	// Retrieve token from header.
 	authorization := req.Header.Get("Authorization")
 	if authorization == "" {
-		return nil, errors.New(ErrNoAuthorizationHeader, msgNoAuthorizationHeader)
+		return nil, failure.New("request contains no authorization header")
 	}
 	fields := strings.Fields(authorization)
 	if len(fields) != 2 || fields[0] != "Bearer" {
-		return nil, errors.New(ErrInvalidAuthorizationHeader, msgInvalidAuthorizationHeader, authorization)
+		return nil, failure.New("invalid authorization header: %q", authorization)
 	}
 	// Decode or verify.
 	var jwt *JWT

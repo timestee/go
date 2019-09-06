@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -48,16 +48,16 @@ func Encode(claims Claims, key Key, algorithm Algorithm) (*JWT, error) {
 	}
 	headerPart, err := marshallAndEncode(jwtHeader{string(algorithm), "JWT"})
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotEncode, "cannot encode the header")
+		return nil, failure.Annotate(err, "cannot encode the header")
 	}
 	claimsPart, err := marshallAndEncode(claims)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotEncode, "cannot encode the claims")
+		return nil, failure.Annotate(err, "cannot encode the claims")
 	}
 	dataParts := headerPart + "." + claimsPart
 	signaturePart, err := signAndEncode([]byte(dataParts), key, algorithm)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotEncode, " cannot encode the signature")
+		return nil, failure.Annotate(err, " cannot encode the signature")
 	}
 	jwt.token = dataParts + "." + signaturePart
 	return jwt, nil
@@ -67,17 +67,17 @@ func Encode(claims Claims, key Key, algorithm Algorithm) (*JWT, error) {
 func Decode(token string) (*JWT, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
-		return nil, errors.New(ErrCannotDecode, "cannot decode the parts")
+		return nil, failure.New("cannot decode the parts")
 	}
 	var header jwtHeader
 	err := decodeAndUnmarshall(parts[0], &header)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotDecode, "cannot decode the header")
+		return nil, failure.Annotate(err, "cannot decode the header")
 	}
 	var claims Claims
 	err = decodeAndUnmarshall(parts[1], &claims)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotDecode, "cannot decode the claims")
+		return nil, failure.Annotate(err, "cannot decode the claims")
 	}
 	return &JWT{
 		claims:    claims,
@@ -91,21 +91,21 @@ func Decode(token string) (*JWT, error) {
 func Verify(token string, key Key) (*JWT, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
-		return nil, errors.New(ErrCannotVerify, "cannot verify the parts")
+		return nil, failure.New("cannot verify the parts")
 	}
 	var header jwtHeader
 	err := decodeAndUnmarshall(parts[0], &header)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotVerify, "cannot verify the header")
+		return nil, failure.Annotate(err, "cannot verify the header")
 	}
 	err = decodeAndVerify(parts, key, Algorithm(header.Algorithm))
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotVerify, "cannot verify the signature")
+		return nil, failure.Annotate(err, "cannot verify the signature")
 	}
 	var claims Claims
 	err = decodeAndUnmarshall(parts[1], &claims)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotVerify, "cannot verify the claims")
+		return nil, failure.Annotate(err, "cannot verify the claims")
 	}
 	return &JWT{
 		claims:    claims,
@@ -123,7 +123,7 @@ func (jwt *JWT) Claims() Claims {
 // Key returns the key of the token only when it is a result of encoding or verification.
 func (jwt *JWT) Key() (Key, error) {
 	if jwt.key == nil {
-		return nil, errors.New(ErrNoKey, "no key available, only after encoding or verifying")
+		return nil, failure.New("no key available, only after encoding or verifying")
 	}
 	return jwt.key, nil
 }
@@ -152,7 +152,7 @@ func (jwt *JWT) String() string {
 func marshallAndEncode(value interface{}) (string, error) {
 	jsonValue, err := json.Marshal(value)
 	if err != nil {
-		return "", errors.Annotate(err, ErrJSONMarshalling, "error marshalling to JSON")
+		return "", failure.Annotate(err, "error marshalling to JSON")
 	}
 	encoded := base64.RawURLEncoding.EncodeToString(jsonValue)
 	return encoded, nil
@@ -163,11 +163,11 @@ func marshallAndEncode(value interface{}) (string, error) {
 func decodeAndUnmarshall(part string, value interface{}) error {
 	decoded, err := base64.RawURLEncoding.DecodeString(part)
 	if err != nil {
-		return errors.Annotate(err, ErrInvalidTokenPart, "part of the token contains invalid data")
+		return failure.Annotate(err, "part of the token contains invalid data")
 	}
 	err = json.Unmarshal(decoded, value)
 	if err != nil {
-		return errors.Annotate(err, ErrJSONUnmarshalling, "error unmarshalling from JSON")
+		return failure.Annotate(err, "error unmarshalling from JSON")
 	}
 	return nil
 }
@@ -191,7 +191,7 @@ func decodeAndVerify(parts []string, key Key, algorithm Algorithm) error {
 	data := []byte(parts[0] + "." + parts[1])
 	sig, err := base64.RawURLEncoding.DecodeString(parts[2])
 	if err != nil {
-		return errors.Annotate(err, ErrInvalidTokenPart, "part of the token contains invalid data")
+		return failure.Annotate(err, "part of the token contains invalid data")
 	}
 	return algorithm.Verify(data, sig, key)
 }
