@@ -21,7 +21,7 @@ import (
 	"net"
 	"time"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -128,11 +128,11 @@ func NewUUIDv5(ns UUID, name []byte) (UUID, error) {
 func NewUUIDByHex(source string) (UUID, error) {
 	uuid := UUID{}
 	if len([]byte(source)) != 32 {
-		return uuid, errors.New(ErrInvalidHexLength, "source length is not 32")
+		return uuid, failure.New("source length is not 32")
 	}
 	raw, err := hex.DecodeString(source)
 	if err != nil {
-		return uuid, errors.Annotate(err, ErrInvalidHexValue, "source is no hex value")
+		return uuid, failure.Annotate(err, "source is no hex value")
 	}
 	copy(uuid[:], raw)
 	return uuid, nil
