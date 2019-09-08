@@ -108,6 +108,9 @@ func IsValid(err error) bool {
 
 // Contains returns true if the given error contains a given string.
 func Contains(err error, substr string) bool {
+	if err == nil {
+		return false
+	}
 	return strings.Contains(err.Error(), substr)
 }
 

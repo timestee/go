@@ -35,6 +35,16 @@ func DefaultRecoverer(reason interface{}) error {
 }
 
 //--------------------
+// ERROR HELPERS
+//--------------------
+
+// IsErrLoopNotWorking helps loop users to check if an errors
+// tells that it currently isn't running (anymore).
+func IsErrLoopNotWorking(err error) bool {
+	return failure.Contains(err, "loop not working")
+}
+
+//--------------------
 // LOOP
 //--------------------
 
