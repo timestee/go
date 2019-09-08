@@ -14,7 +14,7 @@ package collections // import "tideland.dev/go/dsa/collections"
 import (
 	"fmt"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -70,7 +70,7 @@ func (s *Set) FindAll(f func(v interface{}) (bool, error)) ([]interface{}, error
 	for v := range s.values {
 		ok, err := f(v)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotFindAll, "cannot find all matching values")
+			return nil, failure.Annotate(err, "cannot find all matching values")
 		}
 		if ok {
 			found = append(found, v)
@@ -83,7 +83,7 @@ func (s *Set) FindAll(f func(v interface{}) (bool, error)) ([]interface{}, error
 func (s *Set) DoAll(f func(v interface{}) error) error {
 	for v := range s.values {
 		if err := f(v); err != nil {
-			return errors.Annotate(err, ErrCannotDoAll, "cannot process all entries")
+			return failure.Annotate(err, "cannot process all entries")
 		}
 	}
 	return nil
@@ -158,7 +158,7 @@ func (s *StringSet) FindAll(f func(v string) (bool, error)) ([]string, error) {
 	for v := range s.values {
 		ok, err := f(v)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotFindAll, "cannot find all matching string values")
+			return nil, failure.Annotate(err, "cannot find all matching string values")
 		}
 		if ok {
 			found = append(found, v)
@@ -171,7 +171,7 @@ func (s *StringSet) FindAll(f func(v string) (bool, error)) ([]string, error) {
 func (s *StringSet) DoAll(f func(v string) error) error {
 	for v := range s.values {
 		if err := f(v); err != nil {
-			return errors.Annotate(err, ErrCannotDoAll, "cannot process all string entries")
+			return failure.Annotate(err, "cannot process all string entries")
 		}
 	}
 	return nil

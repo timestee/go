@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"tideland.dev/go/dsa/identifier"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -147,14 +147,14 @@ func (db *Database) UpdateDocument(doc interface{}, params ...Parameter) *Result
 		return newResultSet(nil, err)
 	}
 	if id == "" {
-		return newResultSet(nil, errors.New(ErrNoIdentifier, msgNoIdentifier))
+		return newResultSet(nil, failure.New("document contains no identifier"))
 	}
 	hasDoc, err := db.HasDocument(id)
 	if err != nil {
 		return newResultSet(nil, err)
 	}
 	if !hasDoc {
-		return newResultSet(nil, errors.New(ErrNotFound, msgNotFound, id))
+		return newResultSet(nil, failure.New("document with identifier '%s' not found", id))
 	}
 	return db.Request().SetPath(db.name, id).SetDocument(doc).ApplyParameters(params...).Put()
 }
@@ -170,7 +170,7 @@ func (db *Database) DeleteDocument(doc interface{}, params ...Parameter) *Result
 		return newResultSet(nil, err)
 	}
 	if !hasDoc {
-		return newResultSet(nil, errors.New(ErrNotFound, msgNotFound, id))
+		return newResultSet(nil, failure.New("document with identifier '%s' not found", id))
 	}
 	params = append(params, Revision(revision))
 	return db.Request().SetPath(db.name, id).ApplyParameters(params...).Delete()
@@ -184,7 +184,7 @@ func (db *Database) DeleteDocumentByID(id, revision string, params ...Parameter)
 		return newResultSet(nil, err)
 	}
 	if !hasDoc {
-		return newResultSet(nil, errors.New(ErrNotFound, msgNotFound, id))
+		return newResultSet(nil, failure.New("document with identifier '%s' not found", id))
 	}
 	params = append(params, Revision(revision))
 	return db.Request().SetPath(db.name, id).ApplyParameters(params...).Delete()
@@ -236,7 +236,7 @@ func (db *Database) idAndRevision(doc interface{}) (string, string, error) {
 	t := v.Type()
 	k := t.Kind()
 	if k != reflect.Struct {
-		return "", "", errors.New(ErrInvalidDocument, msgInvalidDocument)
+		return "", "", failure.New("document needs _id and _rev")
 	}
 	var id string
 	var revision string
@@ -256,7 +256,7 @@ func (db *Database) idAndRevision(doc interface{}) (string, string, error) {
 		}
 	}
 	if found != 2 {
-		return "", "", errors.New(ErrInvalidDocument, msgInvalidDocument)
+		return "", "", failure.New("document needs _id and _rev")
 	}
 	return id, revision, nil
 }

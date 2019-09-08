@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -129,7 +129,7 @@ func (v Value) Unpack() Value {
 // invalidTypeError returns an annotated error if a value access has
 // been unsuccessful.
 func (v Value) invalidTypeError(err error, descr string) error {
-	return errors.Annotate(err, ErrInvalidType, msgInvalidType, v.String(), descr)
+	return failure.Annotate(err, "invalid type conversion of \"%v\" to %q", v.String(), descr)
 }
 
 // Values is a set of values.
@@ -251,7 +251,7 @@ func (h Hash) String(key string) (string, error) {
 	if value, ok := h[key]; ok {
 		return value.String(), nil
 	}
-	return "", errors.New(ErrInvalidKey, msgInvalidKey, key)
+	return "", failure.New("invalid key %q", key)
 }
 
 // Bool returns the value of a key as bool.
@@ -259,7 +259,7 @@ func (h Hash) Bool(key string) (bool, error) {
 	if value, ok := h[key]; ok {
 		return value.Bool()
 	}
-	return false, errors.New(ErrInvalidKey, msgInvalidKey, key)
+	return false, failure.New("invalid key %q", key)
 }
 
 // Int returns the value of a key as int.
@@ -267,7 +267,7 @@ func (h Hash) Int(key string) (int, error) {
 	if value, ok := h[key]; ok {
 		return value.Int()
 	}
-	return 0, errors.New(ErrInvalidKey, msgInvalidKey, key)
+	return 0, failure.New("invalid key %q", key)
 }
 
 // Int64 returns the value of a key as int64.
@@ -275,7 +275,7 @@ func (h Hash) Int64(key string) (int64, error) {
 	if value, ok := h[key]; ok {
 		return value.Int64()
 	}
-	return 0, errors.New(ErrInvalidKey, msgInvalidKey, key)
+	return 0, failure.New("invalid key %q", key)
 }
 
 // Uint64 returns the value of a key as uint64.
@@ -283,7 +283,7 @@ func (h Hash) Uint64(key string) (uint64, error) {
 	if value, ok := h[key]; ok {
 		return value.Uint64()
 	}
-	return 0, errors.New(ErrInvalidKey, msgInvalidKey, key)
+	return 0, failure.New("invalid key %q", key)
 }
 
 // Float64 returns the value of a key as float64.
@@ -291,7 +291,7 @@ func (h Hash) Float64(key string) (float64, error) {
 	if value, ok := h[key]; ok {
 		return value.Float64()
 	}
-	return 0.0, errors.New(ErrInvalidKey, msgInvalidKey, key)
+	return 0.0, failure.New("invalid key %q", key)
 }
 
 // Bytes returns the value of a key as byte slice.

@@ -14,7 +14,7 @@ package redis // import "tideland.dev/go/db/redis"
 import (
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -56,7 +56,7 @@ func newConnection(db *Database) (*Connection, error) {
 func (conn *Connection) Do(cmd string, args ...interface{}) (*ResultSet, error) {
 	cmd = strings.ToLower(cmd)
 	if strings.Contains(cmd, "subscribe") {
-		return nil, errors.New(ErrUseSubscription, msgUseSubscription)
+		return nil, failure.New("use subscription type for subscriptions")
 	}
 	err := conn.resp.sendCommand(cmd, args...)
 	logCommand(cmd, args, err, conn.database.logging)

@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 	"tideland.dev/go/trace/logger"
 )
 
@@ -105,9 +105,9 @@ func logCommand(cmd string, args []interface{}, err error, log bool) {
 		}
 		return fmt.Sprintf(format, cmd, formatArgs(), "ERROR "+err.Error())
 	}
-	// Log positive commands only if wanted, errors always.
+	// Log positive commands only if wanted, failure always.
 	if err != nil {
-		if errors.IsError(err, ErrServerResponse) || errors.IsError(err, ErrTimeout) {
+		if failure.Contains(err, "server responded error") || failure.Contains(err, "timeout") {
 			return
 		}
 		logger.Errorf(logOutput())

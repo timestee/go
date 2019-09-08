@@ -17,7 +17,7 @@ import (
 	"io"
 	"unicode"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -74,7 +74,7 @@ func (mr *mlReader) readPreliminary() error {
 		case err != nil:
 			return err
 		case rc == rcEOF:
-			return errors.New(ErrReader, "unexpected end of file while reading preliminary")
+			return failure.New("unexpected end of file while reading preliminary")
 		case rc == rcOpen:
 			return nil
 		}
@@ -108,13 +108,13 @@ func (mr *mlReader) readTag() (string, int, error) {
 		case err != nil:
 			return "", 0, err
 		case rc == rcEOF:
-			return "", 0, errors.New(ErrReader, "unexpected end of file while reading a tag")
+			return "", 0, failure.New("unexpected end of file while reading a tag")
 		case rc == rcTag:
 			buf.WriteRune(r)
 		case rc == rcSpace || rc == rcClose:
 			return buf.String(), rc, nil
 		default:
-			return "", 0, errors.New(ErrReader, "invalid tag character at position %d", mr.index)
+			return "", 0, failure.New("invalid tag character at position %d", mr.index)
 		}
 	}
 }
@@ -127,7 +127,7 @@ func (mr *mlReader) readTagChildren() error {
 		case err != nil:
 			return err
 		case rc == rcEOF:
-			return errors.New(ErrReader, "unexpected end of file while reading children")
+			return failure.New("unexpected end of file while reading children")
 		case rc == rcClose:
 			return nil
 		case rc == rcOpen:
@@ -152,7 +152,7 @@ func (mr *mlReader) readBracedContent() error {
 	case err != nil:
 		return err
 	case rc == rcEOF:
-		return errors.New(ErrReader, "unexpected end of file while reading a tag or raw node")
+		return failure.New("unexpected end of file while reading a tag or raw node")
 	case rc == rcTag:
 		mr.index--
 		mr.reader.UnreadRune()
@@ -162,7 +162,7 @@ func (mr *mlReader) readBracedContent() error {
 	case rc == rcHash:
 		return mr.readCommentNode()
 	}
-	return errors.New(ErrReader, "invalid character after opening at index %d", mr.index)
+	return failure.New("invalid character after opening at index %d", mr.index)
 }
 
 // readRawNode reads a raw node.
@@ -174,14 +174,14 @@ func (mr *mlReader) readRawNode() error {
 		case err != nil:
 			return err
 		case rc == rcEOF:
-			return errors.New(ErrReader, "unexpected end of file while reading a raw node")
+			return failure.New("unexpected end of file while reading a raw node")
 		case rc == rcExclamation:
 			r, rc, err = mr.readRune()
 			switch {
 			case err != nil:
 				return err
 			case rc == rcEOF:
-				return errors.New(ErrReader, "unexpected end of file while reading a raw node")
+				return failure.New("unexpected end of file while reading a raw node")
 			case rc == rcClose:
 				return mr.builder.RawNode(buf.String())
 			}
@@ -202,14 +202,14 @@ func (mr *mlReader) readCommentNode() error {
 		case err != nil:
 			return err
 		case rc == rcEOF:
-			return errors.New(ErrReader, "unexpected end of file while reading a comment node")
+			return failure.New("unexpected end of file while reading a comment node")
 		case rc == rcHash:
 			r, rc, err = mr.readRune()
 			switch {
 			case err != nil:
 				return err
 			case rc == rcEOF:
-				return errors.New(ErrReader, "unexpected end of file while reading a comment node")
+				return failure.New("unexpected end of file while reading a comment node")
 			case rc == rcClose:
 				return mr.builder.CommentNode(buf.String())
 			}
@@ -230,7 +230,7 @@ func (mr *mlReader) readTextNode() error {
 		case err != nil:
 			return err
 		case rc == rcEOF:
-			return errors.New(ErrReader, "unexpected end of file while reading a text node")
+			return failure.New("unexpected end of file while reading a text node")
 		case rc == rcOpen || rc == rcClose:
 			mr.index--
 			mr.reader.UnreadRune()
@@ -241,11 +241,11 @@ func (mr *mlReader) readTextNode() error {
 			case err != nil:
 				return err
 			case rc == rcEOF:
-				return errors.New(ErrReader, "unexpected end of file while reading a text node")
+				return failure.New("unexpected end of file while reading a text node")
 			case rc == rcOpen || rc == rcClose || rc == rcEscape:
 				buf.WriteRune(r)
 			default:
-				return errors.New(ErrReader, "invalid character after escaping at index %d", mr.index)
+				return failure.New("invalid character after escaping at index %d", mr.index)
 			}
 		default:
 			buf.WriteRune(r)

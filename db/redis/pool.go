@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"tideland.dev/go/together/wait"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -50,7 +50,7 @@ func (p *pool) close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if !p.active {
-		return errors.New(ErrPoolClosed, msgPoolClosed)
+		return failure.New("connection pool closed")
 	}
 	p.active = false
 	var err error
@@ -69,7 +69,7 @@ func (p *pool) pullForced() (*resp, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if !p.active {
-		return nil, errors.New(ErrPoolClosed, msgPoolClosed)
+		return nil, failure.New("connection pool closed")
 	}
 	resp, err := newResp(p.database)
 	if err != nil {
@@ -106,7 +106,7 @@ func (p *pool) pull() (*resp, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if !p.active {
-		return nil, errors.New(ErrPoolClosed, msgPoolClosed)
+		return nil, failure.New("connection pool closed")
 	}
 	switch {
 	case len(p.available) > 0:
@@ -125,7 +125,7 @@ func (p *pool) pull() (*resp, error) {
 		p.inUse[resp] = resp
 		return resp, nil
 	}
-	return nil, errors.New(ErrPoolLimitReached, msgPoolLimitReached, p.database.poolsize)
+	return nil, failure.New("connection pool limit (%d) reached", p.database.poolsize)
 }
 
 // push returns a protocol back into the pool.

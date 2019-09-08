@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"tideland.dev/go/dsa/collections"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -36,7 +36,7 @@ func NewNodeBuilder() *NodeBuilder {
 // Root returns the root node of the read document.
 func (nb *NodeBuilder) Root() (Node, error) {
 	if !nb.done {
-		return nil, errors.New(ErrBuilder, "building is not yet done")
+		return nil, failure.New("building is not yet done")
 	}
 	return nb.stack[0], nil
 }
@@ -44,7 +44,7 @@ func (nb *NodeBuilder) Root() (Node, error) {
 // BeginTagNode implements the Builder interface.
 func (nb *NodeBuilder) BeginTagNode(tag string) error {
 	if nb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	t, err := newTagNode(tag)
 	if err != nil {
@@ -57,11 +57,11 @@ func (nb *NodeBuilder) BeginTagNode(tag string) error {
 // EndTagNode implements the Builder interface.
 func (nb *NodeBuilder) EndTagNode() error {
 	if nb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	switch l := len(nb.stack); l {
 	case 0:
-		return errors.New(ErrBuilder, "no opening tag")
+		return failure.New("no opening tag")
 	case 1:
 		nb.done = true
 	default:
@@ -74,37 +74,37 @@ func (nb *NodeBuilder) EndTagNode() error {
 // TextNode implements the Builder interface.
 func (nb *NodeBuilder) TextNode(text string) error {
 	if nb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	if len(nb.stack) > 0 {
 		nb.stack[len(nb.stack)-1].appendTextNode(text)
 		return nil
 	}
-	return errors.New(ErrBuilder, "no opening tag for text")
+	return failure.New("no opening tag for text")
 }
 
 // RawNode implements the Builder interface.
 func (nb *NodeBuilder) RawNode(raw string) error {
 	if nb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	if len(nb.stack) > 0 {
 		nb.stack[len(nb.stack)-1].appendRawNode(raw)
 		return nil
 	}
-	return errors.New(ErrBuilder, "no opening tag for raw text")
+	return failure.New("no opening tag for raw text")
 }
 
 // CommentNode implements the Builder interface.
 func (nb *NodeBuilder) CommentNode(comment string) error {
 	if nb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	if len(nb.stack) > 0 {
 		nb.stack[len(nb.stack)-1].appendCommentNode(comment)
 		return nil
 	}
-	return errors.New(ErrBuilder, "no opening tag for comment")
+	return failure.New("no opening tag for comment")
 }
 
 //--------------------
@@ -127,7 +127,7 @@ func NewKeyStringValueTreeBuilder() *KeyStringValueTreeBuilder {
 // Tree returns the created tree.
 func (tb *KeyStringValueTreeBuilder) Tree() (*collections.KeyStringValueTree, error) {
 	if !tb.done {
-		return nil, errors.New(ErrBuilder, "building is not yet done")
+		return nil, failure.New("building is not yet done")
 	}
 	return tb.tree, nil
 }
@@ -135,7 +135,7 @@ func (tb *KeyStringValueTreeBuilder) Tree() (*collections.KeyStringValueTree, er
 // BeginTagNode implements the Builder interface.
 func (tb *KeyStringValueTreeBuilder) BeginTagNode(tag string) error {
 	if tb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	switch {
 	case tb.tree == nil:
@@ -145,7 +145,7 @@ func (tb *KeyStringValueTreeBuilder) BeginTagNode(tag string) error {
 		tb.stack.Push(tag)
 		changer := tb.tree.Create(tb.stack.All()...)
 		if err := changer.Error(); err != nil {
-			return errors.Annotate(err, ErrBuilder, "cannot create new node")
+			return failure.Annotate(err, "cannot create new node")
 		}
 	}
 	return nil
@@ -154,7 +154,7 @@ func (tb *KeyStringValueTreeBuilder) BeginTagNode(tag string) error {
 // EndTagNode implements the Builder interface.
 func (tb *KeyStringValueTreeBuilder) EndTagNode() error {
 	if tb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	_, err := tb.stack.Pop()
 	if tb.stack.Len() == 0 {
@@ -166,14 +166,14 @@ func (tb *KeyStringValueTreeBuilder) EndTagNode() error {
 // TextNode implements the Builder interface.
 func (tb *KeyStringValueTreeBuilder) TextNode(text string) error {
 	if tb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	value, err := tb.tree.At(tb.stack.All()...).Value()
 	if err != nil {
-		return errors.Annotate(err, ErrBuilder, "cannot retrieve value")
+		return failure.Annotate(err, "cannot retrieve value")
 	}
 	if value != "" {
-		return errors.New(ErrBuilder, "node has multiple values")
+		return failure.New("node has multiple values")
 	}
 	text = strings.TrimSpace(text)
 	if text != "" {
@@ -190,7 +190,7 @@ func (tb *KeyStringValueTreeBuilder) RawNode(raw string) error {
 // CommentNode implements the Builder interface.
 func (tb *KeyStringValueTreeBuilder) CommentNode(comment string) error {
 	if tb.done {
-		return errors.New(ErrBuilder, "building is already done")
+		return failure.New("building is already done")
 	}
 	return nil
 }

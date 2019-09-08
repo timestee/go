@@ -14,7 +14,7 @@ package redis // import "tideland.dev/go/db/redis"
 import (
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -60,7 +60,7 @@ func newPipeline(db *Database) (*Pipeline, error) {
 func (ppl *Pipeline) Do(cmd string, args ...interface{}) error {
 	cmd = strings.ToLower(cmd)
 	if strings.Contains(cmd, "subscribe") {
-		return errors.New(ErrUseSubscription, msgUseSubscription)
+		return failure.New("use subscription type for subscriptions")
 	}
 	err := ppl.ensureProtocol()
 	if err != nil {
