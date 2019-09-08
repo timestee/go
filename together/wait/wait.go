@@ -15,7 +15,7 @@ import (
 	"context"
 	"time"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -23,7 +23,7 @@ import (
 //--------------------
 
 // Condition has to be implemented for checking the wanted condition. A positive
-// condition will return true and nil, a negative false and nil. In case of errors
+// condition will return true and nil, a negative false and nil. In case of failure
 // during the check false and the error have to be returned. The function will
 // be used by the poll functions.
 type Condition func() (bool, error)
@@ -39,12 +39,12 @@ func Poll(ctx context.Context, ticker Ticker, condition Condition) error {
 		select {
 		case <-ctx.Done():
 			// Context is cancelled.
-			return errors.Annotate(ctx.Err(), ErrContextCancelled, msgContextCancelled)
+			return failure.Annotate(ctx.Err(), "context has been cancelled")
 		case _, open := <-tickc:
 			// Ticker sent a signal to check for condition.
 			if !open {
 				// Oh, ticker tells to end.
-				return errors.New(ErrTickerExceeded, msgTickerExceeded)
+				return failure.New("ticker exceeded while waiting for the condition")
 			}
 			ok, err := check(condition)
 			if err != nil {
@@ -133,12 +133,12 @@ func WithJitter(
 //--------------------
 
 // check runs the condition by catches panics and returns them
-// as errors.
+// as failure.
 func check(condition Condition) (ok bool, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			ok = false
-			err = errors.New(ErrConditionPanicked, msgConditionPanicked, r)
+			err = failure.New("panic during condition check: %v", r)
 		}
 	}()
 	ok, err = condition()
