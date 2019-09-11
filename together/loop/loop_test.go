@@ -23,13 +23,6 @@ import (
 )
 
 //--------------------
-// CONSTANTS
-//--------------------
-
-// timeout is the waitng time for events from inside of loops.
-var timeout time.Duration = 5 * time.Second
-
-//--------------------
 // TESTS
 //--------------------
 

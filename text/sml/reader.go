@@ -35,10 +35,8 @@ const (
 	rcHash
 	rcTag
 	rcEOF
-	rcInvalid
 
 	// Chars for the rune classes.
-	chSpace       = ' '
 	chOpen        = '{'
 	chClose       = '}'
 	chEscape      = '^'

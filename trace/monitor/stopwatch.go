@@ -40,7 +40,7 @@ type measuring struct {
 
 // End implements Measuring.
 func (m *measuring) End() time.Duration {
-	duration := time.Now().Sub(m.begin)
+	duration := time.Since(m.begin)
 	m.owner.end(m.id, duration)
 	return duration
 }
