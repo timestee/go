@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package couchdb_test
+package couchdb_test // import "tideland.dev/go/db/couchdb_test"
 
 //--------------------
 // IMPORTS
@@ -15,9 +15,8 @@ import (
 	"testing"
 
 	"tideland.dev/go/audit/asserts"
-	"tideland.dev/go/dsa/version"
-
 	"tideland.dev/go/db/couchdb"
+	"tideland.dev/go/dsa/version"
 )
 
 //--------------------

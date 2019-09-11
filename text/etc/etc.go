@@ -24,7 +24,7 @@ import (
 	"tideland.dev/go/dsa/collections"
 	"tideland.dev/go/text/sml"
 	"tideland.dev/go/text/stringex"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -55,7 +55,7 @@ type value struct {
 func (v *value) Value() (string, error) {
 	sv, err := v.changer.Value()
 	if err != nil {
-		return "", errors.New(ErrInvalidPath, "invalid path '%s'", fullPathToString(v.path))
+		return "", failure.New("invalid path '%s'", fullPathToString(v.path))
 	}
 	return sv, nil
 }
@@ -81,20 +81,20 @@ func Read(source io.Reader) (*Etc, error) {
 	builder := sml.NewKeyStringValueTreeBuilder()
 	err := sml.ReadSML(source, builder)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrInvalidSourceFormat, "invalid source format")
+		return nil, failure.Annotate(err, "invalid source format")
 	}
 	values, err := builder.Tree()
 	if err != nil {
-		return nil, errors.Annotate(err, ErrInvalidSourceFormat, "invalid source format")
+		return nil, failure.Annotate(err, "invalid source format")
 	}
 	if err = values.At("etc").Error(); err != nil {
-		return nil, errors.Annotate(err, ErrInvalidSourceFormat, "invalid source format")
+		return nil, failure.Annotate(err, "invalid source format")
 	}
 	cfg := &Etc{
 		values: values,
 	}
 	if err = cfg.postProcess(); err != nil {
-		return nil, errors.Annotate(err, ErrCannotPostProcess, "cannot post-process configuration")
+		return nil, failure.Annotate(err, "cannot post-process configuration")
 	}
 	return cfg, nil
 }
@@ -110,7 +110,7 @@ func ReadString(source string) (*Etc, error) {
 func ReadFile(filename string) (*Etc, error) {
 	source, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotReadFile, "cannot read file '%s'", filename)
+		return nil, failure.Annotate(err, "cannot read file '%s'", filename)
 	}
 	return ReadString(string(source))
 }
@@ -201,7 +201,7 @@ func (e *Etc) Split(path string) (*Etc, error) {
 	fullPath := makeFullPath(path)
 	values, err := e.values.CopyAt(fullPath...)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotSplit, "cannot split configuration")
+		return nil, failure.Annotate(err, "cannot split configuration")
 	}
 	values.At(fullPath[len(fullPath)-1:]...).SetKey("etc")
 	es := &Etc{
@@ -240,7 +240,7 @@ func (e *Etc) Apply(appl Application) (*Etc, error) {
 		fullPath := makeFullPath(path)
 		_, err := ec.values.Create(fullPath...).SetValue(value)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotApply, "cannot apply changes")
+			return nil, failure.Annotate(err, "cannot apply changes")
 		}
 	}
 	return ec, nil

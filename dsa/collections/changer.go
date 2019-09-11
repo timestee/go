@@ -12,7 +12,7 @@ package collections // import "tideland.dev/go/dsa/collections"
 //--------------------
 
 import (
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -44,7 +44,7 @@ func (c *Changer) SetValue(v interface{}) (interface{}, error) {
 	oldValue := c.node.content.value()
 	newValue := justValue{v}
 	if !c.node.isAllowed(newValue, true) {
-		return nil, errors.New(ErrDuplicate, "setting duplicate value is not allowed")
+		return nil, failure.New("setting duplicate value is not allowed")
 	}
 	c.node.content = newValue
 	return oldValue, nil
@@ -120,7 +120,7 @@ func (c *StringChanger) SetValue(v string) (string, error) {
 	oldValue := c.node.content.value().(string)
 	newValue := justValue{v}
 	if !c.node.isAllowed(newValue, true) {
-		return "", errors.New(ErrDuplicate, "setting duplicate string value is not allowed")
+		return "", failure.New("setting duplicate string value is not allowed")
 	}
 	c.node.content = newValue
 	return oldValue, nil
@@ -192,7 +192,7 @@ func (c *KeyValueChanger) SetKey(key string) (string, error) {
 	}
 	if !c.node.container.duplicates {
 		if c.node.hasDuplicateSibling(key) {
-			return "", errors.New(ErrDuplicate, "setting duplicate key is not allowed")
+			return "", failure.New("setting duplicate key is not allowed")
 		}
 	}
 	current := c.node.content.key().(string)
@@ -286,7 +286,7 @@ func (c *KeyStringValueChanger) SetKey(key string) (string, error) {
 	}
 	if !c.node.container.duplicates {
 		if c.node.hasDuplicateSibling(key) {
-			return "", errors.New(ErrDuplicate, "setting duplicate key is not allowed")
+			return "", failure.New("setting duplicate key is not allowed")
 		}
 	}
 	current := c.node.content.key().(string)

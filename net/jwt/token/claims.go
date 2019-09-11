@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"time"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -417,7 +417,7 @@ func (c Claims) MarshalJSON() ([]byte, error) {
 	}
 	b, err := json.Marshal(map[string]interface{}(c))
 	if err != nil {
-		return nil, errors.Annotate(err, ErrJSONMarshalling, "error marshalling claims to JSON")
+		return nil, failure.Annotate(err, "error marshalling claims to JSON")
 	}
 	return b, nil
 }
@@ -429,7 +429,7 @@ func (c *Claims) UnmarshalJSON(b []byte) error {
 	}
 	raw := map[string]interface{}(*c)
 	if err := json.Unmarshal(b, &raw); err != nil {
-		return errors.Annotate(err, ErrJSONUnmarshalling, "error unmarshalling claims from JSON")
+		return failure.Annotate(err, "error unmarshalling claims from JSON")
 	}
 	*c = Claims(raw)
 	return nil

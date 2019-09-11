@@ -15,7 +15,7 @@ import (
 	"encoding/json"
 
 	"tideland.dev/go/dsa/version"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -45,7 +45,7 @@ func (step Step) execute(db *Database) error {
 	}
 	cv, err := version.Parse(dv.Version)
 	if err != nil {
-		return errors.Annotate(err, ErrInvalidVersion, msgInvalidVersion)
+		return failure.Annotate(err, "CouchDB returns no or invalid version")
 	}
 	// Get new version of the step and action.
 	nv, action := step()
@@ -58,7 +58,7 @@ func (step Step) execute(db *Database) error {
 	// version document.
 	err = action(db)
 	if err != nil {
-		return errors.Annotate(err, ErrStartupActionFailed, msgStartupActionFailed, nv)
+		return failure.Annotate(err, "startup action failed for version '%v'", nv)
 	}
 	dv.Version = nv.String()
 	resp = db.UpdateDocument(&dv)
@@ -176,7 +176,7 @@ func (m *Manager) Version() (version.Version, error) {
 	}
 	vsn, ok := welcome["version"].(string)
 	if !ok {
-		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
+		return version.New(0, 0, 0), failure.New("CouchDB returns no or invalid version")
 	}
 	return version.Parse(vsn)
 }
@@ -185,12 +185,12 @@ func (m *Manager) Version() (version.Version, error) {
 func (m *Manager) DatabaseVersion() (version.Version, error) {
 	rs := m.db.ReadDocument(DatabaseVersionID)
 	if !rs.IsOK() {
-		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
+		return version.New(0, 0, 0), failure.New("CouchDB returns no or invalid version")
 	}
 	dv := DatabaseVersion{}
 	err := rs.Document(&dv)
 	if err != nil {
-		return version.New(0, 0, 0), errors.New(ErrInvalidVersion, msgInvalidVersion)
+		return version.New(0, 0, 0), failure.New("CouchDB returns no or invalid version")
 	}
 	return version.Parse(dv.Version)
 }
@@ -307,7 +307,7 @@ func (m *Manager) ReadUser(name string, params ...Parameter) (*User, error) {
 	rs := m.db.Request().SetPath("_users", userDocumentID(name)).ApplyParameters(params...).Get()
 	if !rs.IsOK() {
 		if rs.StatusCode() == StatusNotFound {
-			return nil, errors.New(ErrUserNotFound, msgUserNotFound)
+			return nil, failure.New("user not found")
 		}
 		return nil, rs.Error()
 	}
@@ -325,7 +325,7 @@ func (m *Manager) CreateUser(user *User, params ...Parameter) error {
 		return err
 	}
 	if _, err := m.ReadUser(user.Name, params...); err == nil {
-		return errors.New(ErrUserExists, msgUserExists)
+		return failure.New("user already exists")
 	}
 	user.DocumentID = userDocumentID(user.Name)
 	user.Type = "user"

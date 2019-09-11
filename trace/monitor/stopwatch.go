@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"tideland.dev/go/together/actor"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -150,7 +150,7 @@ func (s *StopWatch) Read(id string) (WatchValue, error) {
 		s.accumulateOne(id)
 		wv = s.values[id]
 		if wv == nil {
-			err = errors.New(ErrInvalidWatchValue, "watch value '%s' does not exist", id)
+			err = failure.New("watch value '%s' does not exist", id)
 		}
 		return nil
 	})

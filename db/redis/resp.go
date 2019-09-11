@@ -18,7 +18,7 @@ import (
 	"net"
 	"strconv"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -88,7 +88,7 @@ func newResp(db *Database) (*resp, error) {
 	// Dial the database and create the protocol instance.
 	conn, err := net.DialTimeout(db.network, db.address, db.timeout)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrConnectionEstablishing, msgConnectionEstablishing)
+		return nil, failure.Annotate(err, "cannot establish new connection")
 	}
 	r := &resp{
 		database: db,
@@ -108,7 +108,7 @@ func (r *resp) sendCommand(cmd string, args ...interface{}) error {
 	packet := join(lengthPart, cmdPart, argsPart)
 	_, err := r.conn.Write(packet)
 	if err != nil {
-		return errors.Annotate(err, ErrConnectionBroken, msgConnectionBroken, "send "+r.cmd)
+		return failure.Annotate(err, "cannot send %s, connection is broken", r.cmd)
 	}
 	return nil
 }
@@ -118,7 +118,7 @@ func (r *resp) receiveResponse() *response {
 	// Receive first line.
 	line, err := r.reader.ReadBytes('\n')
 	if err != nil {
-		rerr := errors.Annotate(err, ErrConnectionBroken, msgConnectionBroken, "receive after "+r.cmd)
+		rerr := failure.Annotate(err, "cannot receive after %s, connection is broken", r.cmd)
 		return &response{receivingError, 0, nil, rerr}
 	}
 	content := line[1 : len(line)-2]
@@ -137,7 +137,7 @@ func (r *resp) receiveResponse() *response {
 		// Bulk response or null bulk response.
 		count, err := strconv.Atoi(string(content))
 		if err != nil {
-			return &response{receivingError, 0, nil, errors.Annotate(err, ErrServerResponse, msgServerResponse)}
+			return &response{receivingError, 0, nil, failure.Annotate(err, "server responded error")}
 		}
 		if count == -1 {
 			// Null bulk response.
@@ -151,14 +151,14 @@ func (r *resp) receiveResponse() *response {
 			return &response{receivingError, 0, nil, err}
 		}
 		if n < toRead {
-			return &response{receivingError, 0, nil, errors.New(ErrServerResponse, msgServerResponse)}
+			return &response{receivingError, 0, nil, failure.New("server responded error")}
 		}
 		return &response{bulkResponse, 0, buffer[0:count], nil}
 	case '*':
 		// Array reply. Check for timeout.
 		length, err := strconv.Atoi(string(content))
 		if err != nil {
-			return &response{receivingError, 0, nil, errors.Annotate(err, ErrServerResponse, msgServerResponse)}
+			return &response{receivingError, 0, nil, failure.Annotate(err, "server responded error")}
 		}
 		if length == -1 {
 			// Timeout.
@@ -166,7 +166,7 @@ func (r *resp) receiveResponse() *response {
 		}
 		return &response{arrayResponse, length, nil, nil}
 	}
-	return &response{receivingError, 0, nil, errors.New(ErrInvalidResponse, msgInvalidResponse, string(line))}
+	return &response{receivingError, 0, nil, failure.New("invalid server response: %q", string(line))}
 }
 
 // receiveResultSet receives all responses and converts them into a result set.
@@ -180,7 +180,7 @@ func (r *resp) receiveResultSet() (*ResultSet, error) {
 		case receivingError:
 			return nil, response.err
 		case timeoutError:
-			return nil, errors.New(ErrTimeout, msgTimeout)
+			return nil, failure.New("timeout waiting for response")
 		case statusResponse, errorResponse, integerResponse, bulkResponse, nullBulkResponse:
 			current.append(response.value())
 		case arrayResponse:
@@ -272,18 +272,18 @@ func (r *resp) authenticate() error {
 	if r.database.password != "" {
 		err := r.sendCommand("auth", r.database.password)
 		if err != nil {
-			return errors.Annotate(err, ErrAuthenticate, msgAuthenticate)
+			return failure.Annotate(err, "cannot authenticate")
 		}
 		result, err := r.receiveResultSet()
 		if err != nil {
-			return errors.Annotate(err, ErrAuthenticate, msgAuthenticate)
+			return failure.Annotate(err, "cannot authenticate")
 		}
 		value, err := result.ValueAt(0)
 		if err != nil {
-			return errors.Annotate(err, ErrAuthenticate, msgAuthenticate)
+			return failure.Annotate(err, "cannot authenticate")
 		}
 		if !value.IsOK() {
-			return errors.New(ErrAuthenticate, msgAuthenticate)
+			return failure.New("cannot authenticate")
 		}
 	}
 	return nil
@@ -293,18 +293,18 @@ func (r *resp) authenticate() error {
 func (r *resp) selectDatabase() error {
 	err := r.sendCommand("select", r.database.index)
 	if err != nil {
-		return errors.Annotate(err, ErrSelectDatabase, msgSelectDatabase)
+		return failure.Annotate(err, "cannot select database")
 	}
 	result, err := r.receiveResultSet()
 	if err != nil {
-		return errors.Annotate(err, ErrSelectDatabase, msgSelectDatabase)
+		return failure.Annotate(err, "cannot select database")
 	}
 	value, err := result.ValueAt(0)
 	if err != nil {
-		return errors.Annotate(err, ErrSelectDatabase, msgSelectDatabase)
+		return failure.Annotate(err, "cannot select database")
 	}
 	if !value.IsOK() {
-		return errors.New(ErrSelectDatabase, msgSelectDatabase)
+		return failure.New("cannot select database")
 	}
 	return nil
 }

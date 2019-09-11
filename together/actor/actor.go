@@ -17,7 +17,7 @@ import (
 
 	"tideland.dev/go/together/loop"
 	"tideland.dev/go/together/notifier"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -111,7 +111,7 @@ func (act *Actor) DoSyncTimeout(action Action, timeout time.Duration) error {
 	select {
 	case <-waitC:
 	case <-time.After(timeout):
-		return errors.New(ErrTimeout, msgTimeout)
+		return failure.New("synchronous action execution timed out")
 	}
 	return nil
 }

@@ -16,7 +16,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -70,11 +70,11 @@ func newResultSet(resp *http.Response, err error) *ResultSet {
 		err:        err,
 	}
 	switch {
-	case err != nil && errors.IsError(err, ErrNotFound):
+	case err != nil && failure.Contains(err, "not found"):
 		rs.statusCode = StatusNotFound
-	case err != nil && errors.IsError(err, ErrNoIdentifier):
+	case err != nil && failure.Contains(err, "no identifier"):
 		rs.statusCode = StatusBadRequest
-	case err != nil && errors.IsError(err, ErrPerformingRequest):
+	case err != nil && failure.Contains(err, "perform request"):
 		rs.statusCode = StatusBadRequest
 	case err != nil:
 		rs.statusCode = StatusInternalServerError
@@ -85,7 +85,7 @@ func newResultSet(resp *http.Response, err error) *ResultSet {
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			rs.err = errors.Annotate(err, ErrReadingResponseBody, msgReadingResponseBody)
+			rs.err = failure.Annotate(err, "cannot read response body")
 		}
 		rs.body = body
 		// Read headers.
@@ -120,7 +120,10 @@ func (rs *ResultSet) Error() error {
 	if err := rs.readDocument(); err != nil {
 		return err
 	}
-	return errors.New(ErrClientRequest, msgClientRequest, rs.statusCode, rs.errorText, rs.errorReason)
+	return failure.New(
+		"client request failed: status code %d, error '%s', reason '%s'",
+		rs.statusCode, rs.errorText, rs.errorReason,
+	)
 }
 
 // ID returns a potentially returned document identifier.
@@ -164,7 +167,7 @@ func (rs *ResultSet) Document(value interface{}) error {
 	}
 	err := json.Unmarshal(rs.body, value)
 	if err != nil {
-		return errors.Annotate(err, ErrDecoding, msgDecoding)
+		return failure.Annotate(err, "cannot unmarshal database document")
 	}
 	return nil
 }

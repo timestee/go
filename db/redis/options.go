@@ -14,7 +14,7 @@ package redis // import "tideland.dev/go/db/redis"
 import (
 	"time"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -57,7 +57,7 @@ func TCPConnection(address string, timeout time.Duration) Option {
 		d.address = address
 		d.network = "tcp"
 		if timeout < 0 {
-			return errors.New(ErrInvalidConfiguration, msgInvalidConfiguration, "timeout", timeout)
+			return failure.New("invalid configuration value in field 'timeout': %v", timeout)
 		} else if timeout == 0 {
 			timeout = defaultTimeout
 		}
@@ -76,7 +76,7 @@ func UnixConnection(socket string, timeout time.Duration) Option {
 		d.address = socket
 		d.network = "unix"
 		if timeout < 0 {
-			return errors.New(ErrInvalidConfiguration, msgInvalidConfiguration, "timeout", timeout)
+			return failure.New("invalid configuration value in field 'timeout': %v", timeout)
 		} else if timeout == 0 {
 			timeout = defaultTimeout
 		}
@@ -90,7 +90,7 @@ func UnixConnection(socket string, timeout time.Duration) Option {
 func Index(index int, password string) Option {
 	return func(d *Database) error {
 		if index < 0 {
-			return errors.New(ErrInvalidConfiguration, msgInvalidConfiguration, "index", index)
+			return failure.New("invalid configuration value in field 'index': %v", index)
 		}
 		d.index = index
 		d.password = password
@@ -102,7 +102,7 @@ func Index(index int, password string) Option {
 func PoolSize(poolsize int) Option {
 	return func(d *Database) error {
 		if poolsize < 0 {
-			return errors.New(ErrInvalidConfiguration, msgInvalidConfiguration, "pool size", poolsize)
+			return failure.New("invalid configuration value in field 'pool size': %v", poolsize)
 		} else if poolsize == 0 {
 			poolsize = defaultPoolSize
 		}

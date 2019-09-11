@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"tideland.dev/go/together/notifier"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -35,6 +35,16 @@ func DefaultRecoverer(reason interface{}) error {
 }
 
 //--------------------
+// ERROR HELPERS
+//--------------------
+
+// IsErrLoopNotWorking helps loop users to check if an errors
+// tells that it currently isn't running (anymore).
+func IsErrLoopNotWorking(err error) bool {
+	return failure.Contains(err, "loop not working")
+}
+
+//--------------------
 // LOOP
 //--------------------
 
@@ -48,7 +58,7 @@ type Finalizer func(err error) error
 
 // Loop manages running for-select-loops in the background as goroutines
 // in a controlled way. Users can get information about status and possible
-// errors as well as control how to stop, restart, or recover via
+// failure as well as control how to stop, restart, or recover via
 // options.
 type Loop struct {
 	mu       sync.RWMutex
@@ -111,7 +121,7 @@ func (l *Loop) Work() error {
 	l.mu.Lock()
 	if l.bundle.Status() != notifier.Ready {
 		l.mu.Unlock()
-		return errors.New(ErrLoopNotReady, msgLoopNotReady)
+		return failure.New("loop not ready")
 	}
 	// Start working.
 	defer l.bundle.Notify(notifier.Stopped)
@@ -136,7 +146,7 @@ func (l *Loop) Stop(err error) error {
 		if l.err != nil {
 			return l.err
 		}
-		return errors.New(ErrLoopNotWorking, msgLoopNotWorking)
+		return failure.New("loop not working")
 	}
 	defer l.mu.Unlock()
 	// Stop and wait.
@@ -144,7 +154,7 @@ func (l *Loop) Stop(err error) error {
 	select {
 	case <-l.bundle.Stopped():
 	case <-time.After(30 * time.Second):
-		l.err = errors.New(ErrTimeout, msgTimeout)
+		l.err = failure.New("timeout during stopping")
 	}
 	if l.err == nil {
 		l.err = err
@@ -166,7 +176,7 @@ func (l *Loop) Err() error {
 	return l.err
 }
 
-// container wraps the worker, handles possible errors, and
+// container wraps the worker, handles possible failure, and
 // manages panics.
 func (l *Loop) container() {
 	defer func() {

@@ -69,7 +69,8 @@ func TestPollWithChangingInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Equal(count, 7, "exceeded with a count")
 
 	assert.Logf("end with cancelled context")
@@ -84,7 +85,7 @@ func TestPollWithChangingInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsCancelled(err))
+	assert.ErrorMatch(err, ".*cancelled.*")
 	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
@@ -134,7 +135,7 @@ func TestPollWithInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsCancelled(err))
+	assert.ErrorMatch(err, ".*cancelled.*")
 	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
@@ -183,7 +184,7 @@ func TestPollWithMaxInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Equal(count, 10, "exceeded with a count")
 
 	assert.Logf("end with exceeded ticker, no check")
@@ -196,7 +197,7 @@ func TestPollWithMaxInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Equal(count, 0)
 
 	assert.Logf("end with cancelled context")
@@ -211,7 +212,7 @@ func TestPollWithMaxInterval(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsCancelled(err))
+	assert.ErrorMatch(err, ".*cancelled.*")
 	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
@@ -253,14 +254,14 @@ func TestPollWithDeadline(t *testing.T) {
 	count = 0
 	err = wait.Poll(
 		context.Background(),
-		wait.MakeDeadlinedIntervalTicker(20*time.Millisecond, time.Now().Add(210*time.Millisecond)),
+		wait.MakeDeadlinedIntervalTicker(100*time.Millisecond, time.Now().Add(1020*time.Millisecond)),
 		func() (bool, error) {
 			count++
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
-	assert.Equal(count, 10, "exceeded with a count")
+	assert.ErrorMatch(err, ".*exceeded.*")
+	assert.Range(count, 9, 11, "exceeded with a count")
 
 	assert.Logf("end with exceeded ticker, no check")
 	count = 0
@@ -272,7 +273,7 @@ func TestPollWithDeadline(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Equal(count, 0)
 
 	assert.Logf("end with cancelled context")
@@ -287,7 +288,7 @@ func TestPollWithDeadline(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsCancelled(err))
+	assert.ErrorMatch(err, ".*cancelled.*")
 	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
@@ -335,8 +336,8 @@ func TestPollWithTimeout(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
-	assert.Equal(count, 10, "exceeded with a count")
+	assert.ErrorMatch(err, ".*exceeded.*")
+	assert.Range(count, 9, 11)
 
 	assert.Logf("end with timeout, no check")
 	count = 0
@@ -348,7 +349,7 @@ func TestPollWithTimeout(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Equal(count, 0)
 
 	assert.Logf("end with cancelled context")
@@ -363,7 +364,7 @@ func TestPollWithTimeout(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsCancelled(err))
+	assert.ErrorMatch(err, ".*cancelled.*")
 	assert.Range(count, 4, 6, "test is race, depending on scheduling")
 }
 
@@ -422,7 +423,7 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Range(len(timestamps), 10, 25)
 
 	assert.Logf("end with timeout, no check")
@@ -435,7 +436,7 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Empty(timestamps)
 
 	assert.Logf("end with cancelled context")
@@ -450,7 +451,7 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsCancelled(err))
+	assert.ErrorMatch(err, ".*cancelled.*")
 	assert.Range(len(timestamps), 3, 7, "test is race, depending on scheduling")
 }
 
@@ -506,7 +507,7 @@ func TestPoll(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsExceeded(err))
+	assert.ErrorMatch(err, ".*exceeded.*")
 	assert.Equal(count, 1000, "exceeded with a count")
 
 	assert.Logf("end with cancelled context")
@@ -520,7 +521,7 @@ func TestPoll(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.True(wait.IsCancelled(err))
+	assert.ErrorMatch(err, ".*cancelled.*")
 }
 
 // TestPanic tests the handling of panics during condition checks.
@@ -538,7 +539,7 @@ func TestPanic(t *testing.T) {
 		}
 		return false, nil
 	})
-	assert.True(wait.IsPanicked(err))
+	assert.ErrorMatch(err, ".*panic.*")
 	assert.Equal(count, 5)
 }
 

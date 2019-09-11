@@ -14,7 +14,7 @@ package collections // import "tideland.dev/go/dsa/collections"
 import (
 	"fmt"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -183,7 +183,7 @@ func (n *node) hasDuplicateSibling(key interface{}) bool {
 // addChild adds a child node depending on allowed duplicates.
 func (n *node) addChild(c nodeContent) (*node, error) {
 	if !n.isAllowed(c, false) {
-		return nil, errors.New(ErrDuplicate, "adding duplicate node is not allowed")
+		return nil, failure.New("adding duplicate node is not allowed")
 	}
 	child := &node{
 		container: n.container,
@@ -197,7 +197,7 @@ func (n *node) addChild(c nodeContent) (*node, error) {
 // remove deletes this node from its parent.
 func (n *node) remove() error {
 	if n.parent == nil {
-		return errors.New(ErrCannotRemove, "cannot remove root node")
+		return failure.New("cannot remove root node")
 	}
 	for i, child := range n.parent.children {
 		if child == n {
@@ -211,7 +211,7 @@ func (n *node) remove() error {
 // at finds a node by its path.
 func (n *node) at(path ...nodeContent) (*node, error) {
 	if len(path) == 0 || path[0].key() != n.content.key() {
-		return nil, errors.New(ErrCannotFind, "cannot find node")
+		return nil, failure.New("cannot find node")
 	}
 	if len(path) == 1 {
 		return n, nil
@@ -219,20 +219,20 @@ func (n *node) at(path ...nodeContent) (*node, error) {
 	// Check children for rest of the path.
 	for _, child := range n.children {
 		found, err := child.at(path[1:]...)
-		if err != nil && !errors.IsError(err, ErrCannotFind) {
-			return nil, errors.Annotate(err, ErrInvalidPath, "")
+		if err != nil && !failure.Contains(err, "cannot find") {
+			return nil, failure.Annotate(err, "invalid path")
 		}
 		if found != nil {
 			return found, nil
 		}
 	}
-	return nil, errors.New(ErrCannotFind, "cannot find node")
+	return nil, failure.New("cannot find node")
 }
 
 // create acts like at but if nodes don't exist they will be created.
 func (n *node) create(path ...nodeContent) (*node, error) {
 	if len(path) == 0 || path[0].key() != n.content.key() {
-		return nil, errors.New(ErrCannotFind, "cannot find parent node for creation")
+		return nil, failure.New("cannot find parent node for creation")
 	}
 	if len(path) == 1 {
 		return n, nil
@@ -248,7 +248,7 @@ func (n *node) create(path ...nodeContent) (*node, error) {
 	if found == nil {
 		child, err := n.addChild(path[1])
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotAdd, "cannot add child node")
+			return nil, failure.Annotate(err, "cannot add child node")
 		}
 		return child.create(path[1:]...)
 	}
@@ -260,21 +260,21 @@ func (n *node) create(path ...nodeContent) (*node, error) {
 func (n *node) findFirst(f func(fn *node) (bool, error)) (*node, error) {
 	hasFound, err := f(n)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotFindFirst, "cannot find first matching node")
+		return nil, failure.Annotate(err, "cannot find first matching node")
 	}
 	if hasFound {
 		return n, nil
 	}
 	for _, child := range n.children {
 		found, err := child.findFirst(f)
-		if err != nil && !errors.IsError(err, ErrCannotFind) {
-			return nil, errors.Annotate(err, ErrCannotFindFirst, "cannot find first matching node")
+		if err != nil && !failure.Contains(err, "cannot find") {
+			return nil, failure.Annotate(err, "cannot find first matching node")
 		}
 		if found != nil {
 			return found, nil
 		}
 	}
-	return nil, errors.New(ErrCannotFind, "cannot find first matching node")
+	return nil, failure.New("cannot find first matching node")
 }
 
 // findAll returns all nodes for which the passed function
@@ -283,7 +283,7 @@ func (n *node) findAll(f func(fn *node) (bool, error)) ([]*node, error) {
 	var allFound []*node
 	hasFound, err := f(n)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotFindAll, "cannot find all matching nodes")
+		return nil, failure.Annotate(err, "cannot find all matching nodes")
 	}
 	if hasFound {
 		allFound = append(allFound, n)
@@ -291,7 +291,7 @@ func (n *node) findAll(f func(fn *node) (bool, error)) ([]*node, error) {
 	for _, child := range n.children {
 		found, err := child.findAll(f)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotFindAll, "cannot find all matching nodes")
+			return nil, failure.Annotate(err, "cannot find all matching nodes")
 		}
 		if found != nil {
 			allFound = append(allFound, found...)
@@ -304,11 +304,11 @@ func (n *node) findAll(f func(fn *node) (bool, error)) ([]*node, error) {
 // and all its children deep to the leafs.
 func (n *node) doAll(f func(dn *node) error) error {
 	if err := f(n); err != nil {
-		return errors.Annotate(err, ErrCannotDoAll, "cannot perform function on all nodes")
+		return failure.Annotate(err, "cannot perform function on all nodes")
 	}
 	for _, child := range n.children {
 		if err := child.doAll(f); err != nil {
-			return errors.Annotate(err, ErrCannotDoAll, "cannot perform function on all nodes")
+			return failure.Annotate(err, "cannot perform function on all nodes")
 		}
 	}
 	return nil
@@ -318,7 +318,7 @@ func (n *node) doAll(f func(dn *node) error) error {
 func (n *node) doChildren(f func(cn *node) error) error {
 	for _, child := range n.children {
 		if err := f(child); err != nil {
-			return errors.Annotate(err, ErrCannotDoChildren, "cannot perform function on all children")
+			return failure.Annotate(err, "cannot perform function on all children")
 		}
 	}
 	return nil

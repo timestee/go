@@ -14,7 +14,7 @@ package redis // import "tideland.dev/go/db/redis"
 import (
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -123,7 +123,7 @@ func (sub *Subscription) Pop() (*PublishedValue, error) {
 			Count:   count,
 		}, nil
 	default:
-		return nil, errors.New(ErrInvalidResponse, msgInvalidResponse, result)
+		return nil, failure.New("invalid server response: %q", result)
 	}
 }
 

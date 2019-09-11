@@ -19,7 +19,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -35,15 +35,15 @@ type Key interface{}
 func ReadECPrivateKey(r io.Reader) (Key, error) {
 	pemkey, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, errors.New(ErrCannotReadPEM, "cannot read the PEM")
+		return nil, failure.New("cannot read the PEM")
 	}
 	var block *pem.Block
 	if block, _ = pem.Decode(pemkey); block == nil {
-		return nil, errors.New(ErrCannotDecodePEM, "cannot decode the PEM")
+		return nil, failure.New("cannot decode the PEM")
 	}
 	var parsed *ecdsa.PrivateKey
 	if parsed, err = x509.ParseECPrivateKey(block.Bytes); err != nil {
-		return nil, errors.Annotate(err, ErrCannotParseECDSA, "cannot parse the ECDSA")
+		return nil, failure.Annotate(err, "cannot parse the ECDSA")
 	}
 	return parsed, nil
 }
@@ -53,24 +53,24 @@ func ReadECPrivateKey(r io.Reader) (Key, error) {
 func ReadECPublicKey(r io.Reader) (Key, error) {
 	pemkey, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, errors.New(ErrCannotReadPEM, "cannot read the PEM")
+		return nil, failure.New("cannot read the PEM")
 	}
 	var block *pem.Block
 	if block, _ = pem.Decode(pemkey); block == nil {
-		return nil, errors.New(ErrCannotDecodePEM, "cannot decode the PEM")
+		return nil, failure.New("cannot decode the PEM")
 	}
 	var parsed interface{}
 	parsed, err = x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		certificate, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotParseECDSA, "cannot parse the ECDSA")
+			return nil, failure.Annotate(err, "cannot parse the ECDSA")
 		}
 		parsed = certificate.PublicKey
 	}
 	publicKey, ok := parsed.(*ecdsa.PublicKey)
 	if !ok {
-		return nil, errors.New(ErrNoECDSAKey, "passed key is no ECDSA key")
+		return nil, failure.New("passed key is no ECDSA key")
 	}
 	return publicKey, nil
 }
@@ -80,23 +80,23 @@ func ReadECPublicKey(r io.Reader) (Key, error) {
 func ReadRSAPrivateKey(r io.Reader) (Key, error) {
 	pemkey, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, errors.New(ErrCannotReadPEM, "cannot read the PEM")
+		return nil, failure.New("cannot read the PEM")
 	}
 	var block *pem.Block
 	if block, _ = pem.Decode(pemkey); block == nil {
-		return nil, errors.New(ErrCannotDecodePEM, "cannot decode the PEM")
+		return nil, failure.New("cannot decode the PEM")
 	}
 	var parsed interface{}
 	parsed, err = x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		parsed, err = x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotParseRSA, "cannot parse the RSA")
+			return nil, failure.Annotate(err, "cannot parse the RSA")
 		}
 	}
 	privateKey, ok := parsed.(*rsa.PrivateKey)
 	if !ok {
-		return nil, errors.New(ErrNoRSAKey, "passed key is no RSA key")
+		return nil, failure.New("passed key is no RSA key")
 	}
 	return privateKey, nil
 }
@@ -106,24 +106,24 @@ func ReadRSAPrivateKey(r io.Reader) (Key, error) {
 func ReadRSAPublicKey(r io.Reader) (Key, error) {
 	pemkey, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, errors.New(ErrCannotReadPEM, "cannot read the PEM")
+		return nil, failure.New("cannot read the PEM")
 	}
 	var block *pem.Block
 	if block, _ = pem.Decode(pemkey); block == nil {
-		return nil, errors.New(ErrCannotDecodePEM, "cannot decode the PEM")
+		return nil, failure.New("cannot decode the PEM")
 	}
 	var parsed interface{}
 	parsed, err = x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		certificate, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotParseRSA, "cannot parse the RSA")
+			return nil, failure.Annotate(err, "cannot parse the RSA")
 		}
 		parsed = certificate.PublicKey
 	}
 	publicKey, ok := parsed.(*rsa.PublicKey)
 	if !ok {
-		return nil, errors.New(ErrNoRSAKey, "passed key is no RSA key")
+		return nil, failure.New("passed key is no RSA key")
 	}
 	return publicKey, nil
 }

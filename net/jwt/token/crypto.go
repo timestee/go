@@ -24,7 +24,7 @@ import (
 	_ "crypto/sha256"
 	_ "crypto/sha512"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -78,7 +78,7 @@ func (a Algorithm) Sign(data []byte, key Key) (Signature, error) {
 	case NONE:
 		return a.sign(data, key, 0)
 	default:
-		return nil, errors.New(ErrInvalidAlgorithm, "signing algorithm '%s' is invalid", a)
+		return nil, failure.New("signing algorithm '%s' is invalid", a)
 	}
 }
 
@@ -95,7 +95,7 @@ func (a Algorithm) Verify(data []byte, sig Signature, key Key) error {
 	case NONE:
 		return a.verify(data, sig, key, 0)
 	default:
-		return errors.New(ErrInvalidAlgorithm, "verifying algorithm '%s' is invalid", a)
+		return failure.New("verifying algorithm '%s' is invalid", a)
 	}
 }
 
@@ -120,27 +120,27 @@ func (a Algorithm) sign(data []byte, k Key, h crypto.Hash) (Signature, error) {
 	case string:
 		// None algorithm.
 		if a != "none" {
-			return nil, errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "none")
+			return nil, failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "none")
 		}
 		return Signature(""), nil
 	default:
 		// No valid key type.
-		return nil, errors.New(ErrInvalidKeyType, "key type %T is invalid", k)
+		return nil, failure.New("key type %T is invalid", k)
 	}
 }
 
 // signECDSA signs the data using the ECDSA algorithm.
 func (a Algorithm) signECDSA(data []byte, key *ecdsa.PrivateKey, h crypto.Hash) (Signature, error) {
 	if a[0] != 'E' {
-		return nil, errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "ECDSA")
+		return nil, failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "ECDSA")
 	}
 	r, s, err := ecdsa.Sign(rand.Reader, key, hashSum(data, h))
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotSign, "cannot sign the data")
+		return nil, failure.Annotate(err, "cannot sign the data")
 	}
 	sig, err := asn1.Marshal(ecPoint{r, s})
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotSign, "cannot sign the data")
+		return nil, failure.Annotate(err, "cannot sign the data")
 	}
 	return Signature(sig), nil
 }
@@ -148,7 +148,7 @@ func (a Algorithm) signECDSA(data []byte, key *ecdsa.PrivateKey, h crypto.Hash) 
 // signHMAC signs the data using the HMAC algorithm.
 func (a Algorithm) signHMAC(data, key []byte, h crypto.Hash) (Signature, error) {
 	if a[0] != 'H' {
-		return nil, errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "HMAC")
+		return nil, failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "HMAC")
 	}
 	hasher := hmac.New(h.New, key)
 	hasher.Write(data)
@@ -159,7 +159,7 @@ func (a Algorithm) signHMAC(data, key []byte, h crypto.Hash) (Signature, error) 
 // signRSA signs the data using the RSAPSS or RSA algorithm.
 func (a Algorithm) signRSA(data []byte, key *rsa.PrivateKey, h crypto.Hash) (Signature, error) {
 	if a[0] != 'P' && a[0] != 'R' {
-		return nil, errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "RSA(PSS)")
+		return nil, failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "RSA(PSS)")
 	}
 	if a.isRSAPSS() {
 		// RSAPSS.
@@ -169,14 +169,14 @@ func (a Algorithm) signRSA(data []byte, key *rsa.PrivateKey, h crypto.Hash) (Sig
 		}
 		sig, err := rsa.SignPSS(rand.Reader, key, h, hashSum(data, h), options)
 		if err != nil {
-			return nil, errors.Annotate(err, ErrCannotSign, "cannot sign the data")
+			return nil, failure.Annotate(err, "cannot sign the data")
 		}
 		return Signature(sig), nil
 	}
 	// RSA.
 	sig, err := rsa.SignPKCS1v15(rand.Reader, key, h, hashSum(data, h))
 	if err != nil {
-		return nil, errors.Annotate(err, ErrCannotSign, "cannot sign the data")
+		return nil, failure.Annotate(err, "cannot sign the data")
 	}
 	return Signature(sig), nil
 }
@@ -197,29 +197,29 @@ func (a Algorithm) verify(data []byte, sig Signature, k Key, h crypto.Hash) erro
 	case string:
 		// None algorithm.
 		if a != "none" {
-			return errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "none")
+			return failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "none")
 		}
 		if len(sig) > 0 {
-			return errors.New(ErrInvalidSignature, "data signature is invalid")
+			return failure.New("data signature is invalid")
 		}
 		return nil
 	default:
 		// No valid key type.
-		return errors.New(ErrInvalidKeyType, "key type %T is invalid", k)
+		return failure.New("key type %T is invalid", k)
 	}
 }
 
 // verifyECDSA verifies the data using the ECDSA algorithm.
 func (a Algorithm) verifyECDSA(data []byte, sig Signature, key *ecdsa.PublicKey, h crypto.Hash) error {
 	if a[0] != 'E' {
-		return errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "ECDSA")
+		return failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "ECDSA")
 	}
 	var ecp ecPoint
 	if _, err := asn1.Unmarshal(sig, &ecp); err != nil {
-		return errors.Annotate(err, ErrCannotVerify, "cannot verify the data")
+		return failure.Annotate(err, "cannot verify the data")
 	}
 	if !ecdsa.Verify(key, hashSum(data, h), ecp.R, ecp.S) {
-		return errors.New(ErrInvalidSignature, "data signature is invalid")
+		return failure.New("data signature is invalid")
 	}
 	return nil
 }
@@ -227,14 +227,14 @@ func (a Algorithm) verifyECDSA(data []byte, sig Signature, key *ecdsa.PublicKey,
 // verifyHMAC verifies the data using the HMAC algorithm.
 func (a Algorithm) verifyHMAC(data []byte, sig Signature, key []byte, h crypto.Hash) error {
 	if a[0] != 'H' {
-		return errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "HMAC")
+		return failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "HMAC")
 	}
 	expectedSig, err := a.sign(data, key, h)
 	if err != nil {
-		return errors.Annotate(err, ErrCannotVerify, "cannot verify the data")
+		return failure.Annotate(err, "cannot verify the data")
 	}
 	if !hmac.Equal(sig, expectedSig) {
-		return errors.New(ErrInvalidSignature, "data signature is invalid")
+		return failure.New("data signature is invalid")
 	}
 	return nil
 }
@@ -242,7 +242,7 @@ func (a Algorithm) verifyHMAC(data []byte, sig Signature, key []byte, h crypto.H
 // verifyRSA verifies the data using the RSAPSS or RSS algorithm.
 func (a Algorithm) verifyRSA(data []byte, sig Signature, key *rsa.PublicKey, h crypto.Hash) error {
 	if a[0] != 'P' && a[0] != 'R' {
-		return errors.New(ErrInvalidCombination, "invalid combination of algorithm '%s' and key type '%s'", a, "RSA(PSS)")
+		return failure.New("invalid combination of algorithm '%s' and key type '%s'", a, "RSA(PSS)")
 	}
 	if a.isRSAPSS() {
 		// RSAPSS.
@@ -251,12 +251,12 @@ func (a Algorithm) verifyRSA(data []byte, sig Signature, key *rsa.PublicKey, h c
 			Hash:       h,
 		}
 		if err := rsa.VerifyPSS(key, h, hashSum(data, h), sig, options); err != nil {
-			return errors.Annotate(err, ErrInvalidSignature, "data signature is invalid")
+			return failure.Annotate(err, "data signature is invalid")
 		}
 	} else {
 		// RSA.
 		if err := rsa.VerifyPKCS1v15(key, h, hashSum(data, h), sig); err != nil {
-			return errors.Annotate(err, ErrInvalidSignature, "data signature is invalid")
+			return failure.Annotate(err, "data signature is invalid")
 		}
 	}
 	return nil

@@ -15,7 +15,7 @@ import (
 	"encoding/json"
 
 	"tideland.dev/go/text/stringex"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -47,7 +47,7 @@ func Parse(data []byte, separator string) (*Document, error) {
 	var root interface{}
 	err := json.Unmarshal(data, &root)
 	if err != nil {
-		return nil, errors.Annotate(err, ErrUnmarshalling, "cannot unmarshal document")
+		return nil, failure.Annotate(err, "cannot unmarshal document")
 	}
 	return &Document{
 		separator: separator,

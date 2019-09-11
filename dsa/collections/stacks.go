@@ -14,7 +14,7 @@ package collections // import "tideland.dev/go/dsa/collections"
 import (
 	"fmt"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -43,7 +43,7 @@ func (s *Stack) Push(vs ...interface{}) {
 func (s *Stack) Pop() (interface{}, error) {
 	lv := len(s.values)
 	if lv == 0 {
-		return nil, errors.New(ErrEmpty, "stack is empty")
+		return nil, failure.New("stack is empty")
 	}
 	v := s.values[lv-1]
 	s.values = s.values[:lv-1]
@@ -54,7 +54,7 @@ func (s *Stack) Pop() (interface{}, error) {
 func (s *Stack) Peek() (interface{}, error) {
 	lv := len(s.values)
 	if lv == 0 {
-		return nil, errors.New(ErrEmpty, "stack is empty")
+		return nil, failure.New("stack is empty")
 	}
 	v := s.values[lv-1]
 	return v, nil
@@ -119,7 +119,7 @@ func (s *StringStack) Push(vs ...string) {
 func (s *StringStack) Pop() (string, error) {
 	lv := len(s.values)
 	if lv == 0 {
-		return "", errors.New(ErrEmpty, "string stack is empty")
+		return "", failure.New("string stack is empty")
 	}
 	v := s.values[lv-1]
 	s.values = s.values[:lv-1]
@@ -130,7 +130,7 @@ func (s *StringStack) Pop() (string, error) {
 func (s *StringStack) Peek() (string, error) {
 	lv := len(s.values)
 	if lv == 0 {
-		return "", errors.New(ErrEmpty, "string stack is empty")
+		return "", failure.New("string stack is empty")
 	}
 	v := s.values[lv-1]
 	return v, nil

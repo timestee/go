@@ -5,7 +5,7 @@
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package couchdb_test
+package couchdb_test // import "tideland.dev/go/db/couchdb_test"
 
 //--------------------
 // IMPORTS
@@ -15,9 +15,8 @@ import (
 	"testing"
 
 	"tideland.dev/go/audit/asserts"
-	"tideland.dev/go/trace/errors"
-
 	"tideland.dev/go/db/couchdb"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -276,7 +275,7 @@ func TestUpdateDocument(t *testing.T) {
 	resp = cdb.UpdateDocument(docD)
 	assert.False(resp.IsOK())
 	assert.Equal(resp.StatusCode(), couchdb.StatusNotFound)
-	assert.True(errors.IsError(resp.Error(), couchdb.ErrNotFound))
+	assert.True(failure.Contains(resp.Error(), "not found"))
 }
 
 // TestDeleteDocument tests deleting a document.
@@ -316,7 +315,7 @@ func TestDeleteDocument(t *testing.T) {
 	resp = cdb.DeleteDocument(docB)
 	assert.False(resp.IsOK())
 	assert.Equal(resp.StatusCode(), couchdb.StatusNotFound)
-	assert.True(errors.IsError(resp.Error(), couchdb.ErrNotFound))
+	assert.True(failure.Contains(resp.Error(), "not found"))
 }
 
 // TestDeleteDocumentByID tests deleting a document by identifier.
@@ -350,7 +349,7 @@ func TestDeleteDocumentByID(t *testing.T) {
 	resp = cdb.DeleteDocumentByID(id, revision)
 	assert.False(resp.IsOK())
 	assert.Equal(resp.StatusCode(), couchdb.StatusNotFound)
-	assert.True(errors.IsError(resp.Error(), couchdb.ErrNotFound))
+	assert.True(failure.Contains(resp.Error(), "not found"))
 }
 
 // EOF

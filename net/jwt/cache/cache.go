@@ -21,7 +21,7 @@ import (
 	"tideland.dev/go/net/jwt/token"
 	"tideland.dev/go/together/loop"
 	"tideland.dev/go/together/notifier"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -168,11 +168,11 @@ func (c *Cache) Stop() error {
 func (c *Cache) requestToken(req *http.Request) (string, error) {
 	authorization := req.Header.Get("Authorization")
 	if authorization == "" {
-		return "", errors.New(ErrNoAuthorizationHeader, msgNoAuthorizationHeader)
+		return "", failure.New("request contains no authorization header")
 	}
 	fields := strings.Fields(authorization)
 	if len(fields) != 2 || fields[0] != "Bearer" {
-		return "", errors.New(ErrInvalidAuthorizationHeader, msgInvalidAuthorizationHeader, authorization)
+		return "", failure.New("invalid authorization header: %q", authorization)
 	}
 	return fields[1], nil
 }

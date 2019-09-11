@@ -18,7 +18,7 @@ import (
 	"io"
 	"strings"
 
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -63,7 +63,7 @@ func NewWriterContext(wp WriterProcessor, w io.Writer, pretty bool, indentStr st
 // processing if the tag is matching.
 func (ctx *WriterContext) Register(tag string, wp WriterProcessor) error {
 	if _, ok := ctx.plugins[tag]; ok {
-		return errors.New(ErrRegisteredPlugin, "plugin '%s' already registered", tag)
+		return failure.New("plugin '%s' already registered", tag)
 	}
 	wp.SetContext(ctx)
 	ctx.plugins[tag] = wp
@@ -89,7 +89,7 @@ type mlWriter struct {
 func WriteSML(node Node, ctx *WriterContext) error {
 	wp := ctx.plugins[""]
 	if wp == nil {
-		return errors.New(ErrNoRootProcessor, "need root processor")
+		return failure.New("need root processor")
 	}
 	w := &mlWriter{
 		context: ctx,

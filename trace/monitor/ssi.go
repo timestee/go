@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"tideland.dev/go/together/actor"
-	"tideland.dev/go/trace/errors"
+	"tideland.dev/go/trace/failure"
 )
 
 //--------------------
@@ -122,7 +122,7 @@ func (i *StaySetIndicator) Read(id string) (IndicatorValue, error) {
 		i.accumulateOne(id)
 		iv = i.values[id]
 		if iv == nil {
-			err = errors.New(ErrInvalidIndicatorValue, "indicator value '%s' does not exist", id)
+			err = failure.New("indicator value '%s' does not exist", id)
 		}
 		return nil
 	})
