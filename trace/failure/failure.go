@@ -40,6 +40,11 @@ func newFailure(err error, msg string, args ...interface{}) *failure {
 	}
 }
 
+// Unwrap returns a wrapped error.
+func (f *failure) Unwrap() error {
+	return f.err
+}
+
 // Error implements the error interface.
 func (f *failure) Error() string {
 	if f.err != nil {
@@ -117,8 +122,10 @@ func Contains(err error, substr string) bool {
 // Annotated returns the possibly annotated error. In case of
 // a different error an invalid type error is returned.
 func Annotated(err error) error {
-	if f, ok := err.(*failure); ok {
-		return f.err
+	if uerr, ok := err.(interface {
+		Unwrap() error
+	}); ok {
+		return uerr.Unwrap()
 	}
 	return Annotate(err, "passed error has invalid type")
 }
@@ -135,8 +142,10 @@ func Location(err error) (string, error) {
 // Stack returns a slice of errors down to the lowest
 // not annotated error.
 func Stack(err error) []error {
-	if f, ok := err.(*failure); ok {
-		return append([]error{f}, Stack(f.err)...)
+	if uerr, ok := err.(interface {
+		Unwrap() error
+	}); ok {
+		return append([]error{err}, Stack(uerr.Unwrap())...)
 	}
 	return []error{err}
 }
