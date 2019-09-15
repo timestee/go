@@ -12,7 +12,9 @@ package event_test // import "tideland.dev/go/together/cells/event"
 //--------------------
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"tideland.dev/go/audit/asserts"
 	"tideland.dev/go/together/cells/event"
@@ -30,6 +32,31 @@ func TestTopicOnly(t *testing.T) {
 	assert.Equal(evt.Topic(), "test")
 	vfoo := evt.Payload().At("foo")
 	assert.ErrorMatch(vfoo, ".*no payload value at key \"foo\".*")
+}
+
+// TestDone verifies a done event based on a context.
+func TestDone(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	evt := event.New("test")
+
+	assert.False(evt.Done())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	evt = event.WithContext(ctx, "test")
+
+	assert.False(evt.Done())
+	cancel()
+	assert.True(evt.Done())
+
+	ctx, cancel = context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	evt = event.WithContext(ctx, "test")
+
+	assert.False(evt.Done())
+	time.Sleep(100 * time.Millisecond)
+	assert.True(evt.Done())
 }
 
 // TestKeyValues verifies creation of an event with a topic
