@@ -99,7 +99,7 @@ func (m *Mesh) Subscribe(id string, subscriberIDs ...string) error {
 	return m.cells.subscribe(id, subscriberIDs)
 }
 
-// Unsubsribe disconnect cells from the given cell.
+// Unsubscribe disconnect cells from the given cell.
 func (m *Mesh) Unsubscribe(id string, unsubscriberIDs ...string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
