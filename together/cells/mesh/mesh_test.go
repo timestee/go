@@ -12,6 +12,7 @@ package mesh_test // import "tideland.dev/go/together/cells/mesh"
 //--------------------
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -119,6 +120,40 @@ func TestEmitEvents(t *testing.T) {
 	assert.Equal(plr.At("a").AsInt(0), 1)
 	assert.Equal(plr.At("b").AsInt(0), 2)
 	assert.Equal(plr.At("c").AsInt(0), 3)
+
+	err = msh.Stop()
+	assert.NoError(err)
+}
+
+// TestEmitContextEvents verifies emitting some events with a context
+// to a node. Some of those will timeout.
+func TestEmitContextEvents(t *testing.T) {
+	assert := asserts.NewTesting(t, asserts.FailStop)
+	msh := mesh.New()
+
+	err := msh.SpawnCells(NewTestBehavior("foo"))
+	assert.NoError(err)
+
+	ctxA := context.Background()
+	ctxB, cancel := context.WithTimeout(ctxA, 5*time.Millisecond)
+	defer cancel()
+
+	msh.Emit("foo", event.WithContext(ctxA, "set", "a", 5))
+	msh.Emit("foo", event.WithContext(ctxA, "set", "b", 5))
+
+	time.Sleep(20 * time.Millisecond)
+
+	msh.Emit("foo", event.WithContext(ctxB, "set", "b", 10))
+
+	pl, plc := event.NewReplyPayload()
+
+	msh.Emit("foo", event.New("send", pl))
+
+	plr, err := plc.Wait(waitTimeout)
+
+	assert.NoError(err)
+	assert.Equal(plr.At("a").AsInt(0), 5)
+	assert.Equal(plr.At("b").AsInt(0), 5)
 
 	err = msh.Stop()
 	assert.NoError(err)
