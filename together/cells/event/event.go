@@ -63,6 +63,11 @@ func WithContext(ctx context.Context, topic string, kvs ...interface{}) *Event {
 	}
 }
 
+// Context returns the event context.
+func (e *Event) Context() context.Context {
+	return e.ctx
+}
+
 // Done tells if the event is done in the sense of the context. This
 // happens if a potential context is canceled or reached timeout or
 // deadline.

@@ -131,6 +131,9 @@ func (c *cell) unsubscribe(subscribers []*cell) error {
 // process lets the cell behavior process the event asynchronously.
 func (c *cell) process(evt *event.Event) error {
 	if aerr := c.act.DoAsync(func() error {
+		if evt.Done() {
+			return nil
+		}
 		perr := c.behavior.Process(evt)
 		if perr != nil {
 			return c.behavior.Recover(perr)
