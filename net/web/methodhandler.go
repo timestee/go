@@ -22,6 +22,8 @@ import (
 //--------------------
 
 const (
+	// MethodAll allows to define a handle for all non-explicit
+	// configured HTTP methods.
 	MethodAll = "*"
 )
 

@@ -40,19 +40,19 @@ func TestSimpleRequests(t *testing.T) {
 			method:      http.MethodGet,
 			path:        "/hello/world",
 			statusCode:  http.StatusOK,
-			contentType: environments.ContentTypeTextPlain,
+			contentType: environments.ContentTypePlain,
 			body:        "Hello, World!",
 		}, {
 			method:      http.MethodGet,
 			path:        "/hello/tester",
 			statusCode:  http.StatusOK,
-			contentType: environments.ContentTypeTextPlain,
+			contentType: environments.ContentTypePlain,
 			body:        "Hello, Tester!",
 		}, {
 			method:      http.MethodPost,
 			path:        "/hello/postman",
 			statusCode:  http.StatusOK,
-			contentType: environments.ContentTypeTextPlain,
+			contentType: environments.ContentTypePlain,
 			body:        "Hello, Postman!",
 		}, {
 			method:     http.MethodOptions,
@@ -129,7 +129,7 @@ func StartWebAsserter(assert *asserts.Asserts) *environments.WebAsserter {
 func MakeHelloWorldHandler(assert *asserts.Asserts, who string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reply := "Hello, " + who + "!"
-		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
+		w.Header().Add(environments.HeaderContentType, environments.ContentTypePlain)
 		w.Write([]byte(reply))
 		w.WriteHeader(http.StatusOK)
 	}
@@ -144,7 +144,7 @@ func MakeHeaderCookiesHandler(assert *asserts.Asserts) http.HandlerFunc {
 			Name:  "Cookie-Out",
 			Value: cookieOut,
 		})
-		w.Header().Set(environments.HeaderContentType, environments.ContentTypeTextPlain)
+		w.Header().Set(environments.HeaderContentType, environments.ContentTypePlain)
 		w.Header().Set("Header-Out", headerOut)
 		w.Write([]byte("Done!"))
 		w.WriteHeader(http.StatusOK)
