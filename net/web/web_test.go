@@ -33,7 +33,7 @@ func makeMethodEcho(assert *asserts.Asserts) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reply := "METHOD: " + r.Method + "!"
 		w.WriteHeader(http.StatusOK)
-		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
+		w.Header().Add(environments.HeaderContentType, environments.ContentTypePlain)
 		w.Write([]byte(reply))
 	}
 }

@@ -35,9 +35,11 @@ const (
 	HeaderAccept      = "Accept"
 	HeaderContentType = "Content-Type"
 
-	ContentTypeTextPlain       = "text/plain"
-	ContentTypeApplicationJSON = "application/json"
-	ContentTypeApplicationXML  = "application/xml"
+	ContentTypePlain      = "text/plain"
+	ContentTypeHTML       = "text/html"
+	ContentTypeXML        = "application/xml"
+	ContentTypeJSON       = "application/json"
+	ContentTypeURLEncoded = "application/x-www-form-urlencoded"
 )
 
 //--------------------
@@ -190,10 +192,10 @@ func (wresp *WebResponse) AssertUnmarshalledBody(data interface{}) {
 	contentType := wresp.header.Get(HeaderContentType)
 	wresp.wa.assert.NotEmpty(contentType)
 	switch contentType[0] {
-	case ContentTypeApplicationJSON:
+	case ContentTypeJSON:
 		err := json.Unmarshal(wresp.body, data)
 		wresp.wa.assert.Nil(err, "cannot unmarshal JSON body")
-	case ContentTypeApplicationXML:
+	case ContentTypeXML:
 		err := xml.Unmarshal(wresp.body, data)
 		wresp.wa.assert.Nil(err, "cannot unmarshal XML body")
 	default:
@@ -285,18 +287,18 @@ func (wreq *WebRequest) AssertMarshalBody(data interface{}) {
 	contentType := wreq.Header().Get(HeaderContentType)
 	wreq.wa.assert.NotEmpty(contentType, "content type must be set for marshalling")
 	switch contentType[0] {
-	case ContentTypeApplicationJSON:
+	case ContentTypeJSON:
 		body, err := json.Marshal(data)
 		wreq.wa.assert.Nil(err, "cannot marshal data to JSON")
 		wreq.body = body
-		wreq.Header().Add(HeaderContentType, ContentTypeApplicationJSON)
-		wreq.Header().Add(HeaderAccept, ContentTypeApplicationJSON)
-	case ContentTypeApplicationXML:
+		wreq.Header().Add(HeaderContentType, ContentTypeJSON)
+		wreq.Header().Add(HeaderAccept, ContentTypeJSON)
+	case ContentTypeXML:
 		body, err := xml.Marshal(data)
 		wreq.wa.assert.Nil(err, "cannot marshal data to XML")
 		wreq.body = body
-		wreq.Header().Add(HeaderContentType, ContentTypeApplicationXML)
-		wreq.Header().Add(HeaderAccept, ContentTypeApplicationXML)
+		wreq.Header().Add(HeaderContentType, ContentTypeXML)
+		wreq.Header().Add(HeaderAccept, ContentTypeXML)
 	}
 }
 

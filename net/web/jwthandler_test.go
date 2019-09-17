@@ -34,7 +34,7 @@ func TestJWTHandler(t *testing.T) {
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Header().Add(environments.HeaderContentType, environments.ContentTypeTextPlain)
+		w.Header().Add(environments.HeaderContentType, environments.ContentTypePlain)
 		w.Write([]byte("request passed"))
 	})
 	jwtWrapper := web.NewJWTHandler(handler, &web.JWTHandlerConfig{
